@@ -29,7 +29,7 @@ if auto_updater == true then error("Invalid auto-updater lib. Please delete your
 
 -- Run auto-update
 local auto_update_config = {
-    source_url="",
+    source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
     script_relpath=SCRIPT_RELPATH
 }
 -- auto_updater.run_auto_update(auto_update_config)
