@@ -4,36 +4,6 @@ util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
 local SCRIPT_VERSION = "2.2.2"
 
--- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
-local status, auto_updater = pcall(require, "auto-updater")
-if not status then
-    local auto_update_complete = nil util.toast("Installing auto-updater...", TOAST_ALL)
-    async_http.init("raw.githubusercontent.com", "/hexarobi/stand-lua-auto-updater/main/auto-updater.lua",
-        function(result, headers, status_code)
-            local function parse_auto_update_result(result, headers, status_code)
-                local error_prefix = "Error downloading auto-updater: "
-                if status_code ~= 200 then util.toast(error_prefix..status_code, TOAST_ALL) return false end
-                if not result or result == "" then util.toast(error_prefix.."Found empty file.", TOAST_ALL) return false end
-                filesystem.mkdir(filesystem.scripts_dir() .. "lib")
-                local file = io.open(filesystem.scripts_dir() .. "lib\\auto-updater.lua", "wb")
-                if file == nil then util.toast(error_prefix.."Could not open file for writing.", TOAST_ALL) return false end
-                file:write(result) file:close() util.toast("Successfully installed auto-updater lib", TOAST_ALL) return true
-            end
-            auto_update_complete = parse_auto_update_result(result, headers, status_code)
-        end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
-    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
-    if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
-    auto_updater = require("auto-updater")
-end
-if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
-
--- Run auto-update
-local auto_update_config = {
-    source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
-    script_relpath=SCRIPT_RELPATH
-}
--- auto_updater.run_auto_update(auto_update_config)
-
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
 
@@ -711,6 +681,36 @@ util.create_tick_handler(function()
     end
 end)
 
+-- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
+local status, auto_updater = pcall(require, "auto-updater")
+if not status then
+    local auto_update_complete = nil util.toast("Installing auto-updater...", TOAST_ALL)
+    async_http.init("raw.githubusercontent.com", "/hexarobi/stand-lua-auto-updater/main/auto-updater.lua",
+        function(result, headers, status_code)
+            local function parse_auto_update_result(result, headers, status_code)
+                local error_prefix = "Error downloading auto-updater: "
+                if status_code ~= 200 then util.toast(error_prefix..status_code, TOAST_ALL) return false end
+                if not result or result == "" then util.toast(error_prefix.."Found empty file.", TOAST_ALL) return false end
+                filesystem.mkdir(filesystem.scripts_dir() .. "lib")
+                local file = io.open(filesystem.scripts_dir() .. "lib\\auto-updater.lua", "wb")
+                if file == nil then util.toast(error_prefix.."Could not open file for writing.", TOAST_ALL) return false end
+                file:write(result) file:close() util.toast("Successfully installed auto-updater lib", TOAST_ALL) return true
+            end
+            auto_update_complete = parse_auto_update_result(result, headers, status_code)
+        end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
+    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
+    if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
+    auto_updater = require("auto-updater")
+end
+if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
+
+-- Run auto-update
+local auto_update_config = {
+    source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
+    script_relpath=SCRIPT_RELPATH
+}
+-- auto_updater.run_auto_update(auto_update_config)
+
 local shortcuts = {
     { name = "Restart Script", command = {"rsc"}, description = "", action = function() util.restart_script() end },
     { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("gosolopublic") end },
@@ -767,6 +767,13 @@ local auto_accept = menu.list(settings, "Auto Accept", {})
 local enhancements = menu.list(settings, "Enhancements", {})
 local randomshit = menu.list(settings, "Random Shit", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
+
+-- Manually check for updates with a menu option
+menu.action(misc, "Check for Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
+    auto_update_config.check_interval = 0
+    util.toast("Checking for updates")
+    auto_updater.run_auto_update(auto_update_config)
+end)
 
 local shortcuts_menu = menu.list(misc, "Shortcuts", {}, "", function() end)
 for _, shortcut in ipairs(shortcuts) do
