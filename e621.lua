@@ -2,7 +2,7 @@ pluto_use "0.9.1"
 util.require_natives("3095a", "g")
 --util.require_natives("natives-1627063482")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.3.2"
+local SCRIPT_VERSION = "2.3.3"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -107,6 +107,7 @@ local oob_locations = {
 
 local interiors = {
     { name = "Creepy ass place", x = -1922.0615, y = 3749.7983, z = -99.64585, description = "I don't know what this is for, but the ambient music & noises in there make me uneasy." },
+    { name = "Acid lab", x = 480.3165, y = -2623.9385, z = -47.227962, },
     { name = "Flying Shoes", x = -24.612347, y = -1463.7196, z = 41.772713 },
     { name = "Chilliad Tree", x = 1986.4318, y = 5726.588, z = 2.3640056 },
     { name = "prip's Home", x = 154.61754, y = -1004.18097, z = -98.41931 },
@@ -117,15 +118,13 @@ local interiors = {
     { name = "Warehouse Interior", x = 1006.4094, y = -3099.7756, z = -38.999916 },
     { name = "La Mesa Lamp Post", x = 692.2926, y = -900.46405, z = 1.3883853 },
     { name = "Random Fence", x = -2169.7388, y = 3068.5571, z = 2.6443794, description = "Literally just a floating fence under Fort Zancudo. The rotation resets on its own so you might just fall towards the void whenever you tp here." },
+    { name = "Random Fence #2", x = 1025.8007, y = -2257.2246, z = 3.6108174, description = "Another one" },
     { name = "Unknown Interior", x = 1089.2979, y = -2276.842, z = -48.999935 },
-    { name = "Random DLC Interior", x = 2527.1074, y = -281.164, z = -64.722855 }, -- Aero said: I just fall infinitely when telepporting to this one. (Aero is retarded)
     { name = "Nightclub Interior", x = -1618.4036, y = -3012.2046, z = -75.20511 },
     { name = "Arcade Interior", x = 2696.013, y = -369.06625, z = -54.78093 },
     { name = "Avenger Interior (LSIA)", command = "avengerlsiainterior", x = -880.7326, y = -2769.0347, z = -41.404156 },
     { name = "Casino Garage Interior", x = 1390.3984, y = 202.0952, z = -48.99538 },
-    { name = "Casino Interior", x = 2489.176, y = -274.9123, z = -58.70791 },
     { name = "Lillium's eep place", x= -1869.1552, y = 3749.7407, z= -99.84548, description = "Lillium's fav place to sleep"},
-    { name = "Some Random Office Interior", x = 2509.0244, y = -246.17993, z = -55.123196 }, -- Aero said: I just fall infinitely when telepporting to this one.
 }
 
 local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 65 80 41 FF C7") + 1)
@@ -2454,7 +2453,7 @@ function horny_dog_command()
 
     chat.send_message(horny_dog_message, false, true, true)
 end
-online_chat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this.
+online_chat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
 
 
 -- Table to store up to three custom chat messages
@@ -2463,15 +2462,12 @@ local customChatMessages = {"", "", ""}
 -- Function to add a new message to a specific slot. I went with three cuz I thought it was a good starting point. You can include more if you so wish to.
 online_premsg:text_input("Predefined Chat Message Slot 1", {"1"}, "Set and save a message in slot 1 that you can send at any time.", function(input)
     customChatMessages[1] = input
-    util.toast("Message in slot 1 set to: " .. input)
 end)
 online_premsg:text_input("Predefined Chat Message Slot 2", {"2"}, "Set and save a message in slot 2 that you can send at any time.", function(input)
     customChatMessages[2] = input
-    util.toast("Message in slot 2 set to: " .. input)
 end)
 online_premsg:text_input("Predefined Chat Message Slot 3", {"3"}, "Set and save a message in slot 3 that you can send at any time.", function(input)
     customChatMessages[3] = input
-    util.toast("Message in slot 3 set to: " .. input)
 end)
 
 -- Function to send a selected message from the table
@@ -2479,7 +2475,6 @@ online_premsg:click_slider("Send Saved Chat Message", {"sm"}, "Select the index 
     local idx = tonumber(index)
     if customChatMessages[idx] and customChatMessages[idx] ~= "" then
         chat.send_message(customChatMessages[idx], false, true, true)
-        util.toast("Message sent from slot " .. idx .. ": " .. customChatMessages[idx], TOAST_DEFAULT)
     else
         util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
     end
