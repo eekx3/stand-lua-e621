@@ -2,7 +2,7 @@ pluto_use "0.9.1"
 util.require_natives("3095a", "g")
 --util.require_natives("natives-1627063482")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.3.3"
+local SCRIPT_VERSION = "2.3.4"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -767,7 +767,7 @@ local randomshit = menu.list(settings, "Random Shit", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
 -- Manually check for updates with a menu option
-menu.action(misc, "Check for Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
+menu.action(misc, "Check For Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
     auto_update_config.check_interval = 0
     util.toast("Checking for updates")
     auto_updater.run_auto_update(auto_update_config)
@@ -1954,10 +1954,11 @@ end)
 
 --#bark
 local chopPedHandle = nil
-self:action("Bark", {}, "", function()
+self:action("Bark", {}, "Note: The sound may not play consistently for all players every time.\n(It'll have to stay this way until I find a fix.)", function()
     local function BarkThenDelete(pedHandle)
         AUDIO.PLAY_ANIMAL_VOCALIZATION(pedHandle, 3, "BARK_SEQ")
         util.yield(1200)
+
         if ENTITY.DOES_ENTITY_EXIST(pedHandle) then
             entities.delete_by_handle(pedHandle)
         end
@@ -1981,15 +1982,14 @@ self:action("Bark", {}, "", function()
     chopPedHandle = entities.create_ped(1, pedHash, ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID(), true), ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID()))
     
     if chopPedHandle ~= 0 then
-        ENTITY.SET_ENTITY_VISIBLE(chopPedHandle, false)
         ENTITY.ATTACH_ENTITY_TO_ENTITY(chopPedHandle, PLAYER.PLAYER_PED_ID(), PED.GET_PED_BONE_INDEX(PLAYER.PLAYER_PED_ID(), 0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, false, false, false, 2, true, 0)
+        ENTITY.SET_ENTITY_INVINCIBLE(chopPedHandle, true)
+        ENTITY.SET_ENTITY_VISIBLE(chopPedHandle, false)
         BarkThenDelete(chopPedHandle)
     end
     
     STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(pedHash)
 end)
---#meow
-
 
 --#ewo
 local function write_to_global()
