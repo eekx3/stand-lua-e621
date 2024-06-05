@@ -733,8 +733,6 @@ local creditsList = {
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
     { name = "Lillium", description = "" },
     { name = "Ilana", description = "" },
-    { name = "Nova", description = "" },
-    { name = "Len's", description = "" },
     { name = "Wozzily", description = "" },
 }
 --#menus
