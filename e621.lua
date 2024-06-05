@@ -752,6 +752,7 @@ online:list("Players", {}, "", function(on_click) menu.trigger_commands("eonline
 local online_griefing = menu.list(online, "Griefing", {})
 local online_trolling = menu.list(online, "Trolling", {})
 local online_chat = menu.list(online, "Chat", {})
+local online_premsg = menu.list(online, "Chat - Predefined Messages", {})
 local cleanse = world:list("Clear area", {})
 local tps1 = menu.list(world, "Teleports", {"etp"})
 local freemodetweaks = menu.list(settings, "Freemode Tweaks", {})
@@ -2455,17 +2456,35 @@ function horny_dog_command()
 end
 online_chat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this.
 
-local customChatMessage = ""
-online_chat:text_input("Predefined Chat Message", {"customchatmessage"}, "Let's you set and save a message that you can send at any time.", function(input)
-    customChatMessage = input
+
+-- Table to store up to three custom chat messages
+local customChatMessages = {"", "", ""}
+
+-- Function to add a new message to a specific slot. I went with three cuz I thought it was a good starting point. You can include more if you so wish to.
+online_premsg:text_input("Predefined Chat Message Slot 1", {"1"}, "Set and save a message in slot 1 that you can send at any time.", function(input)
+    customChatMessages[1] = input
+    util.toast("Message in slot 1 set to: " .. input)
 end)
-online_chat:action("Send Predefined Message", {"sendcustommessage"}, "", function()
-    if customChatMessage ~= "" then
-        chat.send_message(customChatMessage, false, true, true)
+online_premsg:text_input("Predefined Chat Message Slot 2", {"2"}, "Set and save a message in slot 2 that you can send at any time.", function(input)
+    customChatMessages[2] = input
+    util.toast("Message in slot 2 set to: " .. input)
+end)
+online_premsg:text_input("Predefined Chat Message Slot 3", {"3"}, "Set and save a message in slot 3 that you can send at any time.", function(input)
+    customChatMessages[3] = input
+    util.toast("Message in slot 3 set to: " .. input)
+end)
+
+-- Function to send a selected message from the table
+online_premsg:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (1-3) of the message you want to send.", 1, 3, 1, 1, function(index, click_type)
+    local idx = tonumber(index)
+    if customChatMessages[idx] and customChatMessages[idx] ~= "" then
+        chat.send_message(customChatMessages[idx], false, true, true)
+        util.toast("Message sent from slot " .. idx .. ": " .. customChatMessages[idx], TOAST_DEFAULT)
     else
-        print("Custom message is empty!")
+        util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
     end
 end)
+
 
 --#randomshit
 local bonePairs = {
