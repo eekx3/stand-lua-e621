@@ -730,9 +730,8 @@ local creditsList = {
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
     { name = "Aero", description = "Silly Puppy" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
-    { name = "Lillium", description = "" },
+    { name = "Lillium", description = "Silly" },
     { name = "Ilana", description = "" },
-    { name = "Wozzily", description = "" },
 }
 --#menus
 local self = menu.list(menu.my_root(), "Self", {"eself"})
@@ -747,7 +746,7 @@ local misc = menu.list(menu.my_root(), "Miscellaneous", {"emisc"})
 local movement = menu.list(self, "Movement", {})
 local veh_fly = menu.list(veh_root, "Vehicle Fly", {})
 local veh_lsc = menu.list(veh_root, "Vehicle Customisation", {"elsc"})
-online:list("Players", {}, "", function(on_click) menu.trigger_commands("eonline") menu.trigger_commands("Players") end)
+local players_list = online:list("Players")
 local online_griefing = menu.list(online, "Griefing", {})
 local online_trolling = menu.list(online, "Trolling", {})
 local online_chat = menu.list(online, "Chat", {})
@@ -763,7 +762,7 @@ local hud_settings = menu.list(settings, "HUD", {})
 local protections = menu.list(settings, "Protections", {})
 local auto_accept = menu.list(settings, "Auto Accept", {})
 local enhancements = menu.list(settings, "Enhancements", {})
-local randomshit = menu.list(settings, "Random Shit", {})
+local experimental = menu.list(settings, "Experimental", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
 -- Manually check for updates with a menu option
@@ -802,6 +801,50 @@ end
 if not SCRIPT_SILENT_START then
     util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION, TOAST_DEFAULT)
 end
+
+local menus = {}
+local hasLink = {}
+local function create_player_menu(playerID)
+    if NETWORK_IS_SESSION_ACTIVE() and not menus[playerID] then
+        local playerRoot = menu.player_root(playerID)
+        menus[playerID] = players_list:list(players.get_name(playerID), {}, "", function()
+            if not hasLink[playerID] then
+                local griefingRef = menu.ref_by_rel_path(playerRoot, ">:33>Griefing")
+                local trollingRef = menu.ref_by_rel_path(playerRoot, ">:33>Trolling")
+                local godmodePlayerRef = menu.ref_by_rel_path(playerRoot, ">:33>Remove Player Godmode")
+                local godmodeVehicleRef = menu.ref_by_rel_path(playerRoot, ">:33>Remove Vehicle Godmode")
+                local orbitalStrikeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike")
+                local orbitalStrikeGodmodeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike Godmode Player")
+                
+                if griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeRef and orbitalStrikeGodmodeRef then
+                    menus[playerID]:link(griefingRef)
+                    menus[playerID]:link(trollingRef)
+                    menus[playerID]:link(godmodePlayerRef)
+                    menus[playerID]:link(godmodeVehicleRef)
+                    menus[playerID]:link(orbitalStrikeRef)
+                    menus[playerID]:link(orbitalStrikeGodmodeRef)
+                    hasLink[playerID] = true
+                else
+                    util.toast("Error: Failed to get command references.", TOAST_DEFAULT)
+                end
+            end
+        end)
+    end
+end
+
+local function handle_player_list(playerID)
+    local ref = menus[playerID]
+    if not players.exists(playerID) then
+        if ref then
+            menu.delete(ref)
+            menus[playerID] = nil
+        end
+    end
+end
+
+players.on_join(create_player_menu)
+players.on_leave(handle_player_list)
+players.dispatch_on_join()
 
 menu.toggle_loop(yacht, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --Credit to SetThreadContext for this.
     local val = memory.read_int(memory.script_global(262145 + 13319))
