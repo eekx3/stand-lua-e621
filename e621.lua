@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.4.7"
+local SCRIPT_VERSION = "2.5.0"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -748,7 +748,7 @@ local players_list = online:list("Players")
 local online_griefing = menu.list(online, "Griefing", {})
 local online_trolling = menu.list(online, "Trolling", {})
 local online_chat = menu.list(online, "Chat", {})
-local online_premsg = menu.list(online, "Chat - Predefined Messages", {})
+local online_premsg = menu.list(online_chat, "Chat - Predefined Messages", {})
 local cleanse = world:list("Clear area", {})
 local tps1 = menu.list(world, "Teleports", {"etp"})
 local freemodetweaks = menu.list(settings, "Freemode Tweaks", {})
@@ -2154,13 +2154,13 @@ local function checkPlayerKills()
                 if victim ~= attacker and victim ~= -1 and attacker ~= -1 then
                     if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
                         if victimDestroyed == 1 then
-                            util.toast(string.format("%s killed %s with %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker)), players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                            util.toast(string.format("%s Killed %s With %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker)), players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
                         end
                     end
                 elseif victim == attacker and victim ~= -1 and attacker ~= -1 then
                     if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
                         if victimDestroyed == 1 then
-                            util.toast(string.format("%s killed themselves with %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                            util.toast(string.format("%s Killed Themselves With %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
                         end
                     end
                 end
@@ -2190,22 +2190,16 @@ online:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
 end)
 
 --#griefing
-online_griefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
-    for _, pid in ipairs(players.list(false, true, true)) do
-        menu.trigger_commands("givesh" .. players.get_name(pid))
+online_griefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
+    local list = players.list(false, false, true)
+    for list as pid do
+        if players.get_name(players.get_host()) == players.get_name(pid) then
+            goto continue
+        end
+        menu.trigger_commands("nonhostkick" .. players.get_name(pid))
         util.yield()
+        ::continue::
     end
-end)
-
---#trolling
-online_trolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pos = players.get_position(playerID)
-		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
-			menu.trigger_commands($"hijack {players.get_name(playerID)}")
-		end
-	end
 end)
 
 local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
@@ -2235,6 +2229,25 @@ online_griefing:action("Orbital Strike Everyone", { "orball" }, "", function()
     isOrbActive = false
 end)
 
+online_griefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
+    for _, pid in ipairs(players.list(false, true, true)) do
+        menu.trigger_commands("givesh" .. players.get_name(pid))
+        util.yield()
+    end
+end)
+
+--#trolling
+online_trolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local pos = players.get_position(playerID)
+		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
+			menu.trigger_commands($"hijack {players.get_name(playerID)}")
+		end
+	end
+end)
+
+--#chaos
 world:toggle_loop("Chaos", {}, "", function(on)
 	local vehicle = entities.get_all_vehicles_as_handles()
 	local me = players.user()  
@@ -2242,7 +2255,7 @@ world:toggle_loop("Chaos", {}, "", function(on)
 	local ct = 0
 		for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
 			NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
-			VEHICLE.SET_VEHICLE_FORWARD_SPEED(ent, 900000000)
+			VEHICLE.SET_VEHICLE_FORWARD_SPEED(ent, 900000)
 			ct = ct + 1
 		end
 end)
