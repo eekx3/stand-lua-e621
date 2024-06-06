@@ -762,7 +762,7 @@ local hud_settings = menu.list(settings, "HUD", {})
 local protections = menu.list(settings, "Protections", {})
 local auto_accept = menu.list(settings, "Auto Accept", {})
 local enhancements = menu.list(settings, "Enhancements", {})
-local experimental = menu.list(settings, "Experimental", {})
+local randomshit = menu.list(settings, "Experimental", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
 -- Manually check for updates with a menu option
