@@ -2,7 +2,7 @@ pluto_use "0.9.1"
 util.require_natives("3095a", "g")
 --util.require_natives("natives-1627063482")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.3.5"
+local SCRIPT_VERSION = "2.3.6"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
