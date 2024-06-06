@@ -2036,11 +2036,17 @@ end)
 
 --#ewo
 local function write_to_global()
-    -- Write the value 1 to Global_1574582.f_6
     memory.write_int(memory.script_global(1574582 + 6), 1)
+end
+local function is_in_pause_menu()
+    return IS_PAUSE_MENU_ACTIVE()
 end
 local toggleforoutside = false
 self:action("EWO", {"setglobal"}, "Sets the value of Global_1574582.f_6 to 1.", function()
+    if is_in_pause_menu() then
+        return
+    end
+
     if GET_VEHICLE_PED_IS_IN(players.user_ped(), true) == 0 and toggleforoutside then
         write_to_global()
     elseif GET_VEHICLE_PED_IS_IN(players.user_ped(), true) ~= 0 and toggleforoutside then
