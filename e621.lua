@@ -1,8 +1,6 @@
-pluto_use "0.9.1"
 util.require_natives("3095a", "g")
---util.require_natives("natives-1627063482")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.3.6"
+local SCRIPT_VERSION = "2.4.7"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -762,7 +760,7 @@ local hud_settings = menu.list(settings, "HUD", {})
 local protections = menu.list(settings, "Protections", {})
 local auto_accept = menu.list(settings, "Auto Accept", {})
 local enhancements = menu.list(settings, "Enhancements", {})
-local randomshit = menu.list(settings, "Experimental", {})
+local experimental = menu.list(settings, "Experimental", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
 -- Manually check for updates with a menu option
@@ -2059,44 +2057,28 @@ self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when 
     toggleforoutside = on
 end)
 
-local roll_speed = nil
-movement:list_select("Roll Speed", {}, "", {"Default", "1.25x", "1.5x", "1.75x", "2x"}, 1, function(index, value)
-roll_speed = index
-util.create_tick_handler(function()
-    switch value do
-        case "1.25x":
-            STATS.STAT_SET_INT(util.joaat("MP"..util.get_char_slot().."_SHOOTING_ABILITY"), 115, true)
-            break
-        case "1.5x":
-            STATS.STAT_SET_INT(util.joaat("MP"..util.get_char_slot().."_SHOOTING_ABILITY"), 125, true)
-            break
-        case "1.75x":
-            STATS.STAT_SET_INT(util.joaat("MP"..util.get_char_slot().."_SHOOTING_ABILITY"), 135, true)
-            break
-        case "2x":
-            STATS.STAT_SET_INT(util.joaat("MP"..util.get_char_slot().."_SHOOTING_ABILITY"), 150, true)
-            break
-        end
-        return roll_speed == index
-    end)
-end)
-
 movement:toggle("AFK", {"afk"}, "", function(on)
-if on then
-    menu.trigger_commands("levitate on")
-    local me = PLAYER.PLAYER_PED_ID()
-    ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, -75.12867, -819.2142, 2699.9937, 4, 0, 0, 0)
-        menu.trigger_commands("shader stripnofog")
-        menu.trigger_commands("lodscale min")
-        menu.trigger_commands("potatomode on")
-        menu.trigger_commands("nosky on")
-        menu.trigger_commands("potatomode on")
-        menu.trigger_commands("norender on")
-        menu.trigger_commands("time 3")
-        menu.trigger_commands("locktime on")
-        menu.trigger_commands("godmode on")
-        menu.trigger_commands("infotps on")
-    else --shader vbahama | shader underwater | shader trailerexplosionoptimise | shader stripstage, shader stripoffice, shader stripchanging, shader stripnofog
+    if on then
+        menu.trigger_commands("levitate on")
+        local me = PLAYER.PLAYER_PED_ID()
+        if me ~= nil then
+            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
+            menu.trigger_commands("shader stripnofog") --shader vbahama, shader underwater, shader trailerexplosionoptimise, shader stripstage, shader stripoffice, shader stripchanging, shader stripnofog
+            menu.trigger_commands("lodscale min")
+            menu.trigger_commands("noidlekick on")
+            menu.trigger_commands("stealthlevitation on")
+            menu.trigger_commands("anticrashcamera on")
+            menu.trigger_commands("potatomode on")
+            menu.trigger_commands("nosky on")
+            menu.trigger_commands("potatomode on")
+            menu.trigger_commands("norender on")
+            menu.trigger_commands("time 3")
+            menu.trigger_commands("locktime on")
+            menu.trigger_commands("godmode on")
+            menu.trigger_commands("infotps on")
+            menu.trigger_commands("visexposurecurveoffset min")
+        end
+    else 
         menu.trigger_commands("shader off")
         menu.trigger_commands("lodscale 1")
         menu.trigger_commands("potatomode off")
@@ -2106,10 +2088,14 @@ if on then
         menu.trigger_commands("locktime off")
         menu.trigger_commands("godmode off")
         menu.trigger_commands("infotps off")
+        menu.trigger_commands("infotps off")
         menu.trigger_commands("levitate off")
+        menu.trigger_commands("visexposurecurveoffset default")
         menu.trigger_commands("mb")
+        menu.trigger_commands("anticrashcamera off")
     end
 end)
+
 
 movement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
@@ -2150,6 +2136,49 @@ self:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Scri
 end)
 
 --#online
+local eventData = memory.alloc(13 * 8)
+local killFeedEnabled = false
+local function checkPlayerKills()
+    for eventNum = 0, SCRIPT.GET_NUMBER_OF_EVENTS(1) - 1 do
+        local eventId = SCRIPT.GET_EVENT_AT_INDEX(1, eventNum)
+        if eventId == 186 then
+            if SCRIPT.GET_EVENT_DATA(1, eventNum, eventData, 13) then
+                local victim = memory.read_int(eventData)
+                local attacker = memory.read_int(eventData + 1 * 8)
+                local damage = memory.read_float(eventData + 2 * 8)
+                local victimDestroyed = memory.read_int(eventData + 5 * 8)
+                local weaponUsedHash = memory.read_int(eventData + 6 * 8)
+                local weapon_name = util.reverse_joaat(weaponUsedHash)
+                if weapon_name == "" then weapon_name = "unknown" end
+
+                if victim ~= attacker and victim ~= -1 and attacker ~= -1 then
+                    if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
+                        if victimDestroyed == 1 then
+                            util.toast(string.format("%s killed %s with %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker)), players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                        end
+                    end
+                elseif victim == attacker and victim ~= -1 and attacker ~= -1 then
+                    if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
+                        if victimDestroyed == 1 then
+                            util.toast(string.format("%s killed themselves with %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.", function(on)
+    killFeedEnabled = on
+    if killFeedEnabled then
+        while killFeedEnabled do
+            checkPlayerKills()
+            util.yield()
+        end
+    end
+end)
+
 online:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
 	local natTypes = {"Open", "Moderate", "Strict"}
     local getNatType = util.stat_get_int64("_NatType")
@@ -2530,7 +2559,7 @@ online_premsg:click_slider("Send Saved Chat Message", {"sm"}, "Select the index 
 end)
 
 
---#randomshit
+--#experimental
 local bonePairs = {
     {0xE0FD, 0xE39F},
     {0xE0FD, 0xCA72},
@@ -2556,7 +2585,7 @@ local screenCoord2a = memory.alloc(4)
 local r, g, b = 1.0, 0.0, 0.0
 local increment = 0.001
 
-menu.toggle_loop(randomshit, "RGB Skeleton", {""}, "", function()
+menu.toggle_loop(experimental, "RGB Skeleton", {""}, "", function()
     local playerPed = players.user_ped()
     for _, pair in ipairs(bonePairs) do
         local bone1 = pair[1]
