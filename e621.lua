@@ -794,6 +794,7 @@ local function create_player_menu(playerID)
         local playerRoot = menu.player_root(playerID)
         menus[playerID] = players_list:list(players.get_name(playerID), {}, "", function()
             if not hasLink[playerID] then
+                local spectateRef = menu.ref_by_rel_path(playerRoot, "Spectate")
                 local griefingRef = menu.ref_by_rel_path(playerRoot, ">:33>Griefing")
                 local trollingRef = menu.ref_by_rel_path(playerRoot, ">:33>Trolling")
                 local miscellaneousRef = menu.ref_by_rel_path(playerRoot, ">:33>Miscellaneous")
@@ -802,7 +803,8 @@ local function create_player_menu(playerID)
                 local orbitalStrikeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike")
                 local orbitalStrikeGodmodeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike Godmode Player")
                 
-                if griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeRef and orbitalStrikeGodmodeRef then
+                if spectateRef and griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeRef and orbitalStrikeGodmodeRef then
+                    menus[playerID]:link(spectateRef)
                     menus[playerID]:link(griefingRef)
                     menus[playerID]:link(trollingRef)
                     menus[playerID]:link(miscellaneousRef)
