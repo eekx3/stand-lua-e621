@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.0"
+local SCRIPT_VERSION = "2.5.1"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -1185,23 +1185,43 @@ protections:toggle_loop("Block Ped Hijack", {}, "", function()
 	end
 end)
 
-protections:toggle_loop("Block Mugger", {}, "Note: You may get an 'ACCESS_VIOLATION while reading from 0000000000000000' error.\nI encountered this error while using it in JinxScript as well.", function()
-	if NETWORK_IS_SCRIPT_ACTIVE("am_gang_call", 0, true, 0) then
-		local pedNetId = memory.read_int(memory.script_local("am_gang_call", 62 + 10 + 1))
-		local sender = memory.read_int(memory.script_local("am_gang_call", 286))
-		local target = memory.read_int(memory.script_local("am_gang_call", 287))
-        
-		util.spoof_script("am_gang_call", function()
-			if sender != players.user() and target == players.user() 
-			and NETWORK_DOES_NETWORK_ID_EXIST(pedNetId) 
-			and NETWORK_REQUEST_CONTROL_OF_NETWORK_ID(pedNetId) then
-				local mugger = NET_TO_PED(pedNetId)
-				entities.delete(mugger)
-				toast($"Blocked mugger from {players.get_name(sender)}")
-			end
-		end)
+protections:toggle_loop("Ghost Orbital Cannon", {}, "Ghost orbital cannon users when you are within the blast radius or being targeted.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local pos = players.get_position(players.user())
+		local distance = v3.distance(pos, v3.setZ(players.get_cam_pos(playerID), pos.z))
+		if isPlayerUsingOrbitalCannon(playerID) and distance < 25.0 and not isPlayerInInterior(players.user()) then
+			SET_REMOTE_PLAYER_AS_GHOST(playerID, true)
+			repeat
+				yield()
+			until not isPlayerUsingOrbitalCannon(playerID)
+			SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+		end
+	end
+end, function()
+	for players.list_except(true) as playerID do
+		SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
 	end
 end)
+
+protections:toggle_loop("Ghost Modded Orbital Cannons", {}, "Automatically ghost players that are using a modded orbital cannon.", function()
+	for players.list_except() as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local cam_dist = v3.distance(players.get_position(players.user()), players.get_cam_pos(playerID))
+		if isPlayerUsingOrbitalCannon(playerID) and not GET_IS_TASK_ACTIVE(ped, 135) then
+			SET_REMOTE_PLAYER_AS_GHOST(playerID, true)
+			repeat
+				yield()
+			until not isPlayerUsingOrbitalCannon(playerID)
+			SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+		end
+	end
+end, function()
+	for players.list_except(true) as playerID do
+		SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+	end
+end)
+
 
 scriptnotifs = false
 menu.toggle(scripts, "Toggle Script Block Notifications", {""}, "", function(on)
@@ -2371,6 +2391,7 @@ auto_accept:toggle_loop("Join Messages", {"autoacceptjoinmessages"}, "", functio
 		end
 	end
 end)
+
 auto_accept:toggle_loop("Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
 	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
 	for transactionWarnings as hash do
@@ -2393,6 +2414,7 @@ enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "Automati
 		toast("Bounty has been auto-claimed. :D")
 	end
 end)
+
 enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Puts you into a locked session within your session while shopping to ensure a safe shopping experience. Other players will not be able to see that you are in a shop.", function()
 	if getPlayerCurrentShop(players.user()) != -1 then
 		NETWORK_START_SOLO_TUTORIAL_SESSION()
@@ -2404,6 +2426,7 @@ enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Puts you into a loc
 end, function()
     NETWORK_END_TUTORIAL_SESSION()
 end)
+
 enhancements:toggle_loop("Block Orbital Cannon", {"blockorb"}, "", function()
 	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
 	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
@@ -2429,41 +2452,7 @@ end, function()
 		entities.delete(orbSign)
 	end
 end)
-enhancements:toggle_loop("Ghost Modded Orbital Cannons", {}, "Automatically ghost players that are using a modded orbital cannon.", function()
-	for players.list_except() as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local cam_dist = v3.distance(players.get_position(players.user()), players.get_cam_pos(playerID))
-		if isPlayerUsingOrbitalCannon(playerID) and not GET_IS_TASK_ACTIVE(ped, 135) then
-			SET_REMOTE_PLAYER_AS_GHOST(playerID, true)
-			repeat
-				yield()
-			until not isPlayerUsingOrbitalCannon(playerID)
-			SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
-		end
-	end
-end, function()
-	for players.list_except(true) as playerID do
-		SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
-	end
-end)
-enhancements:toggle_loop("Ghost Orbital Cannon", {}, "Ghost orbital cannon users when you are within the blast radius or being targeted.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pos = players.get_position(players.user())
-		local distance = v3.distance(pos, v3.setZ(players.get_cam_pos(playerID), pos.z))
-		if isPlayerUsingOrbitalCannon(playerID) and distance < 25.0 and not isPlayerInInterior(players.user()) then
-			SET_REMOTE_PLAYER_AS_GHOST(playerID, true)
-			repeat
-				yield()
-			until not isPlayerUsingOrbitalCannon(playerID)
-			SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
-		end
-	end
-end, function()
-	for players.list_except(true) as playerID do
-		SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
-	end
-end)
+
 
 function meow_command()
     local meow_messages = {
@@ -2598,40 +2587,43 @@ local screenCoord2a = memory.alloc(4)
 local r, g, b = 1.0, 0.0, 0.0
 local increment = 0.001
 
-menu.toggle_loop(experimental, "RGB Skeleton", {""}, "", function()
-    local playerPed = players.user_ped()
-    for _, pair in ipairs(bonePairs) do
-        local bone1 = pair[1]
-        local bone2 = pair[2]
-        
-        local boneCoord1 = GET_PED_BONE_COORDS(playerPed, bone1, 0.0, 0.0, 0.0)
-        local boneCoord2 = GET_PED_BONE_COORDS(playerPed, bone2, 0.0, 0.0, 0.0)
+menu.toggle_loop(experimental, "RGB Skeleton", {""}, "Note: It will change colours faster depending on the amount of lines visible (Meaning, looking in a direction with lots of players will change the speed)", function()
+    for _, ped in ipairs(entities.get_all_peds_as_handles()) do
+        if entities.is_player_ped(ped) then
+            for _, pair in ipairs(bonePairs) do
+                local bone1 = pair[1]
+                local bone2 = pair[2]
+                
+                local boneCoord1 = GET_PED_BONE_COORDS(ped, bone1, 0.0, 0.0, 0.0)
+                local boneCoord2 = GET_PED_BONE_COORDS(ped, bone2, 0.0, 0.0, 0.0)
 
-        local boneCoord1X, boneCoord1Y, boneCoord1Z = boneCoord1.x, boneCoord1.y, boneCoord1.z
-        local boneCoord2X, boneCoord2Y, boneCoord2Z = boneCoord2.x, boneCoord2.y, boneCoord2.z
+                local boneCoord1X, boneCoord1Y, boneCoord1Z = boneCoord1.x, boneCoord1.y, boneCoord1.z
+                local boneCoord2X, boneCoord2Y, boneCoord2Z = boneCoord2.x, boneCoord2.y, boneCoord2.z
 
-        local a1 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord1X, boneCoord1Y, boneCoord1Z, screenCoord1, screenCoord1a)
-        local a2 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord2X, boneCoord2Y, boneCoord2Z, screenCoord2, screenCoord2a)
+                local a1 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord1X, boneCoord1Y, boneCoord1Z, screenCoord1, screenCoord1a)
+                local a2 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord2X, boneCoord2Y, boneCoord2Z, screenCoord2, screenCoord2a)
 
-        if not a1 or not a2 then return end
+                if a1 and a2 then
+                    directx.draw_line(
+                        memory.read_float(screenCoord1), 
+                        memory.read_float(screenCoord1a), 
+                        memory.read_float(screenCoord2), 
+                        memory.read_float(screenCoord2a), 
+                        r, g, b, 1.0
+                    )
 
-        directx.draw_line(
-            memory.read_float(screenCoord1), 
-            memory.read_float(screenCoord1a), 
-            memory.read_float(screenCoord2), 
-            memory.read_float(screenCoord2a), 
-            r, g, b, 1.0
-        )
-
-        if r > 0 and b == 0 then
-            r = math.max(0, r - increment)
-            g = math.min(1, g + increment)
-        elseif g > 0 and r == 0 then
-            g = math.max(0, g - increment)
-            b = math.min(1, b + increment)
-        elseif b > 0 and g == 0 then
-            b = math.max(0, b - increment)
-            r = math.min(1, r + increment)
+                    if r > 0 and b == 0 then
+                        r = math.max(0, r - increment)
+                        g = math.min(1, g + increment)
+                    elseif g > 0 and r == 0 then
+                        g = math.max(0, g - increment)
+                        b = math.min(1, b + increment)
+                    elseif b > 0 and g == 0 then
+                        b = math.max(0, b - increment)
+                        r = math.min(1, r + increment)
+                    end
+                end
+            end
         end
     end
 end)
