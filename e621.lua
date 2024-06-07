@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.1"
+local SCRIPT_VERSION = "2.5.2"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -231,20 +231,6 @@ local transactionWarnings = {
 	joaat("CTALERT_F_3"),
 	joaat("CTALERT_F_4"),
 }
-
-local root = menu.my_root()
-local carYaw = 0
-local carPitch = 0
-local camYaw = 0
-local camPitch = 0
-local carFlySpeedSelect = 5
-local vehicleFly
-local carFlySpeed = carFlySpeedSelect*10
-local vehicleFlyCheck
-local noClipCar
-local yourself
-local carUsed
-local keepMomentum = false
 
 local colours = {
 	{-1, "Default"},
@@ -809,6 +795,7 @@ local function create_player_menu(playerID)
             if not hasLink[playerID] then
                 local griefingRef = menu.ref_by_rel_path(playerRoot, ">:33>Griefing")
                 local trollingRef = menu.ref_by_rel_path(playerRoot, ">:33>Trolling")
+                local miscellaneousRef = menu.ref_by_rel_path(playerRoot, ">:33>Miscellaneous")
                 local godmodePlayerRef = menu.ref_by_rel_path(playerRoot, ">:33>Remove Player Godmode")
                 local godmodeVehicleRef = menu.ref_by_rel_path(playerRoot, ">:33>Remove Vehicle Godmode")
                 local orbitalStrikeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike")
@@ -817,6 +804,7 @@ local function create_player_menu(playerID)
                 if griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeRef and orbitalStrikeGodmodeRef then
                     menus[playerID]:link(griefingRef)
                     menus[playerID]:link(trollingRef)
+                    menus[playerID]:link(miscellaneousRef)
                     menus[playerID]:link(godmodePlayerRef)
                     menus[playerID]:link(godmodeVehicleRef)
                     menus[playerID]:link(orbitalStrikeRef)
@@ -2077,6 +2065,121 @@ self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when 
     toggleforoutside = on
 end)
 
+--#walkonwater/driveonwater
+local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
+    local outHeight = memory.alloc(4)
+    if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
+        return memory.read_float(outHeight)
+    end
+end
+
+local function deleteEntities(entityTable)
+    for _, entity in ipairs(entityTable) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
+        SET_ENTITY_AS_MISSION_ENTITY(entity)
+        entities.delete_by_handle(entity)
+    end
+end
+
+local function loadModelAsync(hash)
+    REQUEST_MODEL(hash)
+    while not HAS_MODEL_LOADED(hash) do
+        util.yield()
+    end
+end
+
+local function DelEnt(ped_tab)
+    for _, Pedm in ipairs(ped_tab) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(Pedm)
+        SET_ENTITY_AS_MISSION_ENTITY(Pedm)
+        entities.delete_by_handle(Pedm)
+    end
+end
+
+local function Streament(hash)
+    loadModelAsync(hash)
+end
+
+local waterwalkroot = movement:list(('Walk/Drive on Water'), {}, '')
+local block
+local blocks = {}
+local waterwalk = { height = -0.3 }
+
+waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or drive on water if you are in the water it will teleport you above it'), function (on)
+    local pos, pos2
+    local vmod = entities.get_user_vehicle_as_handle() or 0
+    if vmod ~= 0 then
+        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, 0.3, 0)
+        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, -0.3, 0)
+    else
+        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, 0.3, 0)
+        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, -0.3, 0)
+    end
+    local z = getWaterHeightInclRivers(pos.x, pos.y)
+    local z2 = getWaterHeightInclRivers(pos2.x, pos2.y)
+    if vmod ~= 0 then
+        SET_VEHICLE_MAX_SPEED(vmod, 150)
+        MODIFY_VEHICLE_TOP_SPEED(vmod, 50)
+        SET_VEHICLE_BURNOUT(vmod, false)
+        SET_IN_ARENA_MODE(true)
+        local minimum = memory.alloc()
+        local maximum = memory.alloc()
+        GET_MODEL_DIMENSIONS(GET_ENTITY_MODEL(vmod), minimum, maximum)
+        local maximum_vec = v3.new(maximum)
+        local blockh
+        if maximum_vec.x >= 3 then
+            blockh = util.joaat('sr_prop_special_bblock_mdm3')
+       elseif maximum_vec.y >= 3.1 then
+            blockh = util.joaat('sr_prop_special_bblock_xl2')
+        elseif vmod ~= 0 and maximum_vec.x >= 0.1 then
+            blockh = util.joaat('sr_prop_special_bblock_sml2')
+        else
+            blockh = util.joaat('sr_prop_special_bblock_sml1')
+        end
+        Streament(blockh)
+        local water = memory.alloc(4)
+        if block == nil and z ~= nil then
+            block = CREATE_OBJECT(blockh, pos.x, pos.y, z, true, true, true)
+            table.insert(blocks, block)
+        elseif z == nil and block ~= nil then
+            if DOES_ENTITY_EXIST(block) then
+                DelEnt(blocks)
+                block = nil
+            end
+        else
+            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z -- Assuming yaw is needed
+            if z ~= nil and z2 ~= nil and pedrotYaw ~= nil then
+                local pitch = math.asin((z - z2) / 0.3)
+                SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, z + waterwalk.height, false, false, false)
+                -- Assuming the entity has a rotation order of 2 (yaw-pitch-roll)
+                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false) -- Updated this line
+                local waterped = GET_ENTITY_SUBMERGED_LEVEL(players.user_ped())
+                local waterveh = GET_ENTITY_SUBMERGED_LEVEL(vmod)
+                for _, blockEntity in ipairs(blocks) do
+                    SET_ENTITY_ALPHA(blockEntity, 0, false)
+                    SET_ENTITY_VISIBLE(blockEntity, false, 0)
+                end
+                if waterped >= 1.0 then
+                    SET_ENTITY_COORDS(players.user_ped(), pos.x, pos.y, z + 1, false, false, false, false)
+                elseif waterveh >= 1.0  then
+                    SET_ENTITY_COORDS(vmod, pos.x, pos.y, z + 1, false, false, false, false)
+                end
+            else
+                DelEnt(blocks)
+                block = nil 
+            end
+        end
+        return block
+    end
+end, function ()
+    DelEnt(blocks)
+    block = nil 
+end)
+waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
+   waterwalk.height = h * 0.01
+end)
+
+
 movement:toggle("AFK", {"afk"}, "", function(on)
     if on then
         menu.trigger_commands("levitate on")
@@ -2465,29 +2568,47 @@ function meow_command()
         "Nya nya",
         "Meow meow!",
         "Purrrrrrr...",
-        "Purr, nya!",
-        "Purr, purr... meow!",
         "Nya nya! Time for a cat nap.",
         "Purr purrr.. nya!",
         "Purr purr, meow!",
         "Nya... *licks paw*",
-        "Purr, purr, nya!",
-        "Meow, purr!",
+        "Meow, purr..",
         "Meow meow meow! Let's play!",
         "Purrrrrrr... *curls up*",
         "Meow!",
-        "Meow meow meow!",
-        "Purr purr, nya!",
-        "Nya nya nya nya nya!",
+        "Meow meow meow...",
+        "MEMEOEMWEMMOWEWEEMOWWWW",
+        "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
+        "MRRRRPP",
         "Nya!",
         "Nya nya!",
-        "Purr, purr, nya, nya!",
-        "Purr, purr, meow!",
+        "Purr, purr, nya!",
         "Purr, purr, meow, meow!",
         "Meow, meow, purr!",
         "Nya, nya, purr!",
         "MEOWOMEWEWE MEOOWWW",
         "Mmrpfh.. Meoww",
+        "MEOWOMEWEWE MEOOWWW",
+        "Meow meow meow...",
+        "MEMEOEMWEMMOWEWEEMOWWWW",
+        "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
+        "MRRRRPP",
+        "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
+        "MEMEOEMWEMMOWEWEEMOWWWW!!",
+        "MRRRRPP, meow!",
+        "MEOWEWME... *licks paw*",
+        "MEOOOOWWW MRRRPPP",
+        "MEOWMEW MEMEOWWW",
+        "MRPPP MEOOW MEMEOW",
+        "MEMEOW MEOOWWWW",
+        "MEOW MEOW MEMEOWWW",
+        "MEMEMEM MEOWWWW",
+        "MEOWOWOW MRRPPP",
+        "MEOW MEW MEOWWWW",
+        "MEOOOWWW MEMEOWWWW",
+        "MEEEOWWWW",
+        "MEOWW... MEOWWW",
+        "MEOOOW MRRPPP",
     }
 
     local random_index = math.random(1, #meow_messages)
@@ -2519,6 +2640,26 @@ function woof_command()
         "BARKBARK",
         "WOFOOWOFWWF WOOF",
         "BARKARBAKRK WOOF WOOF",
+        "Bark bark woof woof!",
+        "WOOF WOOF WOOF BARKBAKRABRK",
+        "BARKBARK",
+        "WOFOOWOFWWF WOOF",
+        "BARKARBAKRK WOOF WOOF",
+        "BARK BARK WOOOF!",
+        "WOOOF WOOF WOOF WOOF",
+        "WOOF WOOF... bark bark!",
+        "BARK! WOOF! BARK!",
+        "BARKBARK WOOF",
+        "WOOF WOOOF WOOF",
+        "BARKBARK! Time to play!",
+        "WOOF WOOOF WOOF WOOOF!",
+        "BARK BARK WOOF WOOF",
+        "BARK! WOOF! BARK! WOOF!",
+        "WOOF WOOF... *sniffs*",
+        "BARK BARK... WOOF!",
+        "WOOF WOOF! Let's go!",
+        "BARK WOOF WOOF BARK",
+        "WOOF WOOOF WOOF! BARK!",
     }
 
     local random_index = math.random(1, #woof_messages)
@@ -2587,7 +2728,7 @@ local screenCoord2a = memory.alloc(4)
 local r, g, b = 1.0, 0.0, 0.0
 local increment = 0.001
 
-menu.toggle_loop(experimental, "RGB Skeleton", {""}, "Note: It will change colours faster depending on the amount of lines visible (Meaning, looking in a direction with lots of players will change the speed)", function()
+menu.toggle_loop(experimental, "RGB Skeleton", {""}, "Note: It will change colours faster depending on the amount of lines visible.", function()
     for _, ped in ipairs(entities.get_all_peds_as_handles()) do
         if entities.is_player_ped(ped) then
             for _, pair in ipairs(bonePairs) do
@@ -2704,6 +2845,7 @@ menu.divider(menu.player_root(pid), "")
 local playermenu = menu.list(menu.player_root(pid), ">:33", {}, "", function() end)
 local griefing_playermenu = playermenu:list("Griefing", {}, "")
 local trolling_playermenu = playermenu:list("Trolling", {}, "")
+local miscPlayer = playermenu:list("Miscellaneous", {}, "")
 
 local function godKill(playerID)
 	local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
@@ -2801,6 +2943,230 @@ end, function()
     if glitchObj then 
         entities.delete(glitchObj)
     end
+end)
+
+local playerID = pid
+local glitchPlyrRoot = trolling_playermenu:list("Glitch Player")
+local glitchObjMdl = joaat("prop_ld_ferris_wheel")
+glitchPlyrRoot:list_select("Object", {"glitchplayerobj"}, "", object_stuff, object_stuff[1][1], function(mdlHash)
+    glitchObjMdl = mdlHash
+end)
+
+local spawnDelay = 150
+glitchPlyrRoot:slider("Spawn Delay", {"spawndelay"}, "Note: Low spawn delays may be marked as a modded event if used on a stand user.", 50, 3000, 100, 10, function(amount)
+    spawnDelay = amount
+end)
+
+local glitchplayer
+glitchplayer = glitchPlyrRoot:toggle_loop("Glitch Player", {"glitchplayer"}, "Blocked by menus with entity spam protections.", function()
+    local rallytruck = joaat("rallytruck")
+    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local pos = players.get_position(playerID)
+
+    if not DOES_ENTITY_EXIST(ped) then
+        toast(string.format("%s is too far. :/", players.get_name(playerID)))
+        glitchvalue = false
+        util.stop_thread()
+    end
+
+    util.request_model(glitchObjMdl)
+    util.request_model(rallytruck)
+    local obj = entities.create_object(glitchObjMdl, pos)
+    local vehicle = entities.create_vehicle(rallytruck, pos, 0)
+    SET_ENTITY_VISIBLE(obj, false)
+    SET_ENTITY_VISIBLE(vehicle, false)
+    SET_ENTITY_INVINCIBLE(obj, true)
+    SET_ENTITY_COLLISION(obj, true, true)
+    yield(delay)
+    entities.delete(obj)
+    entities.delete(vehicle)
+    yield(delay)
+end)
+
+local veh_kick = trolling_playermenu:list("Kick From Vehicle")
+veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag them out of their vehicle.", function()
+    if playerID == players.user() then 
+        toast(lang.get_localised(CMDOTH))
+        return
+    end
+    local timer = util.current_time_millis() + 2500
+    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+
+    if IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID) then
+        toast($"{players.get_name(playerID)}'s vehicle has not been cloned yet. :/")
+        return
+    end
+    
+    if not IS_PED_IN_ANY_VEHICLE(ped) then
+        toast(lang.get_localised(PLYNVEH):gsub("{}", players.get_name(playerID)))
+        return 
+    end
+    
+    local pos = players.get_position(playerID)
+    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+    local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -1))
+    local passenger = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -2))
+    local seat = getSeatPedIsIn(ped)
+    local ping = ROUND(NETWORK_GET_AVERAGE_PING(playerID))
+    pos.z -= 50
+
+    randomPed = createRandomPed(pos)
+    entities.set_can_migrate(randomPed, false)
+    SET_ENTITY_INVINCIBLE(randomPed, true)
+    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(randomPed, true)
+    SET_PED_CONFIG_FLAG(randomPed, 366, true)
+    while not GET_IS_TASK_ACTIVE(randomPed, 160) do
+        if util.current_time_millis() > timer then
+            if isDebugMode then
+                toast("failed to assign CTaskEnterVehicle to ped. :/")
+            else
+                toast($"Failed to kick {players.get_name(playerID)} from the vehicle. :/")
+            end
+            entities.delete(randomPed)
+            return
+        end
+        yield()
+    end
+    repeat
+        if GET_IS_TASK_ACTIVE(ped, 2) and getSeatPedIsIn(randomPed) == seat then
+            repeat
+                yield()
+            until not GET_IS_TASK_ACTIVE(ped, 2)
+        end
+        if util.current_time_millis() > timer and getSeatPedIsIn(randomPed) != seat then
+            if ping > 80 then
+                toast($"Failed to kick {players.get_name(playerID)} from the vehicle due to high ping ({ping}ms). :/")
+            else
+                toast($"Failed to kick {players.get_name(playerID)} from the vehicle. :/")
+            end
+            entities.delete(randomPed)
+            timer = util.current_time_millis() + 2500
+            break 
+        end
+        yield()
+    until not IS_PED_IN_ANY_VEHICLE(ped)
+    entities.delete(randomPed)
+    timer = util.current_time_millis() + 2500
+end)
+
+veh_kick:action("Shuffle Method", {"shufflekick"}, 'Spawns a ped in the passenger seat and forces it to push them out. Works everytime unless the target is using "cant be dragged out".', function()
+    if playerID == players.user() then 
+        toast(lang.get_localised(CMDOTH))
+        return
+    end
+
+    local timer = util.current_time_millis() + 2500
+    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local pos = players.get_position(playerID)
+    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+    if IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID) then
+        toast($"{players.get_name(playerID)}'s vehicle has not been cloned yet. :/")
+        return
+    end
+
+    if vehicle == 0 then
+        util.toast(lang.get_localised(1067523721):gsub("{}", players.get_name(playerID)))
+        return 
+    end
+
+    if GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GET_ENTITY_MODEL(vehicle)) == 1 then
+        util.toast("Vehicle doesn't allow for passengers. :/")
+        return
+    end
+
+    if not IS_VEHICLE_SEAT_FREE(vehicle, -2) then
+        util.toast("Passenger seat is currently occupied. :/")
+        return
+    end
+
+    if not CAN_SHUFFLE_SEAT(vehicle, -1) then 
+        util.toast("Seat can not be shuffled into. :/")
+        return
+    end
+
+    local randomPed = createRandomPed(pos)
+    entities.set_can_migrate(randomPed, false)
+    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(randomPed, true)
+    SET_PED_INTO_VEHICLE(randomPed, vehicle, -2)
+    TASK_SHUFFLE_TO_NEXT_VEHICLE_SEAT(randomPed, vehicle)
+    if IS_PED_IN_ANY_VEHICLE(ped) then
+        repeat
+            if GET_IS_TASK_ACTIVE(ped, 2) then
+                timer = util.current_time_millis() + 2500
+            end
+            if util.current_time_millis() > timer then
+                entities.delete(randomPed)
+                util.toast("Ped failed to shuffle to drivers seat. :/")                
+                timer = util.current_time_millis() + 2500
+                break
+            end
+            util.yield()
+        until not IS_PED_IN_ANY_VEHICLE(ped)
+    end
+    entities.delete(randomPed)
+    SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID, true)
+end)
+
+veh_kick:action("Script Method", {"scriptkick"}, "Uses a script event to kick them from their vehicle.", function()
+    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+    SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, players.user_ped(), 0)
+end)
+
+
+local playerID = pid
+trolling_playermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit and doesn't work properly half the time.", function()
+    if not playerID then
+        return
+    end
+    local towtruckMdl = joaat("towtruck3")
+        if not towtruckMdl then
+        return
+    end
+    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+    if not IS_PED_IN_ANY_VEHICLE(ped) then
+        toast(lang.get_localised(PLYNVEH):gsub("{}", players.get_name(playerID)))
+        return
+    end
+    local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vehicle, 0.0, 7.0, 0.0)
+    if towtruckMdl ~= 0 then
+        util.request_model(towtruckMdl)
+    else
+        return
+    end
+    entities.request_control(vehicle, 2500)
+    local randomPed = createRandomPed(pos)
+    local towtruck = entities.create_vehicle(towtruckMdl, pos, GET_ENTITY_HEADING(vehicle))
+    SET_ENTITY_INVINCIBLE(randomPed, true)
+    SET_PED_INTO_VEHICLE(randomPed, towtruck, -1)
+    ATTACH_VEHICLE_TO_TOW_TRUCK(towtruck, vehicle, false, 90.0, 90.0, -180.0)
+    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(randomPed, true)
+    TASK_VEHICLE_DRIVE_WANDER(randomPed, towtruck, 9999.0, DF_SwerveAroundAllCars | DF_AvoidRestrictedAreas | DF_GoOffRoadWhenAvoiding | DF_SteerAroundObjects | DF_UseShortCutLinks | DF_ChangeLanesAroundObstructions)
+end)
+
+local ghostPlayer
+local playerID = pid
+local ghostPlayer
+ghostPlayer = miscPlayer:toggle_loop("Ghost Player", {"ghost"}, "Ghosts the selected player.", function()
+    if not playerID then 
+        return
+    end
+    if playerID == players.user() then 
+        toast(lang.get_localised(CMDOTH))
+        ghostPlayer.value = false
+        return
+    end
+        if not players.exists(playerID) then
+        ghostPlayer.value = false
+        return
+    end
+    SET_REMOTE_PLAYER_AS_GHOST(playerID, true)
+end, function()
+    if not playerID then 
+        return
+    end
+    SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
 end)
 
 local playerID = pid 
@@ -2977,136 +3343,6 @@ griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function(
     if not players.exists(pid) then
         util.stop_thread()
     end
-end)
-
-local veh_kick = trolling_playermenu:list("Kick From Vehicle")
-veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag them out of their vehicle.", function()
-    if playerID == players.user() then 
-        toast(lang.get_localised(CMDOTH))
-        return
-    end
-    local timer = util.current_time_millis() + 2500
-    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-
-    if IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID) then
-        toast($"{players.get_name(playerID)}'s vehicle has not been cloned yet. :/")
-        return
-    end
-    
-    if not IS_PED_IN_ANY_VEHICLE(ped) then
-        toast(lang.get_localised(PLYNVEH):gsub("{}", players.get_name(playerID)))
-        return 
-    end
-    
-    local pos = players.get_position(playerID)
-    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
-    local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -1))
-    local passenger = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -2))
-    local seat = getSeatPedIsIn(ped)
-    local ping = ROUND(NETWORK_GET_AVERAGE_PING(playerID))
-    pos.z -= 50
-
-    randomPed = createRandomPed(pos)
-    entities.set_can_migrate(randomPed, false)
-    SET_ENTITY_INVINCIBLE(randomPed, true)
-    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(randomPed, true)
-    SET_PED_CONFIG_FLAG(randomPed, 366, true)
-    while not GET_IS_TASK_ACTIVE(randomPed, 160) do
-        if util.current_time_millis() > timer then
-            if isDebugMode then
-                toast("failed to assign CTaskEnterVehicle to ped. :/")
-            else
-                toast($"Failed to kick {players.get_name(playerID)} from the vehicle. :/")
-            end
-            entities.delete(randomPed)
-            return
-        end
-        yield()
-    end
-    repeat
-        if GET_IS_TASK_ACTIVE(ped, 2) and getSeatPedIsIn(randomPed) == seat then
-            repeat
-                yield()
-            until not GET_IS_TASK_ACTIVE(ped, 2)
-        end
-        if util.current_time_millis() > timer and getSeatPedIsIn(randomPed) != seat then
-            if ping > 80 then
-                toast($"Failed to kick {players.get_name(playerID)} from the vehicle due to high ping ({ping}ms). :/")
-            else
-                toast($"Failed to kick {players.get_name(playerID)} from the vehicle. :/")
-            end
-            entities.delete(randomPed)
-            timer = util.current_time_millis() + 2500
-            break 
-        end
-        yield()
-    until not IS_PED_IN_ANY_VEHICLE(ped)
-    entities.delete(randomPed)
-    timer = util.current_time_millis() + 2500
-end)
-
-veh_kick:action("Shuffle Method", {"shufflekick"}, 'Spawns a ped in the passenger seat and forces it to push them out. Works everytime unless the target is using "cant be dragged out".', function()
-    if playerID == players.user() then 
-        toast(lang.get_localised(CMDOTH))
-        return
-    end
-
-    local timer = util.current_time_millis() + 2500
-    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-    local pos = players.get_position(playerID)
-    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
-    if IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID) then
-        toast($"{players.get_name(playerID)}'s vehicle has not been cloned yet. :/")
-        return
-    end
-
-    if vehicle == 0 then
-        util.toast(lang.get_localised(1067523721):gsub("{}", players.get_name(playerID)))
-        return 
-    end
-
-    if GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GET_ENTITY_MODEL(vehicle)) == 1 then
-        util.toast("Vehicle doesn't allow for passengers. :/")
-        return
-    end
-
-    if not IS_VEHICLE_SEAT_FREE(vehicle, -2) then
-        util.toast("Passenger seat is currently occupied. :/")
-        return
-    end
-
-    if not CAN_SHUFFLE_SEAT(vehicle, -1) then 
-        util.toast("Seat can not be shuffled into. :/")
-        return
-    end
-
-    local randomPed = createRandomPed(pos)
-    entities.set_can_migrate(randomPed, false)
-    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(randomPed, true)
-    SET_PED_INTO_VEHICLE(randomPed, vehicle, -2)
-    TASK_SHUFFLE_TO_NEXT_VEHICLE_SEAT(randomPed, vehicle)
-    if IS_PED_IN_ANY_VEHICLE(ped) then
-        repeat
-            if GET_IS_TASK_ACTIVE(ped, 2) then
-                timer = util.current_time_millis() + 2500
-            end
-            if util.current_time_millis() > timer then
-                entities.delete(randomPed)
-                util.toast("Ped failed to shuffle to drivers seat. :/")                
-                timer = util.current_time_millis() + 2500
-                break
-            end
-            util.yield()
-        until not IS_PED_IN_ANY_VEHICLE(ped)
-    end
-    entities.delete(randomPed)
-    SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID, true)
-end)
-
-veh_kick:action("Script Method", {"scriptkick"}, "Uses a script event to kick them from their vehicle.", function()
-    local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-    local vehicle = GET_VEHICLE_PED_IS_USING(ped)
-    SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, players.user_ped(), 0)
 end)
 
 trolling_playermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsistent on higher ping players or just not work at all for some players.", function()
