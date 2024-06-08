@@ -716,7 +716,7 @@ local creditsList = {
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
     { name = "Lillium", description = "Silly :3" },
     { name = "Ilana", description = "" },
-    { name = "SimeonFootJobs", description = "SimeonFootJobs" },
+    { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
 }
 --#menus
 local self = menu.list(menu.my_root(), "Self", {"eself"})
