@@ -714,7 +714,7 @@ local creditsList = {
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
     { name = "Aero", description = "Silly Puppy" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
-    { name = "Lillium", description = "Silly" },
+    { name = "Lillium", description = "Silly :3" },
     { name = "Ilana", description = "" },
     { name = "SimeonFootJobs", description = "SimeonFootJobs" },
 }
