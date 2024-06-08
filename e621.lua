@@ -2372,6 +2372,32 @@ online_trolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to ta
 	end
 end)
 
+online_trolling:toggle_loop("Block Orbital Cannon", {"blockorb"}, "", function()
+	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
+	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
+	util.request_model(blockOrbMdl)
+	util.request_model(blockOrbMdlSign)
+	if orbObj == nil or not DOES_ENTITY_EXIST(orbObj) then
+		orbObj = entities.create_object(blockOrbMdl, v3(335.9, 4833.9, -59.0))
+		orbSign = entities.create_object(blockOrbMdlSign, v3(335.9, 4834, -57.0))
+		entities.set_can_migrate(orbObj, false)
+		entities.set_can_migrate(orbSign, false)
+		SET_ENTITY_HEADING(orbObj, 125.0)
+		SET_ENTITY_HEADING(orbSign, 125.0)
+		FREEZE_ENTITY_POSITION(orbObj, true)
+		SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orbObj, false)
+		SET_ENTITY_ROTATION(orbSign, -25.0, 0.0, 125.0, 2, true)
+	end
+	util.yield(50)
+end, function()
+	if orbObj != nil then
+		entities.delete(orbObj)
+	end
+	if orbSign != nil then
+		entities.delete(orbSign)
+	end
+end)
+
 --#chaos
 world:toggle_loop("Chaos", {}, "", function(on)
 	local vehicle = entities.get_all_vehicles_as_handles()
@@ -2530,32 +2556,6 @@ enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Puts you into a loc
 	end	
 end, function()
     NETWORK_END_TUTORIAL_SESSION()
-end)
-
-enhancements:toggle_loop("Block Orbital Cannon", {"blockorb"}, "", function()
-	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
-	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
-	util.request_model(blockOrbMdl)
-	util.request_model(blockOrbMdlSign)
-	if orbObj == nil or not DOES_ENTITY_EXIST(orbObj) then
-		orbObj = entities.create_object(blockOrbMdl, v3(335.9, 4833.9, -59.0))
-		orbSign = entities.create_object(blockOrbMdlSign, v3(335.9, 4834, -57.0))
-		entities.set_can_migrate(orbObj, false)
-		entities.set_can_migrate(orbSign, false)
-		SET_ENTITY_HEADING(orbObj, 125.0)
-		SET_ENTITY_HEADING(orbSign, 125.0)
-		FREEZE_ENTITY_POSITION(orbObj, true)
-		SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orbObj, false)
-		SET_ENTITY_ROTATION(orbSign, -25.0, 0.0, 125.0, 2, true)
-	end
-	util.yield(50)
-end, function()
-	if orbObj != nil then
-		entities.delete(orbObj)
-	end
-	if orbSign != nil then
-		entities.delete(orbSign)
-	end
 end)
 
 function meow_command()
