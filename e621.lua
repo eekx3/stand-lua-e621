@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.4"
+local SCRIPT_VERSION = "2.5.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -2183,7 +2183,6 @@ waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above
    waterwalk.height = h * 0.01
 end)
 
-
 movement:toggle("AFK", {"afk"}, "", function(on)
     if on then
         menu.trigger_commands("levitate on")
@@ -2222,7 +2221,6 @@ movement:toggle("AFK", {"afk"}, "", function(on)
         menu.trigger_commands("anticrashcamera off")
     end
 end)
-
 
 movement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
@@ -2560,7 +2558,6 @@ end, function()
 	end
 end)
 
-
 function meow_command()
     local meow_messages = {
         "Nya, purr!",
@@ -2680,11 +2677,8 @@ function horny_dog_command()
 end
 online_chat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
 
-
 -- Table to store up to three custom chat messages
 local customChatMessages = {"", "", ""}
-
--- Function to add a new message to a specific slot. I went with three cuz I thought it was a good starting point. You can include more if you so wish to.
 online_premsg:text_input("Predefined Chat Message Slot 1", {"1"}, "Set and save a message in slot 1 that you can send at any time.", function(input)
     customChatMessages[1] = input
 end)
@@ -2695,7 +2689,6 @@ online_premsg:text_input("Predefined Chat Message Slot 3", {"3"}, "Set and save 
     customChatMessages[3] = input
 end)
 
--- Function to send a selected message from the table
 online_premsg:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (1-3) of the message you want to send.", 1, 3, 1, 1, function(index, click_type)
     local idx = tonumber(index)
     if customChatMessages[idx] and customChatMessages[idx] ~= "" then
@@ -2704,7 +2697,6 @@ online_premsg:click_slider("Send Saved Chat Message", {"sm"}, "Select the index 
         util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
     end
 end)
-
 
 --#experimental
 local bonePairs = {
