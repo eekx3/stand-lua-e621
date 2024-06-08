@@ -2055,10 +2055,11 @@ self:action("EWO", {"setglobal"}, "Sets the value of Global_1574582.f_6 to 1.", 
     if is_in_pause_menu() then
         return
     end
-
-    if GET_VEHICLE_PED_IS_IN(players.user_ped(), true) == 0 and toggleforoutside then
+    local playerPed = players.user_ped()
+    local vehicle = GET_VEHICLE_PED_IS_USING(playerPed)
+    if vehicle == 0 and toggleforoutside then
         write_to_global()
-    elseif GET_VEHICLE_PED_IS_IN(players.user_ped(), true) ~= 0 and toggleforoutside then
+    elseif vehicle ~= 0 and toggleforoutside then
         return
     else
         write_to_global()
