@@ -78,7 +78,7 @@ local oob_locations = {
     { name = "Freakshop", x = 555.4394, y = -419.0929, z = -58.98762 },
     { name = "LSIA Metro Station", x = -872.9433, y = -2284.0183, z = 1.718886 },
     { name = "Zancudo Tunnel", x = -2603.019, y = 3010.4265, z = 12.422543 },
-    { name = "Orb", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
+    { name = "Orbital Cannon", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
     { name = "LSCM Interior", x = -2110.68, y = 1177.9203, z = 37.079876 },
     { name = "Aero's Home", x = 496.65686, y = -1467.392, z = 9.903037, description = "I was called a nigger for this." },
     { name = "LSIA Hangar Glitch", x = -1407.6158, y = -3288.1548, z = 24.585745 },
@@ -91,7 +91,6 @@ local oob_locations = {
     { name = "MC Interior", x = 1004.10364, y = -3170.731, z = -30.022903 },
     { name = "Wind Farm OOB", x = 1209.9845, y = 1855.5875, z = -41.646027 },
     { name = "Santa Marina Rock", x = -1028.7477, y = -1865.7416, z = 3.1702237 },
-    { name = "Winning Race Interior", x = 405.3385, y = -967.20825, z = -99.00419, description = "You want to teleport/levitate upwards and either fall or parachute on top of it in order to be able to see the outside world." },
     { name = "Sandy Shores Lamp", x = 2077.8765, y = 3862.9395, z = 1.1025487 },
     { name = "Terrorbyte Interior", command = "tbinter", x = -1419.0422, y = -3010.5852, z = -76.35101 },
     { name = "Submarine Interior", command = "sbinter", x = 1561.3093, y = 382.88113, z = -46.4849 },
@@ -114,10 +113,11 @@ local interiors = {
     { name = "Mugshot", x = 403.0112, y = -1002.5245, z = -99.004135 },
     { name = "Mugshot #2", x = 415.23752, y = -998.3157, z = -99.40417 },
     { name = "Warehouse Interior", x = 1006.4094, y = -3099.7756, z = -38.999916 },
+    { name = "Winning Race Interior", x = 405.3385, y = -967.20825, z = -99.00419, description = "You want to teleport/levitate upwards and either fall or parachute on top of it in order to be able to see the outside world." },
     { name = "La Mesa Lamp Post", x = 692.2926, y = -900.46405, z = 1.3883853 },
     { name = "Random Fence", x = -2169.7388, y = 3068.5571, z = 2.6443794, description = "Literally just a floating fence under Fort Zancudo. The rotation resets on its own so you might just fall towards the void whenever you tp here." },
     { name = "Random Fence #2", x = 1025.8007, y = -2257.2246, z = 3.6108174, description = "Another one" },
-    { name = "Unknown Interior", x = 1089.2979, y = -2276.842, z = -48.999935 },
+    { name = "Salvage Yard", x = 1089.2979, y = -2276.842, z = -48.999935 },
     { name = "Nightclub Interior", x = -1618.4036, y = -3012.2046, z = -75.20511 },
     { name = "Arcade Interior", x = 2696.013, y = -369.06625, z = -54.78093 },
     { name = "Avenger Interior (LSIA)", command = "avengerlsiainterior", x = -880.7326, y = -2769.0347, z = -41.404156 },
@@ -1143,8 +1143,7 @@ util.create_tick_handler(function()
     end
 end)
 
-
-local overrideHudcolour = hud_settings:list("Change HUD Colour", {}, "Changes the colour of stuff such as the weapon wheel and some other things.\nNote: Does not change the 'Custom Text' colour.")
+local overrideHudcolour = hud_settings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things.\nNote: Does not change the 'Custom Text' colour.")
 local hudcolour = 57
 overrideHudcolour:list_select("Colour", {}, "", colours, hudcolour, function(colours)
     hudcolour = colours
