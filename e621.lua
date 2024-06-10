@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.4"
+local SCRIPT_VERSION = "2.5.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -1117,7 +1117,7 @@ local textPositionY = 0
 local customText = "Powered by e621.lua - v" .. SCRIPT_VERSION
 local textSize = 0.5
 
-hud_settings:toggle("Toggle Text Display", {}, "", function(state)
+hud_settings:toggle("Toggle Text Display", {"displaytext"}, "", function(state)
     e621drawText = state
 end, false)
 
@@ -1153,7 +1153,7 @@ overrideHudcolour:toggle_loop("Change HUD Colour", {}, "", function()
 end)
 
 --#protections
-protections:toggle_loop("Block Ped Hijack", {}, "", function()
+protections:toggle_loop("Block Ped Hijack", {"blockpedhijack"}, "", function()
 	local vehicle = entities.get_user_vehicle_as_handle()
 	if not IS_PED_IN_VEHICLE(players.user_ped(), vehicle, false) then return end
 	for entities.get_all_peds_as_handles() as ped do
@@ -1175,7 +1175,7 @@ protections:toggle_loop("Block Ped Hijack", {}, "", function()
 	end
 end)
 
-protections:toggle_loop("Ghost Orbital Cannon", {}, "Ghost orbital cannon users when you are within the blast radius or being targeted.", function()
+protections:toggle_loop("Ghost Orbital Cannon", {"ghostorb"}, "", function()
 	for players.list_except(true) as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 		local pos = players.get_position(players.user())
@@ -1194,7 +1194,7 @@ end, function()
 	end
 end)
 
-protections:toggle_loop("Ghost Modded Orbital Cannons", {}, "Automatically ghost players that are using a modded orbital cannon.", function()
+protections:toggle_loop("Ghost Modded Orbital Cannons", {"ghostmoddedorb"}, "", function()
 	for players.list_except() as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 		local cam_dist = v3.distance(players.get_position(players.user()), players.get_cam_pos(playerID))
@@ -1493,57 +1493,59 @@ end, function()
 	end
 end)
 
-local function removeWeapons(weaponsList)
-    for _, weaponCommand in ipairs(weaponsList) do
-        menu.trigger_commands(weaponCommand)
-    end
-    util.yield(7500)
-end
-local trashWeapons = {
-    "removegundoubleactionrevolver",
-    "removegunteargas",
-    "removegunhazardousjerrycan",
-    "removegunproximitymine",
-    "removegunjerrycan",
-    "removegunbattlerifle",
-    "removegunpumpshotgun",
-    "removegunpistol",
-    "removeguncarbinerifle",
-    "removeguncombatshotgun",
-    "removegunadvancedrifle",
-    "removegunbullpuprifle",
-    "removeguncompactrifle",
-    "removegunmilitaryrifle",
-    "removegunheavyrifle",
-    "removegunservicecarbine",
-    "removegununholyhellbringer",
-    "removegunmachinepistol",
-    "removegunminismg",
-    "removegunsmg",
-    "removegunassaultsmg",
-    "removeguncombatpdw",
-    "removegunmg",
-    "removegunmicrosmg",
-    "removegungusenbergsweeper",
-    "removegunnavyrevolver",
-    "removegunwm29pistol",
-    "removegunsnspistol",
-    "removegunmarksmanpistol",
-    "removegunmolotov",
-    "removegungrenade",
-    "removegunfireworklauncher",
-    "removegunwidowmaker",
-    "removegunbullpupshotgun",
-    "removegunmusket",
-    "removegunheavyshotgun",
-    "removegundoublebarrelshotgun",
-    "removegunsweepershotgun",
-    "removegunprecisionrifle",
-    "removeguntacticalsmg",
-    "removegunpistol50"
-}
 weapons:toggle_loop("Remove trash weapons", {"removetrashweapons"}, "", function()
-    removeWeapons(trashWeapons)
+    local trashWeapons = {
+        "removegundoubleactionrevolver",
+        "removegunteargas",
+        "removegunhazardousjerrycan",
+        "removegunproximitymine",
+        "removegunjerrycan",
+        "removegunbattlerifle",
+        "removegunpumpshotgun",
+        "removegunpistol",
+        "removeguncarbinerifle",
+        "removeguncombatshotgun",
+        "removegunadvancedrifle",
+        "removegunbullpuprifle",
+        "removeguncompactrifle",
+        "removegunmilitaryrifle",
+        "removegunheavyrifle",
+        "removegunservicecarbine",
+        "removegununholyhellbringer",
+        "removegunmachinepistol",
+        "removegunminismg",
+        "removegunsmg",
+        "removegunassaultsmg",
+        "removeguncombatpdw",
+        "removegunmg",
+        "removegunmicrosmg",
+        "removegungusenbergsweeper",
+        "removegunnavyrevolver",
+        "removegunwm29pistol",
+        "removegunsnspistol",
+        "removegunmarksmanpistol",
+        "removegunmolotov",
+        "removegungrenade",
+        "removegunfireworklauncher",
+        "removegunwidowmaker",
+        "removegunbullpupshotgun",
+        "removegunmusket",
+        "removegunheavyshotgun",
+        "removegundoublebarrelshotgun",
+        "removegunsweepershotgun",
+        "removegunprecisionrifle",
+        "removeguntacticalsmg",
+        "removegunpistol50"
+    }
+    local function removeWeaponsLoop(weaponsList)
+        while true do
+            for _, weaponCommand in ipairs(weaponsList) do
+                menu.trigger_commands(weaponCommand)
+            end
+            util.yield(7500)
+        end
+    end
+    removeWeaponsLoop(trashWeapons)
 end)
 
 weapons:action("Remove misc weapons", {"removemiscweapons"}, "", function()
