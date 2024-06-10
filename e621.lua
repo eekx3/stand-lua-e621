@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.6"
+local SCRIPT_VERSION = "2.5.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
