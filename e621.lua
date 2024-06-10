@@ -740,13 +740,12 @@ local cleanse = world:list("Clear area", {})
 local tps1 = menu.list(world, "Teleports", {"etp"})
 local freemodetweaks = menu.list(settings, "Freemode Tweaks", {})
 local notiftweaks = menu.list(settings, "Notification Tweaks", {})
-local objectives = menu.list(settings, "Objectives", {})
+local enhancements = menu.list(settings, "Enhancements", {})
+local protections = menu.list(settings, "Protections", {})
+local auto_accept = menu.list(settings, "Auto Accept", {})
 local scripts = menu.list(settings, "Scripts", {})
 local yacht = menu.list(settings, "Yacht", {})
 local hud_settings = menu.list(settings, "HUD", {})
-local protections = menu.list(settings, "Protections", {})
-local auto_accept = menu.list(settings, "Auto Accept", {})
-local enhancements = menu.list(settings, "Enhancements", {})
 local experimental = menu.list(settings, "Experimental", {})
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
@@ -1086,30 +1085,6 @@ menu.toggle_loop(notiftweaks, "Block Organization Causing Trouble", {""}, "... w
     end
 end, function() memory.write_int(memory.script_global(1684456 + 194), 0) end)
 
-menu.toggle_loop(objectives, "Daily", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 9222))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 9222), 1)
-
-    memory.write_int(memory.script_global(262145 + 27075), -9999)
-    memory.write_int(memory.script_global(262145 + 27074), -9999)
-    memory.write_int(memory.script_global(262145 + 27080), -9999)
-
-    memory.write_int(memory.script_global(2710112), 0)
-
-    memory.write_int(memory.script_global(262145 + 9200), 0)
-    memory.write_int(memory.script_global(262145 + 9198), 0)
-    memory.write_int(memory.script_global(262145 + 9196), 0)
-    end
-end)
-
-menu.toggle_loop(objectives, "Weekly", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 9214))
-    if val > -2 then
-    memory.write_int(memory.script_global(262145 + 9214), -9999)
-    end
-end)
-
 --#hud
 local e621drawText = false
 local textPositionX = 0.05
@@ -1218,10 +1193,6 @@ menu.toggle(scripts, "Toggle Script Block Notifications", {""}, "", function(on)
     scriptnotifs = on
 end)
 
-menu.toggle_loop(scripts, "Block Prostitutes", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_PROSTITUTE", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_PROSTITUTE") if scriptnotifs then util.toast("Blocked AM_PROSTITUTE") end end
-end)
-
 menu.toggle_loop(scripts, "Block Business Battles", {""}, "", function()
     if NETWORK_IS_SCRIPT_ACTIVE("fm_content_business_battles", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("fm_content_business_battles") if scriptnotifs then util.toast("Blocked fm_content_business_battles") end end
     if NETWORK_IS_SCRIPT_ACTIVE("BUSINESS_BATTLES", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("BUSINESS_BATTLES") if scriptnotifs then util.toast("Blocked BUSINESS_BATTLES") end end
@@ -1257,40 +1228,6 @@ end)
 
 menu.toggle_loop(scripts, "Block Kill List", {""}, "", function()
     if NETWORK_IS_SCRIPT_ACTIVE("AM_KILL_LIST", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_KILL_LIST") if scriptnotifs then util.toast("Blocked AM_KILL_LIST") end end
-end)
-
-menu.toggle_loop(scripts, "Block Clothes Shop", {""}, "", function()
-    for i = 1, 100 do
-    if NETWORK_IS_SCRIPT_ACTIVE("clothes_shop_mp", i, true, i ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("clothes_shop_mp") if scriptnotifs then util.toast("Blocked clothes_shop_mp") end end
-    end
-end)
-
-menu.toggle_loop(scripts, "Block Gun Shops", {""}, "", function()
-    for i = 1, 100 do
-    if NETWORK_IS_SCRIPT_ACTIVE("gunclub_shop", i, true, i ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("gunclub_shop") if scriptnotifs then util.toast("Blocked gunclub_shop") end end
-    end
-end)
-
-menu.toggle_loop(scripts, "Block GB_DEATHMATCH", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("GB_DEATHMATCH", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("GB_DEATHMATCH") if scriptnotifs then util.toast("Blocked GB_DEATHMATCH") end end
-end)
-
-menu.toggle_loop(scripts, "Block Tattoo Shops", {""}, "", function()
-    for i = 1, 100 do
-    if NETWORK_IS_SCRIPT_ACTIVE("tattoo_shop", i, true, i ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("tattoo_shop") if scriptnotifs then util.toast("Blocked tattoo_shop") end end
-    end
-end)
-
-menu.toggle_loop(scripts, "Block LSC", {""}, "", function()
-    for i = 1, 100 do
-    if NETWORK_IS_SCRIPT_ACTIVE("carmod_shop", i, true, i ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("carmod_shop") if scriptnotifs then util.toast("Blocked carmod_shop") end end
-    end
-end)
-
-menu.toggle_loop(scripts, "Block Hair Shop", {""}, "", function()
-    for i = -100, 100 do
-    if NETWORK_IS_SCRIPT_ACTIVE("hairdo_shop_mp", i, true, i ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("hairdo_shop_mp") if scriptnotifs then util.toast("Blocked hairdo_shop_mp") end end
-    end
 end)
 
 --#detections
@@ -3283,6 +3220,8 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
     end
 end)
 
+local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
+local isOrbActive = {}
 griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show the kill as ... Killed ...\nNot, You Obliterated ...", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
@@ -3290,31 +3229,47 @@ griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show t
         util.toast("Erhm, you can't do this >:( Bad pet.")
         return
     end
+    if isOrbActive[playerID] then
+        util.toast("Orbital strike is already active on this player you silly goober :33")
+        return
+    end
     if IS_PLAYER_DEAD(playerID) or not isNetPlayerOk(playerID) then
         return
     end
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-    isOrbActive = true
-    setBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
+    isOrbActive[playerID] = true
+    setBit(obliterate_global, 0)
     local pos = players.get_position(playerID)
     ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
     USE_PARTICLE_FX_ASSET("scr_xm_orbital")
     START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
     PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesn't work sometimes
-    clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
+    clearBit(obliterate_global, 0)
     repeat
         if util.current_time_millis() > timer and not IS_PED_DEAD_OR_DYING(ped) then
             util.toast("I failed... I'm sorry :(")
-            timer = util.current_time_millis() + 3000
+            isOrbActive[playerID] = false
             return
         end
         util.yield()
-    until not IS_PED_DEAD_OR_DYING(ped)
+    until IS_PED_DEAD_OR_DYING(ped)
 
     STOP_SOUND(0)
-    isOrbActive = false
+    isOrbActive[playerID] = false
     timer = util.current_time_millis() + 3000
+end, function()
+    for playerID in pairs(isOrbActive) do
+        isOrbActive[playerID] = false
+    end
 end)
+
+players.on_leave(function(playerID)
+    if isOrbActive[playerID] then
+        isOrbActive[playerID] = false
+        clearBit(obliterate_global, 0)
+    end
+end)
+
 
 griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local player_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
