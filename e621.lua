@@ -42,6 +42,10 @@ if SCRIPT_MANUAL_START then
     end)
 end
 
+if not SCRIPT_SILENT_START then
+    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION)
+end
+
 local GlobalplayerBD = 2657921
 local GlobalplayerBD_FM = 1845263
 local GlobalplayerBD_FM_3 = 1886967
@@ -699,7 +703,7 @@ local shortcuts = {
     { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("gosolopublic") end },
     { name = "Find Session", command = {"fs"}, description = "", action = function() menu.trigger_commands("gopublic") end },
     { name = "Be Alone", command = {"ba"}, description = "", action = function() menu.trigger_commands("bealone") end },
-    { name = "Developer Mode", command = {"devmode"}, description = "Enable/Disable Developer Mode", toggle = function()
+    { name = "Developer Mode", command = {"devmode"}, description = "", toggle = function()
             developer_mode_enabled = not developer_mode_enabled
             if developer_mode_enabled then
                 menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>Developer"))
@@ -728,25 +732,24 @@ local settings = menu.list(menu.my_root(), "Settings", {"esettings"})
 local detections = menu.list(menu.my_root(), "Detections", {"edetection"})
 local misc = menu.list(menu.my_root(), "Miscellaneous", {"emisc"})
 
-local movement = menu.list(self, "Movement", {})
+local self_movement = menu.list(self, "Movement", {})
 local veh_fly = menu.list(veh_root, "Vehicle Fly", {})
 local veh_lsc = menu.list(veh_root, "Vehicle Customisation", {"elsc"})
-local players_list = online:list("Players")
+local players_list = menu.list(online, "Players")
 local online_griefing = menu.list(online, "Griefing", {})
 local online_trolling = menu.list(online, "Trolling", {})
 local online_chat = menu.list(online, "Chat", {})
 local online_premsg = menu.list(online_chat, "Chat - Predefined Messages", {})
-local cleanse = world:list("Clear area", {})
 local tps1 = menu.list(world, "Teleports", {"etp"})
+local cleanse = menu.list(world, "Clear area", {})
+local hud_settings = menu.list(settings, "HUD", {})
+local scripts = menu.list(settings, "Scripts", {})
 local freemodetweaks = menu.list(settings, "Freemode Tweaks", {})
 local notiftweaks = menu.list(settings, "Notification Tweaks", {})
 local enhancements = menu.list(settings, "Enhancements", {})
 local protections = menu.list(settings, "Protections", {})
 local auto_accept = menu.list(settings, "Auto Accept", {})
-local scripts = menu.list(settings, "Scripts", {})
-local yacht = menu.list(settings, "Yacht", {})
-local hud_settings = menu.list(settings, "HUD", {})
-local experimental = menu.list(settings, "Experimental", {})
+local experimental = menu.list(settings, "Experimental", {}, "These are experimental for a reason.\nExpect some issues when using them.")
 local credits = menu.list(misc, "Credits", {"ecredits"})
 
 -- Manually check for updates with a menu option
@@ -780,10 +783,6 @@ end
 
 for _, credit in ipairs(creditsList) do
     credits:action(credit.name, {}, credit.description, createCreditAction(credit.name, credit.description))
-end
-
-if not SCRIPT_SILENT_START then
-    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION, TOAST_DEFAULT)
 end
 
 local menus = {}
@@ -834,38 +833,10 @@ players.on_join(create_player_menu)
 players.on_leave(handle_player_list)
 players.dispatch_on_join()
 
-menu.toggle_loop(yacht, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --Credit to SetThreadContext for this.
+menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --Credit to SetThreadContext for this.
     local val = memory.read_int(memory.script_global(262145 + 13319))
     if val != 1 then
     memory.write_int(memory.script_global(262145 + 13319), 1)
-    end
-end)
-
-menu.toggle_loop(yacht, "Force Yacht Defense Systems Off", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13311))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13311), 1)
-    end
-end)
-
-menu.toggle_loop(yacht, "Disable Yacht Buoys", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13321))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13321), 1)
-    end
-end)
-
-menu.toggle_loop(yacht, "Disable Yacht Spawned Helis", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13303))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13303), 1)
-    end
-end)
-
-menu.toggle_loop(yacht, "Disable Yacht Spawned Boats", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13304))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13304), 1)
     end
 end)
 
@@ -873,12 +844,6 @@ menu.toggle_loop(freemodetweaks, "Disable RP Gain", {}, "Credits to Jesus_Is_Cap
     memory.write_float(memory.script_global(262145 + 1), 0)
 end, function()
     memory.write_float(memory.script_global(262145 + 1), 1)
-end)
-menu.toggle_loop(freemodetweaks, "Enable Valentines Event", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 7131))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 7131), 1)
-    end
 end)
 
 menu.toggle_loop(freemodetweaks, "Disable Casino Valet", {""}, "", function()
@@ -903,6 +868,13 @@ menu.toggle_loop(freemodetweaks, "Disable Payphone Calls", {""}, "", function()
     end
 end)
 
+menu.toggle_loop(freemodetweaks, "Enable Valentines Event", {""}, "", function()
+    local val = memory.read_int(memory.script_global(262145 + 7131))
+    if val != 1 then
+    memory.write_int(memory.script_global(262145 + 7131), 1)
+    end
+end)
+
 menu.toggle_loop(freemodetweaks, "Enable Independence Pack", {""}, "Not all features may be present/work", function()
     local val = memory.read_int(memory.script_global(262145 + 8436))
     local fireworks = memory.read_int(memory.script_global(262145 + 8445))
@@ -912,12 +884,6 @@ menu.toggle_loop(freemodetweaks, "Enable Independence Pack", {""}, "Not all feat
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Enable SHOULD_HEIST_ANTI_CHEAT_BE_DISABLED", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 10775))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 10775), 1)
-    end
-end)
 menu.toggle_loop(freemodetweaks, "Disable Treasure Hunt", {""}, "", function()
     local val = memory.read_int(memory.script_global(262145 + 23655))
     if val == 1 then
@@ -957,29 +923,6 @@ menu.toggle_loop(freemodetweaks, "Block Lester 'You have already set a Bounty'",
     local val = memory.read_int(memory.script_global(2738587 + 1893 + 1))
     if val != 0 then
     memory.write_int(memory.script_global(2738587 + 1893 + 1), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Mental State Update/Notification", {""}, "", function()
-    local val = memory.read_float(memory.script_global(262145 + 8379))
-    local val1 = memory.read_float(memory.script_global(262145 + 8380))
-    local val2 = memory.read_float(memory.script_global(262145 + 8381))
-    local val3 = memory.read_float(memory.script_global(262145 + 8384))
-    local val4 = memory.read_float(memory.script_global(262145 + 8383))
-    if val != 0.0 then
-    memory.write_float(memory.script_global(262145 + 8379), 0.0)
-    end
-    if val1 != 0.0 then
-    memory.write_float(memory.script_global(262145 + 8380), 0.0)
-    end
-    if val2 != 0.0 then
-    memory.write_float(memory.script_global(262145 + 8381), 0.0)
-    end
-    if val3 != 0.0 then
-    memory.write_float(memory.script_global(262145 + 8384), 0.0)
-    end
-    if val4 != 0.0 then
-    memory.write_float(memory.script_global(262145 + 8383), 0.0)
     end
 end)
 
@@ -1412,7 +1355,7 @@ loadPlayerDB()
 logPlayersInSession()
 players.dispatch_on_join()
 
-detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token to LoggedPlayers.txt\nYou can find it in:\n'Lua Scripts > Resources > e621'", function(toggle)
+detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token\nYou can the txt file in:\n'Lua Scripts > Resources > e621'", function(toggle)
     loggingEnabled = toggle
 end)
 
@@ -1528,7 +1471,7 @@ veh_root:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for play
 	end
 end)
 
-veh_root:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "Allows you to access players vehicles that have their vehicle access set to no-one.", function()
+veh_root:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
 	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
 	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
 	DECOR_REMOVE(vehicle, "Player_Vehicle")
@@ -1547,7 +1490,7 @@ veh_root:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
 	end
 end)
 
-veh_root:toggle_loop("Disable Vehicle God On Exit", {}, "Note: Only disables vehicle godmode for the vehicle, not the actual feature itself.", function()
+veh_root:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 	local vehicle = entities.get_user_vehicle_as_handle()
 	if entities.is_invulnerable(vehicle) then
 		if not IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
@@ -1921,33 +1864,7 @@ veh_fly:toggle("Keep Momentum", {}, "", function(a)
 end)
 
 --#self
-local customgrace = menu.list(self, "Custom Gracefulness", {""}, "")
-menu.toggle(customgrace, "Vehicle Impact Gracefulness", {""}, "", function(on)
-    local gracefulness = menu.ref_by_path("Self>Gracefulness", 51)
-    if gracefulness.value then
-        return toast("Please disable gracefulness in order for this option to be effective.")
-    else
-        SET_PED_CONFIG_FLAG(players.user_ped(), 106, on)
-    end
-end)
-menu.toggle(customgrace, "Explosion Gracefulness", {""}, "", function(on)
-    local gracefulness = menu.ref_by_path("Self>Gracefulness", 51)
-    if gracefulness.value then
-        return toast("Please disable gracefulness in order for this option to be effective.")
-    else
-        SET_PED_CONFIG_FLAG(players.user_ped(), 108, on)
-    end
-end)
-menu.toggle(customgrace, "Electrocution Gracefulness", {""}, "", function(on)
-    local gracefulness = menu.ref_by_path("Self>Gracefulness", 51)
-    if gracefulness.value then
-        return toast("Please disable gracefulness in order for this option to be effective.")
-    else
-        SET_PED_CONFIG_FLAG(players.user_ped(), 110, on)
-    end
-end)
-
---#bark
+--#self--#bark
 local chopPedHandle = nil
 self:action("Bark", {}, "Note: The sound may not play consistently for all players every time.\n(It'll have to stay this way until I find a fix.)", function()
     local function BarkThenDelete(pedHandle)
@@ -1986,7 +1903,7 @@ self:action("Bark", {}, "Note: The sound may not play consistently for all playe
     STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(pedHash)
 end)
 
---#ewo
+--#self--#ewo
 local function write_to_global()
     memory.write_int(memory.script_global(1574582 + 6), 1)
 end
@@ -2012,7 +1929,7 @@ self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when 
     toggleforoutside = on
 end)
 
---#walkonwater/driveonwater
+--#self--#walkonwater/driveonwater
 local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
     local outHeight = memory.alloc(4)
     if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
@@ -2047,7 +1964,7 @@ local function Streament(hash)
     loadModelAsync(hash)
 end
 
-local waterwalkroot = movement:list(('Walk/Drive on Water'), {}, '')
+local waterwalkroot = self_movement:list(('Walk/Drive on Water'), {}, '')
 local block
 local blocks = {}
 local waterwalk = { height = -0.3 }
@@ -2126,7 +2043,9 @@ waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above
    waterwalk.height = h * 0.01
 end)
 
-movement:toggle("AFK", {"afk"}, "", function(on)
+--#self_movement
+---#self_movement --#afk
+self_movement:toggle("AFK", {"afk"}, "", function(on)
     if on then
         menu.trigger_commands("levitate on")
         local me = PLAYER.PLAYER_PED_ID()
@@ -2165,7 +2084,8 @@ movement:toggle("AFK", {"afk"}, "", function(on)
     end
 end)
 
-movement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
+--#self_movement --fasthands
+self_movement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
         PED.FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
     end
@@ -2179,7 +2099,7 @@ local spoofedPos = menu.ref_by_path("Online>Spoofing>Position Spoofing>Spoofed P
 local superJump = menu.ref_by_path("Self>Movement>Super Jump")
 local gracefulLanding = menu.ref_by_path("Self>Movement>Graceful Landing")
 local stealthLevitation
-stealthLevitation = movement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
+stealthLevitation = self_movement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
 	if levitation.value then
 		vehInvisibility:setState("Locally Visible")
 		invisibility:setState("Locally Visible")
@@ -2341,7 +2261,8 @@ end, function()
 	end
 end)
 
---#chaos
+--#world
+---#world --#chaos
 world:toggle_loop("Chaos", {}, "", function(on)
 	local vehicle = entities.get_all_vehicles_as_handles()
 	local me = players.user()  
@@ -2352,6 +2273,62 @@ world:toggle_loop("Chaos", {}, "", function(on)
 			VEHICLE.SET_VEHICLE_FORWARD_SPEED(ent, 900000)
 			ct = ct + 1
 		end
+end)
+
+---#world --#smoothtp
+tps1:action("Smooth TP2WP", {"smoothtp"}, "", function()
+	if not IS_WAYPOINT_ACTIVE() then
+		toast(lang.get_localised(BLIPNFND))
+		return
+	end
+
+	local waypoint = GET_BLIP_INFO_ID_COORD(GET_FIRST_BLIP_INFO_ID(GET_WAYPOINT_BLIP_ENUM_ID()))
+	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+
+	local ground = false
+	repeat
+		ground, waypoint.z = util.get_ground_z(waypoint.x, waypoint.y)
+		yield()
+	until ground
+
+	invisibility:setState("Enabled")
+
+	if vehicle != 0 then
+		SET_ENTITY_VISIBLE(vehicle, false)
+	end
+
+	SWITCH_TO_MULTI_FIRSTPART(players.user_ped(), 8, 1)
+	BEGIN_TEXT_COMMAND_BUSYSPINNER_ON("PM_WAIT")
+	END_TEXT_COMMAND_BUSYSPINNER_ON(4)
+
+	repeat
+		yield()
+	until IS_SWITCH_TO_MULTI_FIRSTPART_FINISHED()
+
+	if vehicle == 0 then
+		SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), waypoint, false, false, false)
+	else
+		SET_ENTITY_VISIBLE(vehicle, false)
+		SET_ENTITY_COORDS_NO_OFFSET(vehicle, waypoint, false, false, false)
+	end
+
+	SWITCH_TO_MULTI_SECONDPART(players.user_ped())
+	ALLOW_PLAYER_SWITCH_OUTRO() 
+
+	repeat
+		yield()
+	until not IS_PLAYER_SWITCH_IN_PROGRESS()
+	
+	if vehicle == 0 then
+		NETWORK_FADE_IN_ENTITY(players.user_ped(), true, true)
+	else
+		NETWORK_FADE_IN_ENTITY(vehicle, true, 1)
+		NETWORK_FADE_IN_ENTITY(players.user_ped(), true, true)
+		SET_ENTITY_VISIBLE(vehicle, true)
+	end
+	
+	invisibility:setState("Disabled")
+	BUSYSPINNER_OFF()
 end)
 
 --#gun_van_locations
@@ -2732,7 +2709,7 @@ menu.toggle_loop(cleanse, "Peds", {"pedclear", "pclear"}, "", function(on_click)
             ct = ct + 1
     end
 end)
-menu.toggle_loop(cleanse, "Clear All", {"clr", "cleanse"}, "", function(on_click)
+menu.toggle_loop(cleanse, "Clear All", {"cleanse", "clr"}, "", function(on_click)
 	local ct = 0
 	for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
 		entities.delete_by_handle(ent)
