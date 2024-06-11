@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.5.6"
+local SCRIPT_VERSION = "2.5.7"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -2478,7 +2478,14 @@ end, function()
     NETWORK_END_TUTORIAL_SESSION()
 end)
 
-function meow_command()
+online_chat:action("Send Random e621 Link", {}, "", function()
+    local randomNumber = math.random(1, 999999)
+    local randomNumber2 = string.format("%06d", randomNumber)
+    local url = "https://e621.net/posts/" .. randomNumber2
+    chat.send_message(url, false, true, true)
+end)
+
+online_chat:action("Meow >///<", {"meow"}, "Sends a random meow message in chat.", function()
     local meow_messages = {
         "Nya, purr!",
         "Meow, meow, purr, purr!",
@@ -2536,10 +2543,9 @@ function meow_command()
     local selected_meow = meow_messages[random_index]
 
     chat.send_message(selected_meow, false, true, true)
-end
-online_chat:action("Meow >///<", {"meow"}, "", meow_command, nil, nil, COMMANDPERM_FRIENDLY)
+end)
 
-function woof_command()
+online_chat:action("Woof Woof", {"woof"}, "Sends a random woof message in chat.", function()
     local woof_messages = {
         "Bark bark woof!",
         "Woof woof bark!",
@@ -2587,8 +2593,7 @@ function woof_command()
     local selected_woof = woof_messages[random_index]
 
     chat.send_message(selected_woof, false, true, true)
-end
-online_chat:action("Woof Woof", {"woof"}, "", woof_command, nil, nil, COMMANDPERM_FRIENDLY)
+end)
 
 function horny_dog_command()
     local horny_dog_message = "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF"
