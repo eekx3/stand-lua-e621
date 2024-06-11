@@ -3225,8 +3225,6 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
     end
 end)
 
-local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
-local isOrbActive = {}
 griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show the kill as ... Killed ...\nNot, You Obliterated ...", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
@@ -3234,47 +3232,31 @@ griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show t
         util.toast("Erhm, you can't do this >:( Bad pet.")
         return
     end
-    if isOrbActive[playerID] then
-        util.toast("Orbital strike is already active on this player you silly goober :33")
-        return
-    end
     if IS_PLAYER_DEAD(playerID) or not isNetPlayerOk(playerID) then
         return
     end
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-    isOrbActive[playerID] = true
-    setBit(obliterate_global, 0)
+    isOrbActive = true
+    setBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
     local pos = players.get_position(playerID)
     ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
     USE_PARTICLE_FX_ASSET("scr_xm_orbital")
     START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
     PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesn't work sometimes
-    clearBit(obliterate_global, 0)
+    clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
     repeat
         if util.current_time_millis() > timer and not IS_PED_DEAD_OR_DYING(ped) then
             util.toast("I failed... I'm sorry :(")
-            isOrbActive[playerID] = false
+            timer = util.current_time_millis() + 3000
             return
         end
         util.yield()
-    until IS_PED_DEAD_OR_DYING(ped)
+    until not IS_PED_DEAD_OR_DYING(ped)
 
     STOP_SOUND(0)
-    isOrbActive[playerID] = false
+    isOrbActive = false
     timer = util.current_time_millis() + 3000
-end, function()
-    for playerID in pairs(isOrbActive) do
-        isOrbActive[playerID] = false
-    end
 end)
-
-players.on_leave(function(playerID)
-    if isOrbActive[playerID] then
-        isOrbActive[playerID] = false
-        clearBit(obliterate_global, 0)
-    end
-end)
-
 
 griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local player_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
