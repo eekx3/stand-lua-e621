@@ -722,7 +722,7 @@ local creditsList = {
     { name = "Ilana", description = "" },
     { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
 }
---#menus
+--#root
 local self = menu.list(menu.my_root(), "Self", {"eself"})
 local weapons = menu.list(menu.my_root(), "Weapons", {"eweapons"})
 local veh_root = menu.list(menu.my_root(), "Vehicle", {"eveh"})
@@ -731,7 +731,7 @@ local world = menu.list(menu.my_root(), "World", {"eworld"})
 local settings = menu.list(menu.my_root(), "Settings", {"esettings"})
 local detections = menu.list(menu.my_root(), "Detections", {"edetection"})
 local misc = menu.list(menu.my_root(), "Miscellaneous", {"emisc"})
-
+--#menus
 local self_movement = menu.list(self, "Movement", {})
 local veh_fly = menu.list(veh_root, "Vehicle Fly", {})
 local veh_lsc = menu.list(veh_root, "Vehicle Customisation", {"elsc"})
@@ -740,7 +740,7 @@ local online_griefing = menu.list(online, "Griefing", {})
 local online_trolling = menu.list(online, "Trolling", {})
 local online_chat = menu.list(online, "Chat", {})
 local online_premsg = menu.list(online_chat, "Chat - Predefined Messages", {})
-local tps1 = menu.list(world, "Teleports", {"etp"})
+local teleports = menu.list(world, "Teleports", {"etp"})
 local cleanse = menu.list(world, "Clear area", {})
 local hud_settings = menu.list(settings, "HUD", {})
 local scripts = menu.list(settings, "Scripts", {})
@@ -751,14 +751,6 @@ local protections = menu.list(settings, "Protections", {})
 local auto_accept = menu.list(settings, "Auto Accept", {})
 local experimental = menu.list(settings, "Experimental", {}, "These are experimental for a reason.\nExpect some issues when using them.")
 local credits = menu.list(misc, "Credits", {"ecredits"})
-
--- Manually check for updates with a menu option
-menu.action(misc, "Check For Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
-    auto_update_config.check_interval = 0
-    util.toast("Checking for updates")
-    auto_updater.run_auto_update(auto_update_config)
-end)
-
 local shortcuts_menu = menu.list(misc, "Shortcuts", {}, "", function() end)
 for _, shortcut in ipairs(shortcuts) do
     if shortcut.toggle then
@@ -775,6 +767,11 @@ local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Show/Hide t
 end)
 local developer_mode_enabled = false
 
+menu.action(misc, "Check For Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
+    auto_update_config.check_interval = 0
+    util.toast("Checking for updates")
+    auto_updater.run_auto_update(auto_update_config)
+end)
 
 local function createCreditAction(name, description)
     return function()
@@ -1911,7 +1908,7 @@ local function is_in_pause_menu()
     return IS_PAUSE_MENU_ACTIVE()
 end
 local toggleforoutside = false
-self:action("EWO", {"setglobal"}, "Sets the value of Global_1574582.f_6 to 1.", function()
+self:action("EWO", {"zzz"}, "Sets the value of Global_1574582.f_6 to 1.", function()
     if is_in_pause_menu() then
         return
     end
@@ -1924,7 +1921,7 @@ self:action("EWO", {"setglobal"}, "Sets the value of Global_1574582.f_6 to 1.", 
     else
         write_to_global()
     end
-end)
+end, nil, nil, COMMANDPERM_FRIENDLY)
 self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when you are not in a vehicle.", function(on)
     toggleforoutside = on
 end)
@@ -2276,7 +2273,7 @@ world:toggle_loop("Chaos", {}, "", function(on)
 end)
 
 ---#world --#smoothtp
-tps1:action("Smooth TP2WP", {"smoothtp"}, "", function()
+teleports:action("Smooth TP2WP", {"smoothtp"}, "", function()
 	if not IS_WAYPOINT_ACTIVE() then
 		toast(lang.get_localised(BLIPNFND))
 		return
@@ -2332,7 +2329,7 @@ tps1:action("Smooth TP2WP", {"smoothtp"}, "", function()
 end)
 
 --#gun_van_locations
-gunvan = tps1:list("Gun Van Locations", {"gunvan"}, "")
+gunvan = teleports:list("Gun Van Locations", {"gunvan"}, "")
 local function teleportPlayerAndVehicle(x, y, z)
     local me = PLAYER.PLAYER_PED_ID()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
@@ -2376,7 +2373,7 @@ local function teleportPlayerAndVehicle(x, y, z)
     end
 end
 
-local oob_tps = tps1:list("Rat Locations", {}, "")
+local oob_tps = teleports:list("Rat Locations", {}, "")
 for _, loc in ipairs(oob_locations) do
     oob_tps:action(loc.name, {loc.command}, loc.description or "", function(on_click)
         teleportPlayerAndVehicle(loc.x, loc.y, loc.z)
@@ -2400,13 +2397,12 @@ local function teleportPlayerAndVehicle(x, y, z)
     end
 end
 
-local oob_tps = tps1:list("Interiors & Inaccessible", {}, "")
+local oob_tps = teleports:list("Interiors & Inaccessible", {}, "")
 for _, loc in ipairs(interiors) do
     oob_tps:action(loc.name, {loc.command}, loc.description or "", function(on_click)
         teleportPlayerAndVehicle(loc.x, loc.y, loc.z)
     end)
 end
-
 
 --#cringe_locations
 local function teleportPlayerAndVehicle(x, y, z)
@@ -2425,7 +2421,7 @@ local function teleportPlayerAndVehicle(x, y, z)
     end
 end
 
-local oob_tps = tps1:list("Cringe Locations", {}, "")
+local oob_tps = teleports:list("Cringe Locations", {}, "")
 for _, loc in ipairs(cringe_locations) do
     oob_tps:action(loc.name, {loc.command}, loc.description or "", function(on_click)
         teleportPlayerAndVehicle(loc.x, loc.y, loc.z)
