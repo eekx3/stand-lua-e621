@@ -42,10 +42,6 @@ if SCRIPT_MANUAL_START then
     end)
 end
 
-if not SCRIPT_SILENT_START then
-    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION)
-end
-
 local GlobalplayerBD = 2657921
 local GlobalplayerBD_FM = 1845263
 local GlobalplayerBD_FM_3 = 1886967
@@ -712,6 +708,11 @@ local creditsList = {
     { name = "Ilana", description = "" },
     { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
 }
+
+if not SCRIPT_SILENT_START then
+    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION)
+end
+
 --#root
 local my_root = menu.my_root()
 local self = my_root:list("Self", {"eself"})
@@ -724,8 +725,8 @@ local detections = my_root:list("Detections", {"edetection"})
 local misc = my_root:list("Miscellaneous", {"emisc"})
 --#menus
 local selfMovement = self:list("Movement")
-local vehicleFly = vehicle:list("Vehicle Fly")
 local vehicleCustomisation = vehicle:list("Vehicle Customisation")
+local vehicleFly = vehicle:list("Vehicle Fly")
 local playersList = online:list("Players")
 local onlineGriefing = online:list("Griefing")
 local onlineTrolling = online:list("Trolling")
@@ -734,9 +735,7 @@ local onlinePreMSG = onlineChat:list("Chat - Predefined Messages")
 local teleports = world:list("Teleports")
 local cleanse = world:list("Clear area")
 local hudSettings = settings:list("HUD")
-local scripts = settings:list("Scripts")
 local freemodetweaks = settings:list("Freemode Tweaks")
-local notiftweaks = settings:list("Notification Tweaks")
 local enhancements = settings:list("Enhancements")
 local protections = settings:list("Protections")
 local autoAccept = settings:list("Auto Accept")
@@ -942,81 +941,17 @@ menu.toggle_loop(freemodetweaks, "Block Freemode Missions", {""}, "Such as Geral
     end
 end)
 
-menu.toggle_loop(notiftweaks, "Block Off the Radar", {""}, "You have hidden your blip for 1 minute for.../Some players are Off the Radar./... is Off the Radar.", function()
-    local val = memory.read_int(memory.script_global(1684456 + 163))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 163), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 163), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Out of Sight", {""}, "You have activated Out of Sight./... activated Out of Sight.", function()
-    local val = memory.read_int(memory.script_global(1684456 + 289))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 289), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 289), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block The Gooch", {""}, "... was visited by The Gooch.", function()
-    local val = memory.read_int(memory.script_global(1684456 + 290))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 290), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 290), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Ghost Organization", {""}, "You have activated Ghost Organization./Your CEO has activated Ghost Organization./Your VIP has activated Ghost Organization./... have activated Ghost Organization./A rival Organization have activated Ghost Organization.", function()
-    local val = memory.read_int(memory.script_global(1684456 + 193))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 193), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 193), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block OTR Reveal", {""}, "You have revealed the other players for 1 minute for.../... has revealed all other players for 1 minute for...", function()
-    local val = memory.read_int(memory.script_global(1684456 + 164))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 164), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 164), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block One on One DM", {""}, "... has won a One on One Deathmatch against.../... has started a One on One DM with...", function()
-    local val = memory.read_int(memory.script_global(1684456 + 165))
-    local val2 = memory.read_int(memory.script_global(1684456 + 166))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 165), 1)
-    end
-    if val2 != 1 then
-        memory.write_int(memory.script_global(1684456 + 166), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 165), 0); memory.write_int(memory.script_global(1684456 + 166), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Organization Registration", {""}, "... has registered as a(n)...", function()
-    local val = memory.read_int(memory.script_global(1684456 + 187))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 187), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 187), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Organization Joins", {""}, "... joined ... as a(n)...", function()
-    local val = memory.read_int(memory.script_global(1684456 + 188))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 188), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 188), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Organization Quits", {""}, "... quit ... as a(n)...", function()
-    local val = memory.read_int(memory.script_global(1684456 + 189))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 189), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 189), 0) end)
-
-menu.toggle_loop(notiftweaks, "Block Organization Causing Trouble", {""}, "... was removed from... as an Associate for causing trouble.", function()
-    local val = memory.read_int(memory.script_global(1684456 + 194))
-    if val != 1 then
-        memory.write_int(memory.script_global(1684456 + 194), 1)
-    end
-end, function() memory.write_int(memory.script_global(1684456 + 194), 0) end)
-
 --#hud
+hudSettings:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
+	local natTypes = {"Open", "Moderate", "Strict"}
+    local getNatType = util.stat_get_int64("_NatType")
+    for nat, natType in natTypes do
+        if getNatType == nat then
+            draw_debug_text($"NAT Type: {natType}")
+        end
+    end
+end)
+
 local customTextDisplay = hudSettings:list("Custom Text Display", {})
 local e621drawText = false
 local textPositionX = 0.05
@@ -1113,49 +1048,6 @@ end, function()
 	for players.list_except(true) as playerID do
 		SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
 	end
-end)
-
-
-scriptnotifs = false
-menu.toggle(scripts, "Toggle Script Block Notifications", {""}, "", function(on)
-    scriptnotifs = on
-end)
-
-menu.toggle_loop(scripts, "Block Business Battles", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("fm_content_business_battles", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("fm_content_business_battles") if scriptnotifs then util.toast("Blocked fm_content_business_battles") end end
-    if NETWORK_IS_SCRIPT_ACTIVE("BUSINESS_BATTLES", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("BUSINESS_BATTLES") if scriptnotifs then util.toast("Blocked BUSINESS_BATTLES") end end
-end)
-
-menu.toggle_loop(scripts, "Block NPC Job Invites", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("am_npc_invites", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("am_npc_invites") if scriptnotifs then util.toast("Blocked am_npc_invites") end end
-end)
-
-menu.toggle_loop(scripts, "Block King Of The Castle", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_KING_OF_THE_CASTLE", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_KING_OF_THE_CASTLE") if scriptnotifs then util.toast("Blocked AM_KING_OF_THE_CASTLE") end end
-end)
-
-menu.toggle_loop(scripts, "Block Hunt The Beast", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_HUNT_THE_BEAST", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_HUNT_THE_BEAST") if scriptnotifs then util.toast("Blocked AM_HUNT_THE_BEAST") end end
-end)
-
-menu.toggle_loop(scripts, "Block Criminal Damage", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_CRIMINAL_DAMAGE", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_CRIMINAL_DAMAGE") if scriptnotifs then util.toast("Blocked AM_CRIMINAL_DAMAGE") end end
-end)
-
-menu.toggle_loop(scripts, "Block Challenges", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_CHALLENGES", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_CHALLENGES") if scriptnotifs then util.toast("Blocked AM_CHALLENGES") end end
-end)
-
-menu.toggle_loop(scripts, "Block Hot Property", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_HOT_PROPERTY", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_HOT_PROPERTY") if scriptnotifs then util.toast("Blocked AM_HOT_PROPERTY") end end
-end)
-
-menu.toggle_loop(scripts, "Block Checkpoint Collection", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_CP_COLLECTION", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_CP_COLLECTION") if scriptnotifs then util.toast("Blocked AM_CP_COLLECTION") end end
-end)
-
-menu.toggle_loop(scripts, "Block Kill List", {""}, "", function()
-    if NETWORK_IS_SCRIPT_ACTIVE("AM_KILL_LIST", -1, true, 0 ) then TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("AM_KILL_LIST") if scriptnotifs then util.toast("Blocked AM_KILL_LIST") end end
 end)
 
 --#detections
@@ -1383,7 +1275,7 @@ loadPlayerDB()
 logPlayersInSession()
 players.dispatch_on_join()
 
-detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token\nYou can the txt file in:\n'Lua Scripts > Resources > e621'", function(toggle)
+detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token\nYou can find the txt file in:\n'Lua Scripts > Resources > e621'", function(toggle)
     loggingEnabled = toggle
 end)
 
@@ -2202,16 +2094,6 @@ online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.
     end
 end)
 
-online:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
-	local natTypes = {"Open", "Moderate", "Strict"}
-    local getNatType = util.stat_get_int64("_NatType")
-    for nat, natType in natTypes do
-        if getNatType == nat then
-            draw_debug_text($"NAT Type: {natType}")
-        end
-    end
-end)
-
 --#griefing
 onlineGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
     local list = players.list(false, false, true)
@@ -2519,7 +2401,7 @@ onlineChat:action("Send Random e621 Link", {}, "", function()
     chat.send_message(url, false, true, true)
 end)
 
-onlineChat:action("Meow >///<", {"meow"}, "Sends a random meow message in chat.", function()
+onlineChat:action("Meow >///<", {"meow"}, "", function()
     local meow_messages = {
         "Nya, purr!",
         "Meow, meow, purr, purr!",
@@ -2577,9 +2459,9 @@ onlineChat:action("Meow >///<", {"meow"}, "Sends a random meow message in chat."
     local selected_meow = meow_messages[random_index]
 
     chat.send_message(selected_meow, false, true, true)
-end)
+end, nil, nil, COMMANDPERM_FRIENDLY)
 
-onlineChat:action("Woof Woof", {"woof"}, "Sends a random woof message in chat.", function()
+onlineChat:action("Woof Woof", {"woof"}, "", function()
     local woof_messages = {
         "Bark bark woof!",
         "Woof woof bark!",
@@ -2627,7 +2509,7 @@ onlineChat:action("Woof Woof", {"woof"}, "Sends a random woof message in chat.",
     local selected_woof = woof_messages[random_index]
 
     chat.send_message(selected_woof, false, true, true)
-end)
+end, nil, nil, COMMANDPERM_FRIENDLY)
 
 function horny_dog_command()
     local horny_dog_message = "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF"
