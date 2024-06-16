@@ -1953,11 +1953,13 @@ end)
 
 ---#selfMovement
 --#afk
-selfMovement:toggle("AFK", {"afk"}, "", function(on)
+selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
     if on then
         menu.trigger_commands("levitate on")
         local me = PLAYER.PLAYER_PED_ID()
         if me ~= nil then
+            menu.trigger_commands("copycoords")
+            util.yield(110)
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
             menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
             menu.trigger_commands("lodscale min")
@@ -1987,8 +1989,9 @@ selfMovement:toggle("AFK", {"afk"}, "", function(on)
         menu.trigger_commands("infotps off")
         menu.trigger_commands("levitate off")
         menu.trigger_commands("visexposurecurveoffset default")
-        menu.trigger_commands("mb")
         menu.trigger_commands("anticrashcamera off")
+        util.yield(110)
+        menu.trigger_commands("pastecoords")
     end
 end)
 
