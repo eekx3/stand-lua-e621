@@ -827,6 +827,13 @@ menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcam
     end
 end)
 
+menu.toggle_loop(freemodetweaks, "Disable Yacht Defences", {}, "", function()
+    local val = memory.read_int(memory.script_global(262145 + 13311))
+    if val != 1 then
+    memory.write_int(memory.script_global(262145 + 13311), 1)
+    end
+end)
+
 menu.toggle_loop(freemodetweaks, "Disable RP Gain", {}, "Credits to Jesus_Is_Cap", function()
     memory.write_float(memory.script_global(262145 + 1), 0)
 end, function()
@@ -2036,6 +2043,14 @@ self:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Scri
 end)
 
 ---#online
+--#passiveorg
+local function write_to_global()
+    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
+end
+online:action("Passive ORG", {}, "Lets you go passive while in an organization.", function()
+    write_to_global()
+end)
+
 --#killfeed
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
@@ -2077,14 +2092,6 @@ online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.
             util.yield()
         end
     end
-end)
-
---#passiveorg
-local function write_to_global()
-    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
-end
-online:action("Passive ORG", {}, "Lets you go passive while in an organization.", function()
-    write_to_global()
 end)
 
 ---#onlineGriefing
