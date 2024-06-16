@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.0"
+local SCRIPT_VERSION = "2.6.1"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -1279,7 +1279,7 @@ detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID 
     loggingEnabled = toggle
 end)
 
---#weapons
+---#weapons
 weapons:toggle_loop("Lock On To Players", {}, "Allows you to lock on to players with the homing launcher.", function()
 	for players.list_except(true) as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
@@ -1373,7 +1373,8 @@ weapons:action("Remove misc weapons", {"removemiscweapons"}, "", function()
     removeWeapons(miscWeapons)
 end)
 
---#vehicle_options
+---#vehicle
+--#stunlock
 vehicle:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for players trying to enter the vehicle when access is set to no-one.", function()
 	for players.list_except(true) as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
@@ -1391,6 +1392,7 @@ vehicle:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for playe
 	end
 end)
 
+--#accesslockedvehicle
 vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
 	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
 	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
@@ -1398,6 +1400,7 @@ vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", func
 	SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, 0, 0)
 end)
 
+--#noradioentry
 vehicle:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
 	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
 	if GET_PLAYER_RADIO_STATION_NAME() != "OFF" and GET_IS_VEHICLE_ENGINE_RUNNING(vehicle) then
@@ -1410,6 +1413,7 @@ vehicle:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
 	end
 end)
 
+--#disablevehgod
 vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 	local vehicle = entities.get_user_vehicle_as_handle()
 	if entities.is_invulnerable(vehicle) then
@@ -1419,6 +1423,7 @@ vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 	end
 end)
 
+--#pearlescents
 local pearlTypes = {
     ["Metallic Black"] = 0, ["Metallic Graphite Black"] = 1, ["Metallic Black Steel"] = 2, ["Metallic Dark Silver"] = 3,
     ["Metallic Silver"] = 4, ["Metallic Blue Silver"] = 5, ["Metallic Steel Gray"] = 6, ["Metallic Shadow Silver"] = 7,
@@ -1509,6 +1514,7 @@ local function createOnClickHandler(pearlIndex)
         util.toast(tmess)
     end
 end
+
 local pearlmenulist = menu.list(vehicleCustomisation, "Change Pearl", {""}, "")
 local sortedCategories = {}
 for category, _ in pairs(colourCategories) do
@@ -1516,12 +1522,15 @@ for category, _ in pairs(colourCategories) do
         table.insert(sortedCategories, category)
     end
 end
+
 table.sort(sortedCategories)
 table.insert(sortedCategories, "Misc")
+
 local submenus = {}
 for _, category in ipairs(sortedCategories) do
     submenus[category] = menu.list(pearlmenulist, category, {""}, "")
 end
+
 for _, pearl in ipairs(pearlList) do
     menu.action(submenus[pearl.category], pearl.name, {""}, "", createOnClickHandler(pearl.index))
 end
@@ -1716,7 +1725,6 @@ antilag:toggle_loop("Anti-Lag", {"antilag"}, "Rev your engine to use. Only works
 	end
 end)
 
-
 --#vehicleFly
 vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
     yourself = PLAYER.GET_PLAYER_PED(players.user())
@@ -1770,60 +1778,47 @@ vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
         ENTITY.SET_ENTITY_COLLISION(carUsed, true, true)
     end
 end)
-
 vehicleFly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
     carFlySpeedSelect = a
 end)
---[[
-vehicleFly:toggle("No Clip Fly", {}, "", function(a)
-    noClipCar = a
-end)
-]]
 vehicleFly:toggle("Keep Momentum", {}, "", function(a)
     keepMomentum = a
 end)
 
---#self
---#self--#bark
-local chopPedHandle = nil
+---#self
+--#bark
+local shepherdPedHandle = nil
 self:action("Bark", {}, "Note: The sound may not play consistently for all players every time.\n(It'll have to stay this way until I find a fix.)", function()
     local function BarkThenDelete(pedHandle)
         AUDIO.PLAY_ANIMAL_VOCALIZATION(pedHandle, 3, "BARK_SEQ")
         util.yield(1200)
-
         if ENTITY.DOES_ENTITY_EXIST(pedHandle) then
             entities.delete_by_handle(pedHandle)
         end
-        chopPedHandle = nil
+        shepherdPedHandle = nil
     end
-    
-    if chopPedHandle and ENTITY.DOES_ENTITY_EXIST(chopPedHandle) then
-        BarkThenDelete(chopPedHandle)
+    if shepherdPedHandle and ENTITY.DOES_ENTITY_EXIST(shepherdPedHandle) then
+        BarkThenDelete(shepherdPedHandle)
         return
     end
-    
-    local pedHash = util.joaat("a_c_chop")
-    
+    local pedHash = util.joaat("a_c_shepherd")
     if not STREAMING.HAS_MODEL_LOADED(pedHash) then
         STREAMING.REQUEST_MODEL(pedHash)
         while not STREAMING.HAS_MODEL_LOADED(pedHash) do
             util.yield(0)
         end
     end
-    
-    chopPedHandle = entities.create_ped(1, pedHash, ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID(), true), ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID()))
-    
-    if chopPedHandle ~= 0 then
-        ENTITY.ATTACH_ENTITY_TO_ENTITY(chopPedHandle, PLAYER.PLAYER_PED_ID(), PED.GET_PED_BONE_INDEX(PLAYER.PLAYER_PED_ID(), 0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, false, false, false, 2, true, 0)
-        ENTITY.SET_ENTITY_INVINCIBLE(chopPedHandle, true)
-        ENTITY.SET_ENTITY_VISIBLE(chopPedHandle, false)
-        BarkThenDelete(chopPedHandle)
-    end
-    
+    shepherdPedHandle = entities.create_ped(1, pedHash, ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID(), true), ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID()))
+    if shepherdPedHandle ~= 0 then
+        ENTITY.ATTACH_ENTITY_TO_ENTITY(shepherdPedHandle, PLAYER.PLAYER_PED_ID(), PED.GET_PED_BONE_INDEX(PLAYER.PLAYER_PED_ID(), 0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, false, false, false, 2, true, 0)
+        ENTITY.SET_ENTITY_INVINCIBLE(shepherdPedHandle, true)
+        ENTITY.SET_ENTITY_VISIBLE(shepherdPedHandle, false)
+        BarkThenDelete(shepherdPedHandle)
+    end    
     STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(pedHash)
 end)
 
---#self--#ewo
+--#ewo
 local function write_to_global()
     memory.write_int(memory.script_global(1574582 + 6), 1)
 end
@@ -1849,14 +1844,13 @@ self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when 
     toggleforoutside = on
 end)
 
---#self--#walkonwater/driveonwater
+--#walkonwater/driveonwater
 local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
     local outHeight = memory.alloc(4)
     if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
         return memory.read_float(outHeight)
     end
 end
-
 local function deleteEntities(entityTable)
     for _, entity in ipairs(entityTable) do
         NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
@@ -1864,14 +1858,12 @@ local function deleteEntities(entityTable)
         entities.delete_by_handle(entity)
     end
 end
-
 local function loadModelAsync(hash)
     REQUEST_MODEL(hash)
     while not HAS_MODEL_LOADED(hash) do
         util.yield()
     end
 end
-
 local function DelEnt(ped_tab)
     for _, Pedm in ipairs(ped_tab) do
         NETWORK_REQUEST_CONTROL_OF_ENTITY(Pedm)
@@ -1879,16 +1871,13 @@ local function DelEnt(ped_tab)
         entities.delete_by_handle(Pedm)
     end
 end
-
 local function Streament(hash)
     loadModelAsync(hash)
 end
-
 local waterwalkroot = selfMovement:list(('Walk/Drive on Water'), {}, '')
 local block
 local blocks = {}
 local waterwalk = { height = -0.3 }
-
 waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or drive on water if you are in the water it will teleport you above it'), function (on)
     local pos, pos2
     local vmod = entities.get_user_vehicle_as_handle() or 0
@@ -1931,12 +1920,11 @@ waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or driv
                 block = nil
             end
         else
-            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z -- Assuming yaw is needed
+            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z
             if z ~= nil and z2 ~= nil and pedrotYaw ~= nil then
                 local pitch = math.asin((z - z2) / 0.3)
                 SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, z + waterwalk.height, false, false, false)
-                -- Assuming the entity has a rotation order of 2 (yaw-pitch-roll)
-                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false) -- Updated this line
+                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false)
                 local waterped = GET_ENTITY_SUBMERGED_LEVEL(players.user_ped())
                 local waterveh = GET_ENTITY_SUBMERGED_LEVEL(vmod)
                 for _, blockEntity in ipairs(blocks) do
@@ -1963,15 +1951,15 @@ waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above
    waterwalk.height = h * 0.01
 end)
 
---#selfMovement
----#selfMovement --#afk
+---#selfMovement
+--#afk
 selfMovement:toggle("AFK", {"afk"}, "", function(on)
     if on then
         menu.trigger_commands("levitate on")
         local me = PLAYER.PLAYER_PED_ID()
         if me ~= nil then
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
-            menu.trigger_commands("shader stripnofog") --shader vbahama, shader underwater, shader trailerexplosionoptimise, shader stripstage, shader stripoffice, shader stripchanging, shader stripnofog
+            menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
             menu.trigger_commands("lodscale min")
             menu.trigger_commands("noidlekick on")
             menu.trigger_commands("stealthlevitation on")
@@ -2004,13 +1992,14 @@ selfMovement:toggle("AFK", {"afk"}, "", function(on)
     end
 end)
 
---#selfMovement --fasthands
+--#fasthands
 selfMovement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
         PED.FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
     end
 end)
 
+--#stealthLevitation
 local invisibility = menu.ref_by_path("Self>Appearance>Invisibility")
 local levitation = menu.ref_by_path("Self>Movement>Levitation>Levitation")
 local vehInvisibility = menu.ref_by_path("Vehicle>Invisibility")
@@ -2043,7 +2032,8 @@ self:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Scri
     util.yield()
 end)
 
---#online
+---#online
+--#killfeed
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
 local function checkPlayerKills()
@@ -2076,14 +2066,6 @@ local function checkPlayerKills()
         end
     end
 end
-
-local function write_to_global()
-    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
-end
-online:action("Passive ORG", {}, "Lets you go passive while in an organization.", function()
-    write_to_global()
-end)
-
 online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.", function(on)
     killFeedEnabled = on
     if killFeedEnabled then
@@ -2094,7 +2076,16 @@ online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.
     end
 end)
 
---#griefing
+--#passiveorg
+local function write_to_global()
+    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
+end
+online:action("Passive ORG", {}, "Lets you go passive while in an organization.", function()
+    write_to_global()
+end)
+
+---#onlineGriefing
+--#smartsekick
 onlineGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
     local list = players.list(false, false, true)
     for list as pid do
@@ -2107,33 +2098,31 @@ onlineGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besid
     end
 end)
 
+--#orball
 local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
 onlineGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
     if isOrbActive then
         util.toast("Orbital strike is already active you silly goober :33")
         return
     end
-
     isOrbActive = true
     setBit(obliterate_global, 0)
-
     for _, playerID in ipairs(players.list_except(true, true, false, false)) do
         if not IS_PLAYER_DEAD(playerID) and isNetPlayerOk(playerID) then
             local pos = players.get_position(playerID)
             ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
             USE_PARTICLE_FX_ASSET("scr_xm_orbital")
             START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
-            PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesn't work sometimes
+            PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false)
         end
     end
-
-    util.yield(1000) -- yielding a second because it's a bit iffy on high(ish) ping players (150ms+)
+    util.yield(1000)
     clearBit(obliterate_global, 0)
-    util.yield(3000) -- give some time for the explosions and sounds to finish
-
+    util.yield(3000)
     isOrbActive = false
 end)
 
+--#shroulette
 onlineGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
     for _, pid in ipairs(players.list(false, true, true)) do
         menu.trigger_commands("givesh" .. players.get_name(pid))
@@ -2141,7 +2130,8 @@ onlineGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you u
     end
 end)
 
---#trolling
+---#onlineTrolling
+--#hijackall
 onlineTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
 	for players.list_except(true) as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
@@ -2152,6 +2142,7 @@ onlineTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to tak
 	end
 end)
 
+--#blockorbitalcannon
 onlineTrolling:toggle_loop("Block Orbital Cannon", {"blockorb"}, "", function()
 	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
 	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
@@ -2178,8 +2169,8 @@ end, function()
 	end
 end)
 
---#world
----#world --#chaos
+---#world
+--#chaos
 world:toggle_loop("Chaos", {}, "", function(on)
 	local vehicle = entities.get_all_vehicles_as_handles()
 	local me = players.user()  
@@ -2192,7 +2183,8 @@ world:toggle_loop("Chaos", {}, "", function(on)
 		end
 end)
 
----#world --#smoothtp
+---#teleports
+--#smoothtp2wp
 teleports:action("Smooth TP2WP", {"smoothtp"}, "", function()
 	if not IS_WAYPOINT_ACTIVE() then
 		toast(lang.get_localised(BLIPNFND))
@@ -2253,7 +2245,6 @@ gunvan = teleports:list("Gun Van Locations", {"gunvan"}, "")
 local function teleportPlayerAndVehicle(x, y, z)
     local me = PLAYER.PLAYER_PED_ID()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-    
     if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
         if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
@@ -2274,13 +2265,10 @@ for _, loc in ipairs(gun_van_locations) do
     gunvan:action(loc.name, {}, "", createTeleportAction(loc.name, loc.x, loc.y, loc.z))
 end
 
-
-
 --#oob_location
 local function teleportPlayerAndVehicle(x, y, z)
     local me = PLAYER.PLAYER_PED_ID()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-
     if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
         if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
@@ -2304,11 +2292,10 @@ end
 local function teleportPlayerAndVehicle(x, y, z)
     local me = PLAYER.PLAYER_PED_ID()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-
     if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
         if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
+            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
         else
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
@@ -2332,7 +2319,7 @@ local function teleportPlayerAndVehicle(x, y, z)
     if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
         if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
+            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
         else
             ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
@@ -2348,6 +2335,8 @@ for _, loc in ipairs(cringe_locations) do
     end)
 end
 
+---#autoAccept
+--#joinmessages
 autoAccept:toggle_loop("Join Messages", {"autoacceptjoinmessages"}, "", function() 
 	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
 	for warnings as hash do
@@ -2359,6 +2348,7 @@ autoAccept:toggle_loop("Join Messages", {"autoacceptjoinmessages"}, "", function
 	end
 end)
 
+--#transactionerrors
 autoAccept:toggle_loop("Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
 	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
 	for transactionWarnings as hash do
@@ -2370,6 +2360,8 @@ autoAccept:toggle_loop("Transaction Errors", {"autoaccepttransactionerrors"}, ""
 	end
 end)
 
+---#enhancements
+--#autoclaimbounties
 enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "Automatically claims bounties that are placed on you.", function()
 	local bounty = players.get_bounty(players.user())
 	if bounty != nil then
@@ -2378,10 +2370,10 @@ enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "Automati
 			yield(1000)
 			bounty = players.get_bounty(players.user())
 		until bounty == nil
-		toast("Bounty has been auto-claimed. :D")
 	end
 end)
 
+--#safeshopping
 enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Puts you into a locked session within your session while shopping to ensure a safe shopping experience. Other players will not be able to see that you are in a shop.", function()
 	if getPlayerCurrentShop(players.user()) != -1 then
 		NETWORK_START_SOLO_TUTORIAL_SESSION()
@@ -2394,6 +2386,8 @@ end, function()
     NETWORK_END_TUTORIAL_SESSION()
 end)
 
+---#onlineChat
+--#randome621link
 onlineChat:action("Send Random e621 Link", {}, "", function()
     local randomNumber = math.random(1, 999999)
     local randomNumber2 = string.format("%06d", randomNumber)
@@ -2401,6 +2395,7 @@ onlineChat:action("Send Random e621 Link", {}, "", function()
     chat.send_message(url, false, true, true)
 end)
 
+--#meow
 onlineChat:action("Meow >///<", {"meow"}, "", function()
     local meow_messages = {
         "Nya, purr!",
@@ -2461,6 +2456,7 @@ onlineChat:action("Meow >///<", {"meow"}, "", function()
     chat.send_message(selected_meow, false, true, true)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
+--#woof
 onlineChat:action("Woof Woof", {"woof"}, "", function()
     local woof_messages = {
         "Bark bark woof!",
@@ -2511,6 +2507,7 @@ onlineChat:action("Woof Woof", {"woof"}, "", function()
     chat.send_message(selected_woof, false, true, true)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
+--#hornypuppy
 function horny_dog_command()
     local horny_dog_message = "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF"
 
@@ -2518,7 +2515,7 @@ function horny_dog_command()
 end
 onlineChat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
 
--- Table to store up to three custom chat messages
+--#premsg
 local customChatMessages = {"", "", ""}
 onlinePreMSG:text_input("Predefined Chat Message Slot 1", {"1"}, "Set and save a message in slot 1 that you can send at any time.", function(input)
     customChatMessages[1] = input
@@ -2529,7 +2526,6 @@ end)
 onlinePreMSG:text_input("Predefined Chat Message Slot 3", {"3"}, "Set and save a message in slot 3 that you can send at any time.", function(input)
     customChatMessages[3] = input
 end)
-
 onlinePreMSG:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (1-3) of the message you want to send.", 1, 3, 1, 1, function(index, click_type)
     local idx = tonumber(index)
     if customChatMessages[idx] and customChatMessages[idx] ~= "" then
@@ -2539,7 +2535,8 @@ onlinePreMSG:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (
     end
 end)
 
---#experimental
+---#experimental
+--#rgbskeleton
 local bonePairs = {
     {0xE0FD, 0xE39F},
     {0xE0FD, 0xCA72},
@@ -2675,7 +2672,7 @@ cleanse:toggle("Clear Traffic", {"cleartraffic"}, "", function(on)
     end
 end)
 
---#player menu
+---#playermenu
 local alloc = memory.alloc
 GenerateFeatures = function(pid)
 menu.divider(menu.player_root(pid), "")
@@ -2707,6 +2704,7 @@ local function godKill(playerID)
 	timer = util.current_time_millis() + 3000
 end
 
+--#glitchVehicle
 local glitchVehRoot = trolling_playermenu:list("Glitch Vehicle")
 local glitchVehMdl = joaat("prop_ld_ferris_wheel")
 glitchVehRoot:list_select("Object", {"glitchvehobj"}, "", object_stuff, object_stuff[1][1], function(mdlHash)
@@ -2782,6 +2780,7 @@ end, function()
     end
 end)
 
+--#glitchPlayer
 local playerID = pid
 local glitchPlyrRoot = trolling_playermenu:list("Glitch Player")
 local glitchObjMdl = joaat("prop_ld_ferris_wheel")
@@ -2820,6 +2819,7 @@ glitchplayer = glitchPlyrRoot:toggle_loop("Glitch Player", {"glitchplayer"}, "Bl
     yield(delay)
 end)
 
+--#vehicleKick
 local veh_kick = trolling_playermenu:list("Kick From Vehicle")
 veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag them out of their vehicle.", function()
     if playerID == players.user() then 
@@ -2950,7 +2950,7 @@ veh_kick:action("Script Method", {"scriptkick"}, "Uses a script event to kick th
     SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, players.user_ped(), 0)
 end)
 
-
+--#towVehicle
 local playerID = pid
 trolling_playermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit and doesn't work properly half the time.", function()
     if not playerID then
@@ -2982,6 +2982,7 @@ trolling_playermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit an
     TASK_VEHICLE_DRIVE_WANDER(randomPed, towtruck, 9999.0, DF_SwerveAroundAllCars | DF_AvoidRestrictedAreas | DF_GoOffRoadWhenAvoiding | DF_SteerAroundObjects | DF_UseShortCutLinks | DF_ChangeLanesAroundObstructions)
 end)
 
+--#ghostPlayer
 local ghostPlayer
 local playerID = pid
 local ghostPlayer
@@ -3006,11 +3007,11 @@ end, function()
     SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
 end)
 
+--#removeGodmode
 local playerID = pid 
 playermenu:toggle_loop("Remove Player Godmode", {}, lang.get_localised(-748077967), function()
     util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
 end)
-
 playermenu:toggle_loop("Remove Vehicle Godmode", {}, lang.get_localised(-748077967), function()
     local playerID = pid
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
@@ -3028,6 +3029,7 @@ playermenu:toggle_loop("Remove Vehicle Godmode", {}, lang.get_localised(-7480779
     end
 end)
 
+--#playerOrbital
 playermenu:action("Orbital Strike", {"orb"}, "Just a 'Normal' Orbital Strike.", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
@@ -3066,7 +3068,6 @@ playermenu:action("Orbital Strike", {"orb"}, "Just a 'Normal' Orbital Strike.", 
     isOrbActive = false
     timer = util.current_time_millis() + 3000
 end)
-
 local isGodmodeRemovable = {}
 playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
     local focusedPlayers = players.get_focused()
@@ -3122,8 +3123,7 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
         isGodmodeRemovable[playerID] = false
     end
 end)
-
-griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show the kill as ... Killed ...\nNot, You Obliterated ...", function()
+griefing_playermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "Will show the kill as You Killed ...\nNot, You Obliterated ...", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
     if playerID == players.user() then
@@ -3156,6 +3156,7 @@ griefing_playermenu:toggle_loop("Orbital Strike Spam", {"orbloop"}, "Will show t
     timer = util.current_time_millis() + 3000
 end)
 
+--#restrainPlayer
 griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local player_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
     local pos = ENTITY.GET_ENTITY_COORDS(player_ped)
@@ -3182,6 +3183,7 @@ griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function(
     end
 end)
 
+--#hijackPlayer
 trolling_playermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsistent on higher ping players or just not work at all for some players.", function()
     if playerID == players.user() then 
         toast(lang.get_localised(CMDOTH))
