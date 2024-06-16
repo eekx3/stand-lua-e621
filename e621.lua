@@ -862,13 +862,6 @@ menu.toggle_loop(freemodetweaks, "Enable Valentines Event", {""}, "", function()
     end
 end)
 
-menu.toggle_loop(freemodeTweaks, "Force Yacht Defense Systems Off", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13311))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13311), 1)
-    end
-end)
-
 menu.toggle_loop(freemodetweaks, "Enable Independence Pack", {""}, "Not all features may be present/work", function()
     local val = memory.read_int(memory.script_global(262145 + 8436))
     local fireworks = memory.read_int(memory.script_global(262145 + 8445))
