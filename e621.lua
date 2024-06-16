@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.1"
+local SCRIPT_VERSION = "2.6.2"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -859,6 +859,13 @@ menu.toggle_loop(freemodetweaks, "Enable Valentines Event", {""}, "", function()
     local val = memory.read_int(memory.script_global(262145 + 7131))
     if val != 1 then
     memory.write_int(memory.script_global(262145 + 7131), 1)
+    end
+end)
+
+menu.toggle_loop(freemodeTweaks, "Force Yacht Defense Systems Off", {""}, "", function()
+    local val = memory.read_int(memory.script_global(262145 + 13311))
+    if val != 1 then
+    memory.write_int(memory.script_global(262145 + 13311), 1)
     end
 end)
 
