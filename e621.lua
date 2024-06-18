@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.2"
+local SCRIPT_VERSION = "2.6.3"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -98,6 +98,7 @@ local oob_locations = {
     { name = "Tinsel Towers", command = "ump2", x = -614.6791, y = 47.121822, z = -178.77605 },
     { name = "Record A Studios", command = "ump3", x = -1010.5319, y = -58.991444, z = -94.59792 },
     { name = "Agency Garage", command = "ump4", x = -1072.477, y = -75.01728, z = -86.59713 },
+    { name = "Rockford Hills Metro Station", x = -292.52103, y = -295.34946, z = 23.637678 },
     { name = "LSIA Terminal", x = -1051.7388, y = -2759.8142, z = 13.944587 },
     { name = "Apartment Interior", command = "opinter", x = 252.80753, y = -1001.6377, z = -96.010056, description = "Preferably have Levitation on when teleporting here." },
 }
@@ -123,6 +124,89 @@ local interiors = {
     { name = "Avenger Interior (LSIA)", command = "avengerlsiainterior", x = -880.7326, y = -2769.0347, z = -41.404156 },
     { name = "Casino Garage Interior", x = 1390.3984, y = 202.0952, z = -48.99538 },
     { name = "Lillium's eep place", x= -1869.1552, y = 3749.7407, z= -99.84548, description = "Lillium's fav place to sleep"},
+}
+
+local pearlTypes = {
+    ["Metallic Black"] = 0, ["Metallic Graphite Black"] = 1, ["Metallic Black Steel"] = 2, ["Metallic Dark Silver"] = 3,
+    ["Metallic Silver"] = 4, ["Metallic Blue Silver"] = 5, ["Metallic Steel Gray"] = 6, ["Metallic Shadow Silver"] = 7,
+    ["Metallic Stone Silver"] = 8, ["Metallic Midnight Silver"] = 9, ["Metallic Gun Metal"] = 10, ["Metallic Anthracite Grey"] = 11,
+    ["Matte Black"] = 12, ["Matte Gray"] = 13, ["Matte Light Grey"] = 14, ["Util Black"] = 15, ["Util Black Poly"] = 16,
+    ["Util Dark silver"] = 17, ["Util Silver"] = 18, ["Util Gun Metal"] = 19, ["Util Shadow Silver"] = 20, ["Worn Black"] = 21,
+    ["Worn Graphite"] = 22, ["Worn Silver Grey"] = 23, ["Worn Silver"] = 24, ["Worn Blue Silver"] = 25, ["Worn Shadow Silver"] = 26,
+    ["Metallic Red"] = 27, ["Metallic Torino Red"] = 28, ["Metallic Formula Red"] = 29, ["Metallic Blaze Red"] = 30,
+    ["Metallic Graceful Red"] = 31, ["Metallic Garnet Red"] = 32, ["Metallic Desert Red"] = 33, ["Metallic Cabernet Red"] = 34,
+    ["Metallic Candy Red"] = 35, ["Metallic Sunrise Orange"] = 36, ["Metallic Classic Gold"] = 37, ["Metallic Orange"] = 38,
+    ["Matte Red"] = 39, ["Matte Dark Red"] = 40, ["Matte Orange"] = 41, ["Matte Yellow"] = 42, ["Util Red"] = 43,
+    ["Util Bright Red"] = 44, ["Util Garnet Red"] = 45, ["Worn Red"] = 46, ["Worn Golden Red"] = 47, ["Worn Dark Red"] = 48,
+    ["Metallic Dark Green"] = 49, ["Metallic Racing Green"] = 50, ["Metallic Sea Green"] = 51, ["Metallic Olive Green"] = 52,
+    ["Metallic Green"] = 53, ["Metallic Gasoline Blue Green"] = 54, ["Matte Lime Green"] = 55, ["Util Dark Green"] = 56,
+    ["Util Green"] = 57, ["Worn Dark Green"] = 58, ["Worn Green"] = 59, ["Worn Sea Wash"] = 60, ["Metallic Midnight Blue"] = 61,
+    ["Metallic Dark Blue"] = 62, ["Metallic Saxony Blue"] = 63, ["Metallic Blue"] = 64, ["Metallic Mariner Blue"] = 65,
+    ["Metallic Harbor Blue"] = 66, ["Metallic Diamond Blue"] = 67, ["Metallic Surf Blue"] = 68, ["Metallic Nautical Blue"] = 69,
+    ["Metallic Bright Blue"] = 70, ["Metallic Purple Blue"] = 71, ["Metallic Spinnaker Blue"] = 72, ["Metallic Ultra Blue"] = 73,
+    ["Util Dark Blue"] = 75, ["Util Midnight Blue"] = 76, ["Util Blue"] = 77, ["Util Sea Foam Blue"] = 78, ["Util Lightning blue"] = 79,
+    ["Util Maui Blue Poly"] = 80, ["Util Bright Blue"] = 81, ["Matte Dark Blue"] = 82, ["Matte Blue"] = 83, ["Matte Midnight Blue"] = 84,
+    ["Worn Dark blue"] = 85, ["Worn Blue"] = 86, ["Worn Light blue"] = 87, ["Metallic Taxi Yellow"] = 88, ["Metallic Race Yellow"] = 89,
+    ["Metallic Bronze"] = 90, ["Metallic Yellow Bird"] = 91, ["Metallic Lime"] = 92, ["Metallic Champagne"] = 93,
+    ["Metallic Pueblo Beige"] = 94, ["Metallic Dark Ivory"] = 95, ["Metallic Choco Brown"] = 96, ["Metallic Golden Brown"] = 97,
+    ["Metallic Light Brown"] = 98, ["Metallic Straw Beige"] = 99, ["Metallic Moss Brown"] = 100, ["Metallic Biston Brown"] = 101,
+    ["Metallic Beechwood"] = 102, ["Metallic Dark Beechwood"] = 103, ["Metallic Choco Orange"] = 104, ["Metallic Beach Sand"] = 105,
+    ["Metallic Sun Bleeched Sand"] = 106, ["Metallic Cream"] = 107, ["Util Brown"] = 108, ["Util Medium Brown"] = 109,
+    ["Util Light Brown"] = 110, ["Metallic White"] = 111, ["Metallic Frost White"] = 112, ["Worn Honey Beige"] = 113,
+    ["Worn Brown"] = 114, ["Worn Dark Brown"] = 115, ["Worn straw beige"] = 116, ["Brushed Steel"] = 117, ["Brushed Black steel"] = 118,
+    ["Brushed Aluminium"] = 119, ["Chrome"] = 120, ["Worn Off White"] = 121, ["Util Off White"] = 122, ["Worn Orange"] = 123,
+    ["Worn Light Orange"] = 124, ["Metallic Securicor Green"] = 125, ["Worn Taxi Yellow"] = 126, ["police car blue"] = 127,
+    ["Matte Green"] = 128, ["Matte Brown"] = 129, ["Worn Orange"] = 130, ["Matte White"] = 131, ["Worn White"] = 132,
+    ["Worn Olive Army Green"] = 133, ["Pure White"] = 134, ["Hot Pink"] = 135, ["Salmon pink"] = 136, ["Metallic Vermillion Pink"] = 137,
+    ["Orange"] = 138, ["Green"] = 139, ["Blue"] = 140, ["Mettalic Black Blue"] = 141, ["Metallic Black Purple"] = 142,
+    ["Metallic Black Red"] = 143, ["hunter green"] = 144, ["Metallic Purple"] = 145, ["Metaillic V Dark Blue"] = 146,
+    ["MODSHOP BLACK1"] = 147, ["Matte Purple"] = 148, ["Matte Dark Purple"] = 149, ["Metallic Lava Red"] = 150,
+    ["Matte Forest Green"] = 151, ["Matte Olive Drab"] = 152, ["Matte Desert Brown"] = 153, ["Matte Desert Tan"] = 154,
+    ["Matte Foilage Green"] = 155, ["DEFAULT ALLOY COLOUR"] = 156, ["Epsilon Blue"] = 157, ["MP100 GOLD"] = 158, ["MP100 GOLD SATIN"] = 159,
+    ["MP100 GOLD SPEC"] = 160
+}
+
+local trashWeapons = {
+    "removegundoubleactionrevolver", "removegunteargas", "removegunhazardousjerrycan", "removegunproximitymine", "removegunjerrycan",
+    "removegunbattlerifle", "removegunpumpshotgun", "removeguncarbinerifle","removeguncombatshotgun", "removegunadvancedrifle",
+    "removegunbullpuprifle", "removeguncompactrifle", "removegunmilitaryrifle", "removegunheavyrifle", "removegunservicecarbine",
+    "removegununholyhellbringer", "removegunmachinepistol", "removegunminismg", "removegunsmg", "removegunassaultsmg",
+    "removeguncombatpdw", "removegunmg", "removegunmicrosmg", "removegungusenbergsweeper", "removegunnavyrevolver",
+    "removegunwm29pistol", "removegunsnspistol", "removegunmarksmanpistol", "removegunmolotov", "removegungrenade",
+    "removegunfireworklauncher", "removegunwidowmaker", "removegunbullpupshotgun", "removegunmusket", "removegunheavyshotgun",
+    "removegundoublebarrelshotgun", "removegunsweepershotgun", "removegunprecisionrifle", "removeguntacticalsmg", "removegunpistol50"
+}
+
+local miscWeapons = {
+    "removegunspecialcarbinemkii", "removegunassaultriflemkii", "removegunmarksmanriflemkii",
+    "removegunpumpshotgunmkii", "removegunheavyrevolvermkii", "removegunpistolmkii", "removegunsawedoffshotgun",
+    "removegunassaultshotgun", "removegunstonehatchet", "removeguncarbineriflemkii", "removegunflaregun",
+    "removeguncombatmgmkii", "removegunupnatomizer", "removegunappistol", "removegunpistol",
+}
+
+local e621_messages = {
+    -- Meow messages
+    "Nya, purr!", "Meow, meow, purr, purr!", "Meow meow meow meow meow!", "Meow... *licks paw*",
+    "Purr, meow!", "Nya, purr purr!", "Nya nya", "Meow meow!", "Purrrrrrr...", "Nya nya! Time for a cat nap.",
+    "Purr purrr.. nya!", "Purr purr, meow!", "Nya... *licks paw*", "Meow, purr..", "Meow meow meow! Let's play!",
+    "Purrrrrrr... *curls up*", "Meow!", "Meow meow meow...", "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
+    "MRRRRPP", "Nya!", "Nya nya!", "Purr, purr, nya!", "Purr, purr, meow, meow!", "Meow, meow, purr!",
+    "Nya, nya, purr!", "MEOWOMEWEWE MEOOWWW", "Mmrpfh.. Meoww", "MEOWOMEWEWE MEOOWWW", "Meow meow meow...",
+    "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
+    "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
+    "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
+    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP",
+    -- Woof messages
+    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
+    "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
+    "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
+    "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK", "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!",
+    "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
+    "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
+    "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
+    "WOOF WOOOF WOOF! BARK!",
+    -- Additional message
+    "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF",
 }
 
 local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 65 80 41 FF C7") + 1)
@@ -1058,30 +1142,6 @@ end, function()
 end)
 
 --#detections
-local e621_messages = {
-    -- Meow messages
-    "Nya, purr!", "Meow, meow, purr, purr!", "Meow meow meow meow meow!", "Meow... *licks paw*",
-    "Purr, meow!", "Nya, purr purr!", "Nya nya", "Meow meow!", "Purrrrrrr...", "Nya nya! Time for a cat nap.",
-    "Purr purrr.. nya!", "Purr purr, meow!", "Nya... *licks paw*", "Meow, purr..", "Meow meow meow! Let's play!",
-    "Purrrrrrr... *curls up*", "Meow!", "Meow meow meow...", "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
-    "MRRRRPP", "Nya!", "Nya nya!", "Purr, purr, nya!", "Purr, purr, meow, meow!", "Meow, meow, purr!",
-    "Nya, nya, purr!", "MEOWOMEWEWE MEOOWWW", "Mmrpfh.. Meoww", "MEOWOMEWEWE MEOOWWW", "Meow meow meow...",
-    "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
-    "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
-    "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
-    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP",
-    -- Woof messages
-    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
-    "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
-    "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
-    "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK", "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!",
-    "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
-    "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
-    "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
-    "WOOF WOOOF WOOF! BARK!",
-    -- Additional message
-    "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF",
-}
 local function tag_sender_as_e621_user(sender)
     if players.exists(sender) and util.is_session_started() then
         local player_name = players.get_name(sender) or "Unknown"
@@ -1300,59 +1360,18 @@ end, function()
 	end
 end)
 
-weapons:toggle_loop("Remove trash weapons", {"removetrashweapons"}, "", function()
-    local trashWeapons = {
-        "removegundoubleactionrevolver",
-        "removegunteargas",
-        "removegunhazardousjerrycan",
-        "removegunproximitymine",
-        "removegunjerrycan",
-        "removegunbattlerifle",
-        "removegunpumpshotgun",
-        "removegunpistol",
-        "removeguncarbinerifle",
-        "removeguncombatshotgun",
-        "removegunadvancedrifle",
-        "removegunbullpuprifle",
-        "removeguncompactrifle",
-        "removegunmilitaryrifle",
-        "removegunheavyrifle",
-        "removegunservicecarbine",
-        "removegununholyhellbringer",
-        "removegunmachinepistol",
-        "removegunminismg",
-        "removegunsmg",
-        "removegunassaultsmg",
-        "removeguncombatpdw",
-        "removegunmg",
-        "removegunmicrosmg",
-        "removegungusenbergsweeper",
-        "removegunnavyrevolver",
-        "removegunwm29pistol",
-        "removegunsnspistol",
-        "removegunmarksmanpistol",
-        "removegunmolotov",
-        "removegungrenade",
-        "removegunfireworklauncher",
-        "removegunwidowmaker",
-        "removegunbullpupshotgun",
-        "removegunmusket",
-        "removegunheavyshotgun",
-        "removegundoublebarrelshotgun",
-        "removegunsweepershotgun",
-        "removegunprecisionrifle",
-        "removeguntacticalsmg",
-        "removegunpistol50"
-    }
-    local function removeWeaponsLoop(weaponsList)
-        while true do
-            for _, weaponCommand in ipairs(weaponsList) do
-                menu.trigger_commands(weaponCommand)
-            end
-            util.yield(7500)
+local lastExecutionTime = 0
+local interval = 7500
+weapons:toggle_loop("Remove Trash Weapons", {"removetrashweapons"}, "", function()
+    local currentTime = util.current_time_millis()
+    if currentTime - lastExecutionTime >= interval then
+        for _, weaponCommand in ipairs(trashWeapons) do
+            menu.trigger_commands(weaponCommand)
         end
+        lastExecutionTime = currentTime
     end
-    removeWeaponsLoop(trashWeapons)
+end, function()
+    lastExecutionTime = 0
 end)
 
 local function removeWeapons(weaponsList)
@@ -1360,23 +1379,7 @@ local function removeWeapons(weaponsList)
         menu.trigger_commands(weaponCommand)
     end
 end
-weapons:action("Remove misc weapons", {"removemiscweapons"}, "", function()
-    local miscWeapons = {
-        "removegunspecialcarbinemkii",
-        "removegunassaultriflemkii",
-        "removegunmarksmanriflemkii",
-        "removegunpumpshotgunmkii",
-        "removegunheavyrevolvermkii",
-        "removegunpistolmkii",
-        "removegunsawedoffshotgun",
-        "removegunassaultshotgun",
-        "removegunstonehatchet",
-        "removeguncarbineriflemkii",
-        "removegunflaregun",
-        "removeguncombatmgmkii",
-        "removegunupnatomizer",
-        "removegunappistol",
-    }
+weapons:action("Remove Misc Weapons", {"removemiscweapons"}, "", function()
     removeWeapons(miscWeapons)
 end)
 
@@ -1431,46 +1434,6 @@ vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 end)
 
 --#pearlescents
-local pearlTypes = {
-    ["Metallic Black"] = 0, ["Metallic Graphite Black"] = 1, ["Metallic Black Steel"] = 2, ["Metallic Dark Silver"] = 3,
-    ["Metallic Silver"] = 4, ["Metallic Blue Silver"] = 5, ["Metallic Steel Gray"] = 6, ["Metallic Shadow Silver"] = 7,
-    ["Metallic Stone Silver"] = 8, ["Metallic Midnight Silver"] = 9, ["Metallic Gun Metal"] = 10, ["Metallic Anthracite Grey"] = 11,
-    ["Matte Black"] = 12, ["Matte Gray"] = 13, ["Matte Light Grey"] = 14, ["Util Black"] = 15, ["Util Black Poly"] = 16,
-    ["Util Dark silver"] = 17, ["Util Silver"] = 18, ["Util Gun Metal"] = 19, ["Util Shadow Silver"] = 20, ["Worn Black"] = 21,
-    ["Worn Graphite"] = 22, ["Worn Silver Grey"] = 23, ["Worn Silver"] = 24, ["Worn Blue Silver"] = 25, ["Worn Shadow Silver"] = 26,
-    ["Metallic Red"] = 27, ["Metallic Torino Red"] = 28, ["Metallic Formula Red"] = 29, ["Metallic Blaze Red"] = 30,
-    ["Metallic Graceful Red"] = 31, ["Metallic Garnet Red"] = 32, ["Metallic Desert Red"] = 33, ["Metallic Cabernet Red"] = 34,
-    ["Metallic Candy Red"] = 35, ["Metallic Sunrise Orange"] = 36, ["Metallic Classic Gold"] = 37, ["Metallic Orange"] = 38,
-    ["Matte Red"] = 39, ["Matte Dark Red"] = 40, ["Matte Orange"] = 41, ["Matte Yellow"] = 42, ["Util Red"] = 43,
-    ["Util Bright Red"] = 44, ["Util Garnet Red"] = 45, ["Worn Red"] = 46, ["Worn Golden Red"] = 47, ["Worn Dark Red"] = 48,
-    ["Metallic Dark Green"] = 49, ["Metallic Racing Green"] = 50, ["Metallic Sea Green"] = 51, ["Metallic Olive Green"] = 52,
-    ["Metallic Green"] = 53, ["Metallic Gasoline Blue Green"] = 54, ["Matte Lime Green"] = 55, ["Util Dark Green"] = 56,
-    ["Util Green"] = 57, ["Worn Dark Green"] = 58, ["Worn Green"] = 59, ["Worn Sea Wash"] = 60, ["Metallic Midnight Blue"] = 61,
-    ["Metallic Dark Blue"] = 62, ["Metallic Saxony Blue"] = 63, ["Metallic Blue"] = 64, ["Metallic Mariner Blue"] = 65,
-    ["Metallic Harbor Blue"] = 66, ["Metallic Diamond Blue"] = 67, ["Metallic Surf Blue"] = 68, ["Metallic Nautical Blue"] = 69,
-    ["Metallic Bright Blue"] = 70, ["Metallic Purple Blue"] = 71, ["Metallic Spinnaker Blue"] = 72, ["Metallic Ultra Blue"] = 73,
-    ["Util Dark Blue"] = 75, ["Util Midnight Blue"] = 76, ["Util Blue"] = 77, ["Util Sea Foam Blue"] = 78, ["Util Lightning blue"] = 79,
-    ["Util Maui Blue Poly"] = 80, ["Util Bright Blue"] = 81, ["Matte Dark Blue"] = 82, ["Matte Blue"] = 83, ["Matte Midnight Blue"] = 84,
-    ["Worn Dark blue"] = 85, ["Worn Blue"] = 86, ["Worn Light blue"] = 87, ["Metallic Taxi Yellow"] = 88, ["Metallic Race Yellow"] = 89,
-    ["Metallic Bronze"] = 90, ["Metallic Yellow Bird"] = 91, ["Metallic Lime"] = 92, ["Metallic Champagne"] = 93,
-    ["Metallic Pueblo Beige"] = 94, ["Metallic Dark Ivory"] = 95, ["Metallic Choco Brown"] = 96, ["Metallic Golden Brown"] = 97,
-    ["Metallic Light Brown"] = 98, ["Metallic Straw Beige"] = 99, ["Metallic Moss Brown"] = 100, ["Metallic Biston Brown"] = 101,
-    ["Metallic Beechwood"] = 102, ["Metallic Dark Beechwood"] = 103, ["Metallic Choco Orange"] = 104, ["Metallic Beach Sand"] = 105,
-    ["Metallic Sun Bleeched Sand"] = 106, ["Metallic Cream"] = 107, ["Util Brown"] = 108, ["Util Medium Brown"] = 109,
-    ["Util Light Brown"] = 110, ["Metallic White"] = 111, ["Metallic Frost White"] = 112, ["Worn Honey Beige"] = 113,
-    ["Worn Brown"] = 114, ["Worn Dark Brown"] = 115, ["Worn straw beige"] = 116, ["Brushed Steel"] = 117, ["Brushed Black steel"] = 118,
-    ["Brushed Aluminium"] = 119, ["Chrome"] = 120, ["Worn Off White"] = 121, ["Util Off White"] = 122, ["Worn Orange"] = 123,
-    ["Worn Light Orange"] = 124, ["Metallic Securicor Green"] = 125, ["Worn Taxi Yellow"] = 126, ["police car blue"] = 127,
-    ["Matte Green"] = 128, ["Matte Brown"] = 129, ["Worn Orange"] = 130, ["Matte White"] = 131, ["Worn White"] = 132,
-    ["Worn Olive Army Green"] = 133, ["Pure White"] = 134, ["Hot Pink"] = 135, ["Salmon pink"] = 136, ["Metallic Vermillion Pink"] = 137,
-    ["Orange"] = 138, ["Green"] = 139, ["Blue"] = 140, ["Mettalic Black Blue"] = 141, ["Metallic Black Purple"] = 142,
-    ["Metallic Black Red"] = 143, ["hunter green"] = 144, ["Metallic Purple"] = 145, ["Metaillic V Dark Blue"] = 146,
-    ["MODSHOP BLACK1"] = 147, ["Matte Purple"] = 148, ["Matte Dark Purple"] = 149, ["Metallic Lava Red"] = 150,
-    ["Matte Forest Green"] = 151, ["Matte Olive Drab"] = 152, ["Matte Desert Brown"] = 153, ["Matte Desert Tan"] = 154,
-    ["Matte Foilage Green"] = 155, ["DEFAULT ALLOY COLOUR"] = 156, ["Epsilon Blue"] = 157, ["MP100 GOLD"] = 158, ["MP100 GOLD SATIN"] = 159,
-    ["MP100 GOLD SPEC"] = 160
-}
-
 local colourCategories = {
     Black = {"Black", "Graphite", "Anthracite", "Gun Metal"},
     Gray = {"Gray", "Silver", "Steel", "Shadow", "Stone"},
@@ -2405,125 +2368,35 @@ onlineChat:action("Send Random e621 Link", {}, "", function()
     chat.send_message(url, false, true, true)
 end)
 
---#meow
-onlineChat:action("Meow >///<", {"meow"}, "", function()
-    local meow_messages = {
-        "Nya, purr!",
-        "Meow, meow, purr, purr!",
-        "Meow meow meow meow meow!",
-        "Meow... *licks paw*",
-        "Purr, meow!",
-        "Nya, purr purr!",
-        "Nya nya",
-        "Meow meow!",
-        "Purrrrrrr...",
-        "Nya nya! Time for a cat nap.",
-        "Purr purrr.. nya!",
-        "Purr purr, meow!",
-        "Nya... *licks paw*",
-        "Meow, purr..",
-        "Meow meow meow! Let's play!",
-        "Purrrrrrr... *curls up*",
-        "Meow!",
-        "Meow meow meow...",
-        "MEMEOEMWEMMOWEWEEMOWWWW",
-        "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
-        "MRRRRPP",
-        "Nya!",
-        "Nya nya!",
-        "Purr, purr, nya!",
-        "Purr, purr, meow, meow!",
-        "Meow, meow, purr!",
-        "Nya, nya, purr!",
-        "MEOWOMEWEWE MEOOWWW",
-        "Mmrpfh.. Meoww",
-        "MEOWOMEWEWE MEOOWWW",
-        "Meow meow meow...",
-        "MEMEOEMWEMMOWEWEEMOWWWW",
-        "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
-        "MRRRRPP",
-        "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
-        "MEMEOEMWEMMOWEWEEMOWWWW!!",
-        "MRRRRPP, meow!",
-        "MEOWEWME... *licks paw*",
-        "MEOOOOWWW MRRRPPP",
-        "MEOWMEW MEMEOWWW",
-        "MRPPP MEOOW MEMEOW",
-        "MEMEOW MEOOWWWW",
-        "MEOW MEOW MEMEOWWW",
-        "MEMEMEM MEOWWWW",
-        "MEOWOWOW MRRPPP",
-        "MEOW MEW MEOWWWW",
-        "MEOOOWWW MEMEOWWWW",
-        "MEEEOWWWW",
-        "MEOWW... MEOWWW",
-        "MEOOOW MRRPPP",
-    }
-
-    local random_index = math.random(1, #meow_messages)
-    local selected_meow = meow_messages[random_index]
-
-    chat.send_message(selected_meow, false, true, true)
-end, nil, nil, COMMANDPERM_FRIENDLY)
-
---#woof
-onlineChat:action("Woof Woof", {"woof"}, "", function()
-    local woof_messages = {
-        "Bark bark woof!",
-        "Woof woof bark!",
-        "Bark bark... woof!",
-        "Bark bark woof woof!",
-        "Woof woof bark!",
-        "Woof woof bark bark!",
-        "Woof woof!",
-        "Bark bark!",
-        "Arf arf!",
-        "Arf arf woof!",
-        "Woof woof woof woof!",
-        "Woof... *wags tail*",
-        "Arffff...",
-        "Arf arf arf!",
-        "Woof woof arf arf!",
-        "Bark bark woof woof!",
-        "WOOF WOOF WOOF BARKBAKRABRK",
-        "BARKBARK",
-        "WOFOOWOFWWF WOOF",
-        "BARKARBAKRK WOOF WOOF",
-        "Bark bark woof woof!",
-        "WOOF WOOF WOOF BARKBAKRABRK",
-        "BARKBARK",
-        "WOFOOWOFWWF WOOF",
-        "BARKARBAKRK WOOF WOOF",
-        "BARK BARK WOOOF!",
-        "WOOOF WOOF WOOF WOOF",
-        "WOOF WOOF... bark bark!",
-        "BARK! WOOF! BARK!",
-        "BARKBARK WOOF",
-        "WOOF WOOOF WOOF",
-        "BARKBARK! Time to play!",
-        "WOOF WOOOF WOOF WOOOF!",
-        "BARK BARK WOOF WOOF",
-        "BARK! WOOF! BARK! WOOF!",
-        "WOOF WOOF... *sniffs*",
-        "BARK BARK... WOOF!",
-        "WOOF WOOF! Let's go!",
-        "BARK WOOF WOOF BARK",
-        "WOOF WOOOF WOOF! BARK!",
-    }
-
-    local random_index = math.random(1, #woof_messages)
-    local selected_woof = woof_messages[random_index]
-
-    chat.send_message(selected_woof, false, true, true)
-end, nil, nil, COMMANDPERM_FRIENDLY)
-
---#hornypuppy
-function horny_dog_command()
-    local horny_dog_message = "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF"
-
-    chat.send_message(horny_dog_message, false, true, true)
+local function send_random_message(prefix)
+    local filtered_messages = {}
+    for _, message in ipairs(e621_messages) do
+        if message:lower():find(prefix) then
+            table.insert(filtered_messages, message)
+        end
+    end
+    if #filtered_messages > 0 then
+        local random_index = math.random(1, #filtered_messages)
+        local selected_message = filtered_messages[random_index]
+        chat.send_message(selected_message, false, true, true)
+    end
 end
-onlineChat:action("Horny pup :3", {"pubby"}, "", horny_dog_command, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
+
+local function send_specific_message(message)
+    chat.send_message(message, false, true, true)
+end
+
+onlineChat:action("Meow >///<", {"meow"}, "", function()
+    send_random_message("meow")
+end, nil, nil, COMMANDPERM_FRIENDLY)
+
+onlineChat:action("Woof Woof", {"woof"}, "", function()
+    send_random_message("woof")
+end, nil, nil, COMMANDPERM_FRIENDLY)
+
+onlineChat:action("Horny pup :3", {"pubby"}, "", function()
+    send_specific_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF")
+end, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
 
 --#premsg
 local customChatMessages = {"", "", ""}
