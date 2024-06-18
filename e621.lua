@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.4"
+local SCRIPT_VERSION = "2.6.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -184,8 +184,7 @@ local miscWeapons = {
     "removeguncombatmgmkii", "removegunupnatomizer", "removegunappistol", "removegunpistol",
 }
 
-local e621_messages = {
-    -- Meow messages
+local e621_meow = {
     "Nya, purr!", "Meow, meow, purr, purr!", "Meow meow meow meow meow!", "Meow... *licks paw*",
     "Purr, meow!", "Nya, purr purr!", "Nya nya", "Meow meow!", "Purrrrrrr...", "Nya nya! Time for a cat nap.",
     "Purr purrr.. nya!", "Purr purr, meow!", "Nya... *licks paw*", "Meow, purr..", "Meow meow meow! Let's play!",
@@ -195,8 +194,10 @@ local e621_messages = {
     "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
     "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
     "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
-    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP",
-    -- Woof messages
+    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP"
+}
+
+local e621_woof = {
     "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
     "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
     "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
@@ -204,9 +205,7 @@ local e621_messages = {
     "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
     "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
     "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
-    "WOOF WOOOF WOOF! BARK!",
-    -- Additional message
-    "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF",
+    "WOOF WOOOF WOOF! BARK!", "*Wags tail*"
 }
 
 local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 65 80 41 FF C7") + 1)
@@ -1146,17 +1145,30 @@ end)
 local function tag_sender_as_e621_user(sender)
     if players.exists(sender) and util.is_session_started() then
         local player_name = players.get_name(sender) or "Unknown"
-        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621.lua user")) then
-            players.add_detection(sender, "e621.lua user")
+        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621.lua User")) then
+            players.add_detection(sender, "e621.lua User")
         end
     end
 end
 chat.on_message(function(sender, reserved, text, team_chat, networked, is_auto)
     if not is_auto then
-        for _, msg in ipairs(e621_messages) do
-            if text == msg then
+        if not players.is_typing(sender) then
+            for _, msg in ipairs(e621_meow) do
+                if text == msg then
+                    tag_sender_as_e621_user(sender)
+                    return
+                end
+            end
+
+            for _, msg in ipairs(e621_woof) do
+                if text == msg then
+                    tag_sender_as_e621_user(sender)
+                    return
+                end
+            end
+
+            if text == e621_horny_puppy then
                 tag_sender_as_e621_user(sender)
-                break
             end
         end
     end
@@ -2369,16 +2381,10 @@ onlineChat:action("Send Random e621 Link", {}, "", function()
     chat.send_message(url, false, true, true)
 end)
 
-local function send_random_message(prefix)
-    local filtered_messages = {}
-    for _, message in ipairs(e621_messages) do
-        if message:lower():find(prefix) then
-            table.insert(filtered_messages, message)
-        end
-    end
-    if #filtered_messages > 0 then
-        local random_index = math.random(1, #filtered_messages)
-        local selected_message = filtered_messages[random_index]
+local function send_random_message(message_table)
+    if #message_table > 0 then
+        local random_index = math.random(1, #message_table)
+        local selected_message = message_table[random_index]
         chat.send_message(selected_message, false, true, true)
     end
 end
@@ -2388,15 +2394,15 @@ local function send_specific_message(message)
 end
 
 onlineChat:action("Meow >///<", {"meow"}, "", function()
-    send_random_message("meow")
+    send_random_message(e621_meow)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
 onlineChat:action("Woof Woof", {"woof"}, "", function()
-    send_random_message("woof")
+    send_random_message(e621_woof)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
 onlineChat:action("Horny pup :3", {"pubby"}, "", function()
-    send_specific_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF")
+    chat.send_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF", false, true, true)
 end, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
 
 --#premsg
