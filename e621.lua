@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.3"
+local SCRIPT_VERSION = "2.6.4"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -825,6 +825,7 @@ local protections = settings:list("Protections")
 local autoAccept = settings:list("Auto Accept")
 local experimental = settings:list("Experimental", {}, "These are experimental for a reason.\nExpect some issues when using them.")
 local credits = misc:list("Credits")
+local e621githubHyperlink = misc:hyperlink("Changelog", "https://github.com/eekx3/stand-lua-e621", "")
 local shortcuts_menu = menu.list(misc, "Shortcuts", {}, "", function() end)
 for _, shortcut in ipairs(shortcuts) do
     if shortcut.toggle then
