@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.6.5"
+local SCRIPT_VERSION = "2.7.0"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -782,6 +782,17 @@ local shortcuts = {
     { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("gosolopublic") end },
     { name = "Find Session", command = {"fs"}, description = "", action = function() menu.trigger_commands("gopublic") end },
     { name = "Be Alone", command = {"ba"}, description = "", action = function() menu.trigger_commands("bealone") end },
+    { name = "Developer Mode", command = {"devmode"}, description = "", toggle = function()
+            developer_mode_enabled = not developer_mode_enabled
+            if developer_mode_enabled then
+                menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>Developer"))
+                menu.trigger_commands("notifyx 10")
+            else
+                menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>User"))
+                menu.trigger_commands("notifyx -420")
+            end
+        end 
+    },
 }
 local creditsList = {
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
@@ -808,8 +819,10 @@ local detections = my_root:list("Detections", {"edetection"})
 local misc = my_root:list("Miscellaneous", {"emisc"})
 --#menus
 local selfMovement = self:list("Movement")
+local selfMacros = self:list("Macros")
 local vehicleCustomisation = vehicle:list("Vehicle Customisation")
-local vehicleFly = vehicle:list("Vehicle Fly")
+local vehicleMovement = vehicle:list("Movement")
+local vehicleFly = vehicleMovement:list("Vehicle Fly")
 local playersList = online:list("Players")
 local onlineGriefing = online:list("Griefing")
 local onlineTrolling = online:list("Trolling")
@@ -1519,7 +1532,7 @@ for _, pearl in ipairs(pearlList) do
 end
 
 --#nitrous
-local nitrous = vehicleCustomisation:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
+local nitrous = vehicleMovement:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
 local durationMod = 1.0
 nitrous:slider_float("Duration", {"duration"}, "The amount of seconds that the nitrous will last.", 100, 1000, 300, 50, function(value)
 	durationMod = value/300 -- this seems to be the exact conversion for converting the float to seconds
@@ -1596,7 +1609,7 @@ end, function()
 	clearedNitrous = false
 end)
 
-local flamethrowerTune = vehicleCustomisation:list("Flamethrower Tune", {}, "")
+local flamethrowerTune = vehicleMovement:list("Flamethrower Tune", {}, "")
 local redline
 redline = flamethrowerTune:toggle_loop("On Redline", {}, "", function()
 	if not nitrousTgl.value then 
@@ -1685,29 +1698,6 @@ flamethrowerTune:action("Load PTFX For Nearby Players", {}, "Loads the nitrous P
 	menu.trigger_commands("loadnitrous")
 end)
 
-local antilag = vehicleCustomisation:list("Anti-Lag", {}, "")
-local antilagDelay = 100
-antilag:slider("Delay", {"antilagdelay"}, "The interval in which the exhaust will pop.", 0, 1000, 100, 10, function(amount)
-	antilagDelay = amount
-end)
-
-local random = false
-antilag:toggle("Randomize", {}, "Randomizes the interval in which the exhaust will pop. (Note: randomize will use the delay as the max delay.)", function(toggled)
-	random = toggled
-end)
-
-antilag:toggle_loop("Anti-Lag", {"antilag"}, "Rev your engine to use. Only works when vehicle is still. Doesn't network with other players.", function()
-	local veh = entities.get_user_vehicle_as_pointer()
-	if veh == 0 then return end
-	local gear = entities.get_current_gear(veh)
-	local rpm = entities.get_rpm(veh)
-	if IS_CONTROL_PRESSED(0, 22) and IS_CONTROL_PRESSED(0, 71) then
-		entities.set_rpm(veh, 0.9)
-		yield(random ? math.random(100, antilagDelay) : antilagDelay)
-		entities.set_rpm(veh, 0.1)
-	end
-end)
-
 --#vehicleFly
 vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
     yourself = PLAYER.GET_PLAYER_PED(players.user())
@@ -1769,6 +1759,59 @@ vehicleFly:toggle("Keep Momentum", {}, "", function(a)
 end)
 
 ---#self
+--#macros
+local function pressKey(keyCode, times, duration)
+    if times then
+        for i = 1, times do
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+            util.yield()
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+            util.yield(10)
+        end
+    else
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+        util.yield()
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+    end
+    if duration then
+        util.yield(duration)
+    end
+end
+
+selfMacros:action("Start CEO", {}, "", function()
+    pressKey(244) -- Press M
+    util.yield(5)
+    menu.trigger_commands("startceo")
+end)
+
+selfMacros:action("Get BST", {}, "", function()
+    pressKey(244) -- Press M
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173) -- Press Down Arrow once
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
+selfMacros:action("Get Armour", {}, "", function()
+    pressKey(244) -- Press M
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 10) -- Press Up Arrow 10 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 10) -- Press Down Arrow 10 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
 --#bark
 local shepherdPedHandle = nil
 self:action("Bark", {}, "Note: The sound may not play consistently for all players every time.\n(It'll have to stay this way until I find a fix.)", function()
@@ -2567,8 +2610,8 @@ local alloc = memory.alloc
 GenerateFeatures = function(pid)
 menu.divider(menu.player_root(pid), "")
 local playermenu = menu.list(menu.player_root(pid), ">:33", {}, "", function() end)
-local griefing_playermenu = playermenu:list("Griefing", {}, "")
-local trolling_playermenu = playermenu:list("Trolling", {}, "")
+local griefingPlayermenu = playermenu:list("Griefing", {}, "")
+local trollingPlayermenu = playermenu:list("Trolling", {}, "")
 local miscPlayer = playermenu:list("Miscellaneous", {}, "")
 
 local function godKill(playerID)
@@ -2595,7 +2638,7 @@ local function godKill(playerID)
 end
 
 --#glitchVehicle
-local glitchVehRoot = trolling_playermenu:list("Glitch Vehicle")
+local glitchVehRoot = trollingPlayermenu:list("Glitch Vehicle")
 local glitchVehMdl = joaat("prop_ld_ferris_wheel")
 glitchVehRoot:list_select("Object", {"glitchvehobj"}, "", object_stuff, object_stuff[1][1], function(mdlHash)
     glitchVehMdl = mdlHash
@@ -2672,7 +2715,7 @@ end)
 
 --#glitchPlayer
 local playerID = pid
-local glitchPlyrRoot = trolling_playermenu:list("Glitch Player")
+local glitchPlyrRoot = trollingPlayermenu:list("Glitch Player")
 local glitchObjMdl = joaat("prop_ld_ferris_wheel")
 glitchPlyrRoot:list_select("Object", {"glitchplayerobj"}, "", object_stuff, object_stuff[1][1], function(mdlHash)
     glitchObjMdl = mdlHash
@@ -2710,7 +2753,7 @@ glitchplayer = glitchPlyrRoot:toggle_loop("Glitch Player", {"glitchplayer"}, "Bl
 end)
 
 --#vehicleKick
-local veh_kick = trolling_playermenu:list("Kick From Vehicle")
+local veh_kick = trollingPlayermenu:list("Kick From Vehicle")
 veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag them out of their vehicle.", function()
     if playerID == players.user() then 
         toast(lang.get_localised(CMDOTH))
@@ -2842,7 +2885,7 @@ end)
 
 --#towVehicle
 local playerID = pid
-trolling_playermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit and doesn't work properly half the time.", function()
+trollingPlayermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit and doesn't work properly half the time.", function()
     if not playerID then
         return
     end
@@ -3013,7 +3056,7 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
         isGodmodeRemovable[playerID] = false
     end
 end)
-griefing_playermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "Will show the kill as You Killed ...\nNot, You Obliterated ...", function()
+griefingPlayermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "Will show the kill as You Killed ...\nNot, You Obliterated ...", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
     if playerID == players.user() then
@@ -3047,7 +3090,7 @@ griefing_playermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "Will show t
 end)
 
 --#restrainPlayer
-griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
+griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local player_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
     local pos = ENTITY.GET_ENTITY_COORDS(player_ped)
     local theta = (math.random() + math.random(0, 1)) * math.pi
@@ -3074,7 +3117,7 @@ griefing_playermenu:toggle_loop("Restraining Order", {"restrain"}, "", function(
 end)
 
 --#hijackPlayer
-trolling_playermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsistent on higher ping players or just not work at all for some players.", function()
+trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsistent on higher ping players or just not work at all for some players.", function()
     if playerID == players.user() then 
         toast(lang.get_localised(CMDOTH))
         return
