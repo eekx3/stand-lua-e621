@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.7.0"
+local SCRIPT_VERSION = "2.7.1"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -848,7 +848,7 @@ for _, shortcut in ipairs(shortcuts) do
 end
 menu.set_visible(shortcuts_menu, false)
 local shortcuts_menu_visible = false
-local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Show/Hide the shortcuts menu\nNote: The shortcuts are still available without this toggled, you just can't see them.", function(enabled)
+local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Note: The shortcuts are still available without this toggled, you just can't see them.", function(enabled)
     shortcuts_menu_visible = enabled
     menu.set_visible(shortcuts_menu, shortcuts_menu_visible)
 end)
@@ -1778,14 +1778,29 @@ local function pressKey(keyCode, times, duration)
     end
 end
 
+local function openInteractionMenu()
+    if not util.is_interaction_menu_open() then
+        pressKey(244) -- Press M to open the interaction menu
+        util.yield(8) -- Wait for the menu to open
+    end
+end
+
+local function isPlayerInCEO()
+    local orgType = players.get_org_type(players.user())
+    return orgType == 0  -- 0 represents CEO, 1 represents Motorcycle Club, -1 represents none
+end
+
 selfMacros:action("Start CEO", {}, "", function()
-    pressKey(244) -- Press M
-    util.yield(5)
-    menu.trigger_commands("startceo")
+    if not isPlayerInCEO() then
+        pressKey(244) -- Press M
+        util.yield(2)
+        pressKey(173) -- Press Down Arrow once
+        menu.trigger_commands("startceo")
+    end
 end)
 
 selfMacros:action("Get BST", {}, "", function()
-    pressKey(244) -- Press M
+    openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
     util.yield(5)
@@ -1795,19 +1810,52 @@ selfMacros:action("Get BST", {}, "", function()
     util.yield(5)
     pressKey(173) -- Press Down Arrow once
     util.yield(5)
+    pressKey(172) -- Press Up Arrow once
+    util.yield(5)
+    pressKey(173) -- Press Down Arrow once
+    util.yield(5)
     pressKey(176) -- Press Enter
 end)
 
-selfMacros:action("Get Armour", {}, "", function()
-    pressKey(244) -- Press M
+selfMacros:action("Drop Armour", {}, "", function()
+    openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
     util.yield(5)
-    pressKey(172, 10) -- Press Up Arrow 10 times
+    pressKey(172, 3) -- Press Up Arrow 3 times
     util.yield(5)
     pressKey(176) -- Press Enter
     util.yield(5)
-    pressKey(173, 10) -- Press Down Arrow 10 times
+    pressKey(173, 3) -- Press Down Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    
+end)
+
+selfMacros:action("Ghost Organization", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 4) -- Press Down Arrow 4 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
+selfMacros:action("Bribe Authorities", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 5) -- Press Down Arrow 5 times
     util.yield(5)
     pressKey(176) -- Press Enter
 end)
@@ -1852,7 +1900,7 @@ local function is_in_pause_menu()
     return IS_PAUSE_MENU_ACTIVE()
 end
 local toggleforoutside = false
-self:action("EWO", {"zzz"}, "Sets the value of Global_1574582.f_6 to 1.", function()
+self:action("EWO", {"zzz"}, "", function() --Sets the value of Global_1574582.f_6 to 1.
     if is_in_pause_menu() then
         return
     end
@@ -1866,7 +1914,7 @@ self:action("EWO", {"zzz"}, "Sets the value of Global_1574582.f_6 to 1.", functi
         write_to_global()
     end
 end, nil, nil, COMMANDPERM_FRIENDLY)
-self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work when you are not in a vehicle.", function(on)
+self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work if you are not in a vehicle.", function(on)
     toggleforoutside = on
 end)
 
