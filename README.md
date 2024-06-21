@@ -2,6 +2,13 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## e621 v2.7.2 22/06/2024 01:00 AM
+
+- Changed the script start message
+- Changed the `Self > EWO` command from `zzz` to `mimi`
+- Removed `Settings > Experimental`
+- Removed `Settings > Experimental > RGB Skeleton`
+
 ## e621 v2.7.1 20/06/2024 08:18 PM
 
 - Added `Self > Macros > Ghost Organization`

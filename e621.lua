@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.7.1"
+local SCRIPT_VERSION = "2.7.2"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -121,7 +121,7 @@ local interiors = {
     { name = "Salvage Yard", x = 1089.2979, y = -2276.842, z = -48.999935 },
     { name = "Nightclub Interior", x = -1618.4036, y = -3012.2046, z = -75.20511 },
     { name = "Arcade Interior", x = 2696.013, y = -369.06625, z = -54.78093 },
-    { name = "Avenger Interior (LSIA)", command = "avengerlsiainterior", x = -880.7326, y = -2769.0347, z = -41.404156 },
+    { name = "Avenger Interior (LSIA)", x = -880.7326, y = -2769.0347, z = -41.404156 },
     { name = "Casino Garage Interior", x = 1390.3984, y = 202.0952, z = -48.99538 },
     { name = "Lillium's eep place", x= -1869.1552, y = 3749.7407, z= -99.84548, description = "Lillium's fav place to sleep"},
 }
@@ -804,7 +804,7 @@ local creditsList = {
 }
 
 if not SCRIPT_SILENT_START then
-    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! >~< \nWELCOMEEEE CUTIE, MWAUHHH :3" .. "\ne621 - v" .. SCRIPT_VERSION)
+    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! :3\nWELCOMEEEE CUTIE, MWUAHHH~ >~<" .. "\ne621 - v" .. SCRIPT_VERSION)
 end
 
 --#root
@@ -835,22 +835,21 @@ local freemodetweaks = settings:list("Freemode Tweaks")
 local enhancements = settings:list("Enhancements")
 local protections = settings:list("Protections")
 local autoAccept = settings:list("Auto Accept")
-local experimental = settings:list("Experimental", {}, "These are experimental for a reason.\nExpect some issues when using them.")
 local credits = misc:list("Credits")
 local e621githubHyperlink = misc:hyperlink("Changelog", "https://github.com/eekx3/stand-lua-e621", "")
-local shortcuts_menu = menu.list(misc, "Shortcuts", {}, "", function() end)
+local e621ShortcutsMenu = menu.list(misc, "Shortcuts", {}, "", function() end)
 for _, shortcut in ipairs(shortcuts) do
     if shortcut.toggle then
-        menu.toggle(shortcuts_menu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
+        menu.toggle(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
     else
-        menu.action(shortcuts_menu, shortcut.name, shortcut.command, shortcut.description, shortcut.action)
+        menu.action(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.action)
     end
 end
-menu.set_visible(shortcuts_menu, false)
-local shortcuts_menu_visible = false
+menu.set_visible(e621ShortcutsMenu, false)
+local e621ShortcutsMenu_visible = false
 local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Note: The shortcuts are still available without this toggled, you just can't see them.", function(enabled)
-    shortcuts_menu_visible = enabled
-    menu.set_visible(shortcuts_menu, shortcuts_menu_visible)
+    e621ShortcutsMenu_visible = enabled
+    menu.set_visible(e621ShortcutsMenu, e621ShortcutsMenu_visible)
 end)
 local developer_mode_enabled = false
 
@@ -1900,7 +1899,7 @@ local function is_in_pause_menu()
     return IS_PAUSE_MENU_ACTIVE()
 end
 local toggleforoutside = false
-self:action("EWO", {"zzz"}, "", function() --Sets the value of Global_1574582.f_6 to 1.
+self:action("EWO", {"mimi"}, "", function() --Sets the value of Global_1574582.f_6 to 1.
     if is_in_pause_menu() then
         return
     end
@@ -2114,7 +2113,7 @@ end)
 local function write_to_global()
     memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
 end
-online:action("Passive ORG", {}, "Lets you go passive while in an organization.", function()
+online:action("Passive ORG", {"passiveorg"}, "", function()
     write_to_global()
 end)
 
@@ -2199,28 +2198,8 @@ onlineGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
     isOrbActive = false
 end)
 
---#shroulette
-onlineGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
-    for _, pid in ipairs(players.list(false, true, true)) do
-        menu.trigger_commands("givesh" .. players.get_name(pid))
-        util.yield()
-    end
-end)
-
----#onlineTrolling
---#hijackall
-onlineTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pos = players.get_position(playerID)
-		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
-			menu.trigger_commands($"hijack {players.get_name(playerID)}")
-		end
-	end
-end)
-
 --#blockorbitalcannon
-onlineTrolling:toggle_loop("Block Orbital Cannon", {"blockorb"}, "", function()
+onlineGriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", function()
 	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
 	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
 	util.request_model(blockOrbMdl)
@@ -2243,6 +2222,26 @@ end, function()
 	end
 	if orbSign != nil then
 		entities.delete(orbSign)
+	end
+end)
+
+--#scripthostroulette
+onlineGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
+    for _, pid in ipairs(players.list(false, true, true)) do
+        menu.trigger_commands("givesh" .. players.get_name(pid))
+        util.yield()
+    end
+end)
+
+---#onlineTrolling
+--#hijackall
+onlineTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local pos = players.get_position(playerID)
+		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
+			menu.trigger_commands($"hijack {players.get_name(playerID)}")
+		end
 	end
 end)
 
@@ -2439,7 +2438,7 @@ end)
 
 ---#enhancements
 --#autoclaimbounties
-enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "Automatically claims bounties that are placed on you.", function()
+enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", function()
 	local bounty = players.get_bounty(players.user())
 	if bounty != nil then
 		repeat
@@ -2451,7 +2450,7 @@ enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "Automati
 end)
 
 --#safeshopping
-enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Puts you into a locked session within your session while shopping to ensure a safe shopping experience. Other players will not be able to see that you are in a shop.", function()
+enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
 	if getPlayerCurrentShop(players.user()) != -1 then
 		NETWORK_START_SOLO_TUTORIAL_SESSION()
 		while getPlayerCurrentShop(players.user()) != -1 do
@@ -2513,74 +2512,6 @@ onlinePreMSG:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (
         chat.send_message(customChatMessages[idx], false, true, true)
     else
         util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
-    end
-end)
-
----#experimental
---#rgbskeleton
-local bonePairs = {
-    {0xE0FD, 0xE39F},
-    {0xE0FD, 0xCA72},
-    {0xE39F, 0xF9BB},
-    {0xCA72, 0x9000},
-    {0xF9BB, 0x3779},
-    {0x9000, 0xCC4D},
-    {0xE0FD, 0xFCD9},
-    {0xFCD9, 0xB1C5},
-    {0xB1C5, 0xEEEB},
-    {0xEEEB, 0x49D9},
-    {0xE0FD, 0x29D2},
-    {0x29D2, 0x9D4D},
-    {0x9D4D, 0x6E5C},
-    {0x6E5C, 0xDEAD},
-}
-
-local screenCoord1 = memory.alloc(4)
-local screenCoord1a = memory.alloc(4)
-local screenCoord2 = memory.alloc(4)
-local screenCoord2a = memory.alloc(4)
-
-local r, g, b = 1.0, 0.0, 0.0
-local increment = 0.001
-
-menu.toggle_loop(experimental, "RGB Skeleton", {""}, "Note: It will change colours faster depending on the amount of lines visible.", function()
-    for _, ped in ipairs(entities.get_all_peds_as_handles()) do
-        if entities.is_player_ped(ped) then
-            for _, pair in ipairs(bonePairs) do
-                local bone1 = pair[1]
-                local bone2 = pair[2]
-                
-                local boneCoord1 = GET_PED_BONE_COORDS(ped, bone1, 0.0, 0.0, 0.0)
-                local boneCoord2 = GET_PED_BONE_COORDS(ped, bone2, 0.0, 0.0, 0.0)
-
-                local boneCoord1X, boneCoord1Y, boneCoord1Z = boneCoord1.x, boneCoord1.y, boneCoord1.z
-                local boneCoord2X, boneCoord2Y, boneCoord2Z = boneCoord2.x, boneCoord2.y, boneCoord2.z
-
-                local a1 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord1X, boneCoord1Y, boneCoord1Z, screenCoord1, screenCoord1a)
-                local a2 = GET_SCREEN_COORD_FROM_WORLD_COORD(boneCoord2X, boneCoord2Y, boneCoord2Z, screenCoord2, screenCoord2a)
-
-                if a1 and a2 then
-                    directx.draw_line(
-                        memory.read_float(screenCoord1), 
-                        memory.read_float(screenCoord1a), 
-                        memory.read_float(screenCoord2), 
-                        memory.read_float(screenCoord2a), 
-                        r, g, b, 1.0
-                    )
-
-                    if r > 0 and b == 0 then
-                        r = math.max(0, r - increment)
-                        g = math.min(1, g + increment)
-                    elseif g > 0 and r == 0 then
-                        g = math.max(0, g - increment)
-                        b = math.min(1, b + increment)
-                    elseif b > 0 and g == 0 then
-                        b = math.max(0, b - increment)
-                        r = math.min(1, r + increment)
-                    end
-                end
-            end
-        end
     end
 end)
 
@@ -2692,7 +2623,7 @@ glitchVehRoot:list_select("Object", {"glitchvehobj"}, "", object_stuff, object_s
     glitchVehMdl = mdlHash
 end)
 local glitchveh
-glitchveh = glitchVehRoot:toggle_loop("Glitch Vehicle", {"glitchvehicle"}, "Works on all menus and isn't detected by any.", function()
+glitchveh = glitchVehRoot:toggle_loop("Glitch Vehicle", {"glitchvehicle"}, "", function()
     local focusedPlayers = players.get_focused()
     if #focusedPlayers == 0 then
         toast("No player is focused.")
@@ -2867,7 +2798,7 @@ veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag th
     timer = util.current_time_millis() + 2500
 end)
 
-veh_kick:action("Shuffle Method", {"shufflekick"}, 'Spawns a ped in the passenger seat and forces it to push them out. Works everytime unless the target is using "cant be dragged out".', function()
+veh_kick:action("Shuffle Method", {"shufflekick"}, "Spawns a ped in the passenger seat and forces it to push them out.", function()
     if playerID == players.user() then 
         toast(lang.get_localised(CMDOTH))
         return
@@ -2925,7 +2856,7 @@ veh_kick:action("Shuffle Method", {"shufflekick"}, 'Spawns a ped in the passenge
     SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID, true)
 end)
 
-veh_kick:action("Script Method", {"scriptkick"}, "Uses a script event to kick them from their vehicle.", function()
+veh_kick:action("Script Method", {"scriptkick"}, "", function()
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
     local vehicle = GET_VEHICLE_PED_IS_USING(ped)
     SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, players.user_ped(), 0)
@@ -2933,7 +2864,7 @@ end)
 
 --#towVehicle
 local playerID = pid
-trollingPlayermenu:action("Tow Vehicle", {"tow"}, "It's honestly pretty shit and doesn't work properly half the time.", function()
+trollingPlayermenu:action("Tow Vehicle", {"tow"}, "", function()
     if not playerID then
         return
     end
@@ -2967,7 +2898,7 @@ end)
 local ghostPlayer
 local playerID = pid
 local ghostPlayer
-ghostPlayer = miscPlayer:toggle_loop("Ghost Player", {"ghost"}, "Ghosts the selected player.", function()
+ghostPlayer = miscPlayer:toggle_loop("Ghost Player", {"ghost"}, "", function()
     if not playerID then 
         return
     end
@@ -3011,15 +2942,15 @@ playermenu:toggle_loop("Remove Vehicle Godmode", {}, lang.get_localised(-7480779
 end)
 
 --#playerOrbital
-playermenu:action("Orbital Strike", {"orb"}, "Just a 'Normal' Orbital Strike.", function()
+playermenu:action("Orbital Strike", {"orb"}, "", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
     if playerID == players.user() then
-        util.toast("Erhm, you can't do this >:( Bad pet.")
+        util.toast("Nuhuh. Don't even think about it cutie <3")
         return
     end
     if isOrbActive then
-        util.toast("Orbital strike is already active you silly goober :33")
+        util.toast("Hey! Orbital Strike is already active you silly :3 <3")
         return
     end
     if IS_PLAYER_DEAD(playerID) or not isNetPlayerOk(playerID) then
@@ -3038,7 +2969,7 @@ playermenu:action("Orbital Strike", {"orb"}, "Just a 'Normal' Orbital Strike.", 
     clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
     repeat
         if util.current_time_millis() > timer and not IS_PED_DEAD_OR_DYING(ped) then
-            util.toast("I failed... I'm sorry :(")
+            util.toast("I'm so sorry.. I failed... TwT")
             timer = util.current_time_millis() + 3000
             return
         end
@@ -3049,6 +2980,7 @@ playermenu:action("Orbital Strike", {"orb"}, "Just a 'Normal' Orbital Strike.", 
     isOrbActive = false
     timer = util.current_time_millis() + 3000
 end)
+
 local isGodmodeRemovable = {}
 playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
     local focusedPlayers = players.get_focused()
@@ -3082,7 +3014,7 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
     until not players.is_godmode(playerID)
     isGodmodeRemovable[playerID] = true
     if isGodmodeRemovable[playerID] then
-        util.toast("Did I do a good job? >///<")
+        util.toast("Mmrpfhh~ D-Did I do a good job? >///<")
         if isPlayerInAnyVehicle(playerID) and entities.is_invulnerable(vehicle) then
             entities.request_control(vehicle, 2500)
             SET_ENTITY_CAN_BE_DAMAGED(vehicle, true)
@@ -3104,7 +3036,8 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
         isGodmodeRemovable[playerID] = false
     end
 end)
-griefingPlayermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "Will show the kill as You Killed ...\nNot, You Obliterated ...", function()
+
+griefingPlayermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "", function()
     local playerID = pid
     local timer = util.current_time_millis() + 3000
     if playerID == players.user() then
@@ -3170,7 +3103,6 @@ trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsiste
         toast(lang.get_localised(CMDOTH))
         return
     end
-
     local timer = util.current_time_millis() + 2500
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
     local pos = players.get_position(playerID)
@@ -3183,12 +3115,10 @@ trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsiste
         toast($"{players.get_name(playerID)}'s vehicle has not been cloned yet. :/")
         return
     end
-
     if vehicle == 0 then
         toast(lang.get_localised(PLYNVEH):gsub("{}", players.get_name(playerID)))
         return 
     end
-
     pos.z -= 30
     if not IS_PED_A_PLAYER(GET_PED_IN_VEHICLE_SEAT(vehicle, -1)) then
         toast("Vehicle has already been hijacked. :D")
@@ -3254,7 +3184,6 @@ trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsiste
             entities.request_control(randomPed, 2500)
             TASK_VEHICLE_DRIVE_WANDER(randomPed, vehicle, 9999.0, drivingStyle)
         end
-
     end
     yield(5000)
     if randomPed != nil and not IS_PED_IN_ANY_VEHICLE(randomPed, false) then -- 2nd check cus sometimes doesnt delete the first time
