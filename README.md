@@ -4,20 +4,25 @@
 
 ## e621 v3.0.0 22/06/2024 10:26 PM
 
-- Added `Detections > Spawned Vehicle`
-- Added `Detections > Modded Vehicle Upgrade`
 - Added `Game`
-- Moved `HUD` to `Game`
-- Moved `Freemode Tweaks` to `Online`
-- Moved `Protections` to `Online`
-- Moved `Detections` to `Protections`
-- Moved `Enhancements` to `Online`
-- Moved `Passive ORG` to `Enhancements`
 - Removed `Settings`
-- Removed `Enable Valentines Event` from `Freemode Tweaks`
-- Removed `Enable Independence Pack` from `Freemode Tweaks`
-- Removed `Disable Casino Valet` from `Freemode Tweaks`
-- Removed `Disable Treasure Hunt` from `Freemode Tweaks`
+- Removed `Settings > Auto Accept`
+- Moved `Settings > HUD` to `Game`
+- Moved `Settings > Freemode Tweaks` to `Online > Freemode Tweaks`
+- Moved `Settings > Protections` to `Online > Protections`
+- Moved `Detections` to `Online > Protections > Detections`
+- Moved `Settings > Enhancements` to `Online > Enhancements`
+- Moved `Online > Passive ORG` to `Online > Enhancements > Passive ORG`
+- Added `Online > Protections > Detections > Spawned Vehicle`
+- Added `Online > Protections > Detections > Modded Vehicle Upgrade`
+- Moved `Settings > Auto Accept > Join Messages` to `Online > Enhancements > Join Messages` 
+- Moved `Settings > Auto Accept > Join Messages` to `Online > Enhancements > Transaction Errors` 
+- Renamed `Online > Enhancements > Join Messages` to `Online > Enhancements > Auto Accept Join Messages`
+- Renamed `Online > Enhancements > Transaction Errors` to `Online > Enhancements > Auto Accept Transaction Errors`
+- Removed `Settings > Freemode Tweaks > Disable Treasure Hunt`
+- Removed `Settings > Freemode Tweaks > Disable Casino Valet`
+- Removed `Settings > Freemode Tweaks > Enable Independence Pack`
+- Removed `Settings > Freemode Tweaks > Enable Valentines Event`
 
 ## e621 v2.7.2 22/06/2024 01:00 AM
 
@@ -43,7 +48,7 @@
     - Moved `Vehicle Fly` to `Vehicle > Movement`
     - Moved `Nitrous` to `Vehicle > Movement`
     - Moved `Flamethrower` to `Vehicle > Movement`
-- Removed `Vehicle > Vehicle Customisation > Anti-Lag`
+    - Removed `Vehicle > Vehicle Customisation > Anti-Lag`
 
 ## e621 v2.6.5 18/06/2024 06:53 PM
 
