@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "2.7.2"
+local SCRIPT_VERSION = "3.0.0"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -336,6 +336,17 @@ local colours = {
 	{109, "Gold"},
 	{31, "Pastel Orange"},
 	{15, "Orange"},
+}
+
+local scripts = {
+	"valentineRpReward2",
+	"main_persistent",
+	"cellphone_controller",
+	"shop_controller",
+	"stats_controller",
+	"timershud",
+	"am_npc_invites",
+	"fm_maintain_cloud_header_data"
 }
 
 local randomPeds = {
@@ -812,10 +823,10 @@ local my_root = menu.my_root()
 local self = my_root:list("Self", {"eself"})
 local weapons = my_root:list("Weapons", {"eweapons"})
 local vehicle = my_root:list("Vehicle", {"eveh"})
+local playersList = my_root:list("Players")
 local online = my_root:list("Online", {"eonline"})
 local world = my_root:list("World", {"eworld"})
-local settings = my_root:list("Settings", {"esettings"})
-local detections = my_root:list("Detections", {"edetection"})
+local game = my_root:list("Game", {"egame"})
 local misc = my_root:list("Miscellaneous", {"emisc"})
 --#menus
 local selfMovement = self:list("Movement")
@@ -823,18 +834,17 @@ local selfMacros = self:list("Macros")
 local vehicleCustomisation = vehicle:list("Vehicle Customisation")
 local vehicleMovement = vehicle:list("Movement")
 local vehicleFly = vehicleMovement:list("Vehicle Fly")
-local playersList = online:list("Players")
-local onlineGriefing = online:list("Griefing")
-local onlineTrolling = online:list("Trolling")
 local onlineChat = online:list("Chat")
 local onlinePreMSG = onlineChat:list("Chat - Predefined Messages")
+local onlineTrolling = online:list("Trolling")
+local onlineGriefing = online:list("Griefing")
+local protections = online:list("Protections")
+local detections = protections:list("Detections")
+local enhancements = online:list("Enhancements")
+local freemodetweaks = online:list("Freemode Tweaks")
+local hudSettings = game:list("HUD")
 local teleports = world:list("Teleports")
 local cleanse = world:list("Clear area")
-local hudSettings = settings:list("HUD")
-local freemodetweaks = settings:list("Freemode Tweaks")
-local enhancements = settings:list("Enhancements")
-local protections = settings:list("Protections")
-local autoAccept = settings:list("Auto Accept")
 local credits = misc:list("Credits")
 local e621githubHyperlink = misc:hyperlink("Changelog", "https://github.com/eekx3/stand-lua-e621", "")
 local e621ShortcutsMenu = menu.list(misc, "Shortcuts", {}, "", function() end)
@@ -936,13 +946,6 @@ end, function()
     memory.write_float(memory.script_global(262145 + 1), 1)
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Casino Valet", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 27229))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 27229), 1)
-    end
-end)
-
 menu.toggle_loop(freemodetweaks, "Disable Payphone Calls", {""}, "", function()
     local val = memory.read_int(memory.script_global(262145 + 32289))
     local val2 = memory.read_int(memory.script_global(262145 + 32288))
@@ -958,29 +961,6 @@ menu.toggle_loop(freemodetweaks, "Disable Payphone Calls", {""}, "", function()
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Enable Valentines Event", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 7131))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 7131), 1)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Enable Independence Pack", {""}, "Not all features may be present/work", function()
-    local val = memory.read_int(memory.script_global(262145 + 8436))
-    local fireworks = memory.read_int(memory.script_global(262145 + 8445))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 8436), 1)
-    memory.write_int(memory.script_global(262145 + 8445), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Disable Treasure Hunt", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 23655))
-    if val == 1 then
-        memory.write_int(memory.script_global(262145 + 23655), 0)
-    end
-end)
-
 menu.toggle_loop(freemodetweaks, "Disable Simeon Showroom", {""}, "", function()
     local val = memory.read_int(memory.script_global(262145 + 33014))
     if val != 1 then
@@ -992,13 +972,6 @@ menu.toggle_loop(freemodetweaks, "Block Music Locker Access", {""}, "", function
     local val = memory.read_int(memory.script_global(1942781 + 4706 + 1))
     if not BitTest((memory.read_int(memory.script_global(1942781 + 4706 + 1))), 7) then
     memory.write_int(memory.script_global(1942781 + 4706 + 1), 128)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block RP Reset Telemetry", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 10255))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 10255), 1)
     end
 end)
 
@@ -1235,6 +1208,91 @@ detections:toggle_loop("Orbital Cannon", {}, "Detects if someone is using an orb
 		end
 	end
 end)
+
+detections:toggle_loop("Spawned Vehicle", {}, "Detects if someone driving a spawned vehicle.", function()
+	if NETWORK_IS_ACTIVITY_SESSION() then return end
+	for players.list_except(true) as playerID do
+		if not isPlayerInAnyVehicle(playerID) then continue end
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+		local plateText = GET_VEHICLE_NUMBER_PLATE_TEXT(vehicle)
+		local personalVehicle = DECOR_GET_INT(vehicle, "Player_Vehicle") != 0
+		local pegasusveh = DECOR_GET_BOOL(vehicle, "CreatedByPegasus")
+		local script = GET_ENTITY_SCRIPT(vehicle, 0)
+        if not table.contains(scripts, script) and plateText != "46EEK572" then continue end
+
+		if players.get_vehicle_model(playerID) ~= 0 and not GET_IS_TASK_ACTIVE(ped, 160) and isNetPlayerOk(players.user()) and players.exists(playerID) then
+			local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -1))
+			if players.exists(driver) and not pegasusveh and playerID == driver and not personalVehicle then
+				if isDebugMode and script != nil then
+					draw_debug_text($"{players.get_name(driver)} is using a spawned vehicle [Model: {reverse_joaat(players.get_vehicle_model(playerID))}] Script: {script}")
+				else
+					draw_debug_text($"{players.get_name(driver)} is using a spawned vehicle [Model: {reverse_joaat(players.get_vehicle_model(playerID))}]")
+				end
+			end
+		end
+	end
+end)
+
+do
+	local cachedModData = {}
+	local cachedVehData = {}
+	detections:toggle_loop("Modded Vehicle Upgrade", {}, "Detects players who have modded their own or someone elses vehicles outside of a shop.", function(toggled)
+		for players.list_except(true) as playerID do
+			if not isPlayerInAnyVehicle(playerID) then
+				if cachedModData[playerID] then
+					cachedModData[playerID] = nil
+				end
+				continue
+			end
+
+			local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+			local pos = players.get_position(playerID)
+			local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+			local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(vehicle, -1))
+
+			local current_vehicle_mods = {}
+			if not cachedModData[playerID] then
+				cachedModData[playerID] = { veh_mods = {} }
+				for i = 0, 49 do
+					cachedModData[playerID].veh_mods[i] = GET_VEHICLE_MOD(vehicle, i)
+				end
+				continue
+			end
+
+			if not cachedVehData[playerID] then
+				cachedVehData[playerID] = GET_VEHICLE_PED_IS_USING(ped)
+				continue
+			end	
+
+			local cachedData = cachedModData[playerID]
+			local cachedVehicle = cachedVehData[playerID]
+
+			local curVeh = GET_VEHICLE_PED_IS_USING(ped)
+			local owner = entities.get_owner(curVeh)
+			if curVeh == cachedVehicle then
+				for i = 0, 49 do
+					local mod = GET_VEHICLE_MOD(vehicle, i)
+					if cachedData.veh_mods[i] ~= mod and owner == driver and not isPlayerInInterior(playerID) and pos.z > 0.0 and GET_VEHICLE_PED_IS_USING(ped) == vehicle and players.exists(playerID) then
+						if not isDetectionPresent(entities.get_owner(vehicle), "Modded Vehicle Upgrade") then
+							players.add_detection(entities.get_owner(vehicle), "Modded Vehicle Upgrade", TOAST_ALL, 100)
+							yield(500)
+							break
+						end
+					end
+					cachedData.veh_mods[i] = mod
+				end
+			end
+			cachedModData[playerID] = cachedData
+			cachedVehData[playerID] = curVeh
+		end
+		yield(250)
+	end)
+	players.on_leave(function(playerID)
+		cachedModData[playerID] = nil
+		cachedVehData[playerID] = nil
+	end)
+end
 
 detections:toggle_loop("Damage Modifier", {}, "Detects menus with bad damage multiplier anti-detections that are not detected by stand.", function()
 	local timer = util.current_time_millis() + 5000
@@ -2109,14 +2167,6 @@ self:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Scri
 end)
 
 ---#online
---#passiveorg
-local function write_to_global()
-    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
-end
-online:action("Passive ORG", {"passiveorg"}, "", function()
-    write_to_global()
-end)
-
 --#killfeed
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
@@ -2150,7 +2200,7 @@ local function checkPlayerKills()
         end
     end
 end
-online:toggle("Enable Kill Feed", {"killfeed"}, "Toggle the kill feed on or off.", function(on)
+online:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a player was killed", function(on)
     killFeedEnabled = on
     if killFeedEnabled then
         while killFeedEnabled do
@@ -2411,32 +2461,20 @@ for _, loc in ipairs(cringe_locations) do
     end)
 end
 
----#autoAccept
---#joinmessages
-autoAccept:toggle_loop("Join Messages", {"autoacceptjoinmessages"}, "", function() 
-	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
-	for warnings as hash do
-		if msgHash == hash then
-			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
-			yield()
-			yield()
-		end
-	end
-end)
-
---#transactionerrors
-autoAccept:toggle_loop("Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
-	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
-	for transactionWarnings as hash do
-		if msgHash == hash then
-			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
-			yield()
-			yield()
-		end
-	end
-end)
-
 ---#enhancements
+--#safeshopping
+enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
+	if getPlayerCurrentShop(players.user()) != -1 then
+		NETWORK_START_SOLO_TUTORIAL_SESSION()
+		while getPlayerCurrentShop(players.user()) != -1 do
+			yield()
+		end
+	    NETWORK_END_TUTORIAL_SESSION()
+	end	
+end, function()
+    NETWORK_END_TUTORIAL_SESSION()
+end)
+
 --#autoclaimbounties
 enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", function()
 	local bounty = players.get_bounty(players.user())
@@ -2449,17 +2487,36 @@ enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", funct
 	end
 end)
 
---#safeshopping
-enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
-	if getPlayerCurrentShop(players.user()) != -1 then
-		NETWORK_START_SOLO_TUTORIAL_SESSION()
-		while getPlayerCurrentShop(players.user()) != -1 do
+--#joinmessages
+enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}, "Auto accepts join messages.", function() 
+	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
+	for warnings as hash do
+		if msgHash == hash then
+			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
+			yield()
 			yield()
 		end
-	    NETWORK_END_TUTORIAL_SESSION()
-	end	
-end, function()
-    NETWORK_END_TUTORIAL_SESSION()
+	end
+end)
+
+--#transactionerrors
+enhancements:toggle_loop("Auto Accept Transaction Errors", {"autoaccepttransactionerrors"}, "Auto accepts transaction errors.", function() 
+	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
+	for transactionWarnings as hash do
+		if msgHash == hash then
+			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
+			yield()
+			yield()
+		end
+	end
+end)
+
+--#passiveorg
+local function write_to_global()
+    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
+end
+enhancements:action("Passive ORG", {"passiveorg"}, "", function()
+    write_to_global()
 end)
 
 ---#onlineChat

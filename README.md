@@ -2,6 +2,23 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## e621 v3.0.0 22/06/2024 10:26 PM
+
+- Added `Detections > Spawned Vehicle`
+- Added `Detections > Modded Vehicle Upgrade`
+- Added `Game`
+- Moved `HUD` to `Game`
+- Moved `Freemode Tweaks` to `Online`
+- Moved `Protections` to `Online`
+- Moved `Detections` to `Protections`
+- Moved `Enhancements` to `Online`
+- Moved `Passive ORG` to `Enhancements`
+- Removed `Settings`
+- Removed `Enable Valentines Event` from `Freemode Tweaks`
+- Removed `Enable Independence Pack` from `Freemode Tweaks`
+- Removed `Disable Casino Valet` from `Freemode Tweaks`
+- Removed `Disable Treasure Hunt` from `Freemode Tweaks`
+
 ## e621 v2.7.2 22/06/2024 01:00 AM
 
 - Changed the script start message
