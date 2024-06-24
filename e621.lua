@@ -3297,5 +3297,5 @@ menu.delete(ent_lists[ent])
 ent_lists[ent] = nil
 entities.delete_by_handle(ent)
 end
---Ignore this.
+
 util.keep_running()

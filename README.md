@@ -2,7 +2,7 @@
 
 ### Dates and times are provided in Central Europe Time.
 
-## e621 v3.1.0
+## e621 v3.1.0 24/06/2024 20:44
 
 - Added `Game > Audio`
     - `Game > Audio > Disable Scripted Music`
@@ -14,7 +14,7 @@
     - `Game > Audio > Disable Vehicle Horn On Ped Death`
 - Moved `Vehicle > Disable Radio On Vehicle Entry` to `Game > Audio`
 
-## e621 v3.0.0 22/06/2024 10:26 PM
+## e621 v3.0.0 22/06/2024 10:26
 
 - Added `Game`
 - Removed `Settings`
@@ -36,20 +36,20 @@
 - Removed `Settings > Freemode Tweaks > Enable Independence Pack`
 - Removed `Settings > Freemode Tweaks > Enable Valentines Event`
 
-## e621 v2.7.2 22/06/2024 01:00 AM
+## e621 v2.7.2 22/06/2024 01:00
 
 - Changed the script start message
 - Changed the `Self > EWO` command to `mimi`
 - Removed `Settings > Experimental`
 - Removed `Settings > Experimental > RGB Skeleton`
 
-## e621 v2.7.1 20/06/2024 08:18 PM
+## e621 v2.7.1 20/06/2024 08:18
 
 - Added `Self > Macros > Ghost Organization`
 - Added `Self > Macros > Bribe Authorities`
 - Renamed `Get Armour` to `Drop Armour`
 
-## e621 v2.7.0 18/06/2024 10:30 PM
+## e621 v2.7.0 18/06/2024 10:30
 
 - Bumped to version 2.7.0
 - Added `Self > Macros`
@@ -62,13 +62,13 @@
     - Moved `Flamethrower` to `Vehicle > Movement`
     - Removed `Vehicle > Vehicle Customisation > Anti-Lag`
 
-## e621 v2.6.5 18/06/2024 06:53 PM
+## e621 v2.6.5 18/06/2024 06:53
 
 - Fixed `Online > Chat > Meow >///<` only sending the same few messages
 - Fixed `Online > Chat > Woof Woof` only sending the same few messages
 - Improved `e621.lua User` detection accuracy
 
-## e621 v2.6.4 18/06/2024 02:00 PM
+## e621 v2.6.4 18/06/2024 02:00
 
 - Added `Miscellaneous > Changelog` so you can now check the changelog much easier!
 - Added `World > Teleports > Rat Locations > Rockford Hills Metro Station`
