@@ -2,6 +2,18 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## e621 v3.1.0
+
+- Added `Game > Audio`
+    - `Game > Audio > Disable Scripted Music`
+    - `Game > Audio > Disable Ambient Sounds`
+    - `Game > Audio > Disable Distant Sirens`
+    - `Game > Audio > Disable Vehicle Audio`
+    - `Game > Audio > Disable Radio`
+    - `Game > Audio > Disable Vehicle Alarms`
+    - `Game > Audio > Disable Vehicle Horn On Ped Death`
+- Moved `Vehicle > Disable Radio On Vehicle Entry` to `Game > Audio`
+
 ## e621 v3.0.0 22/06/2024 10:26 PM
 
 - Added `Game`
@@ -17,8 +29,8 @@
 - Added `Online > Protections > Detections > Modded Vehicle Upgrade`
 - Moved `Settings > Auto Accept > Join Messages` to `Online > Enhancements > Join Messages` 
 - Moved `Settings > Auto Accept > Join Messages` to `Online > Enhancements > Transaction Errors` 
-- Renamed `Online > Enhancements > Join Messages` to `Online > Enhancements > Auto Accept Join Messages`
-- Renamed `Online > Enhancements > Transaction Errors` to `Online > Enhancements > Auto Accept Transaction Errors`
+- Renamed `Join Messages` to `Auto Accept Join Messages`
+- Renamed `Transaction Errors` to `Auto Accept Transaction Errors`
 - Removed `Settings > Freemode Tweaks > Disable Treasure Hunt`
 - Removed `Settings > Freemode Tweaks > Disable Casino Valet`
 - Removed `Settings > Freemode Tweaks > Enable Independence Pack`
@@ -27,7 +39,7 @@
 ## e621 v2.7.2 22/06/2024 01:00 AM
 
 - Changed the script start message
-- Changed the `Self > EWO` command from `zzz` to `mimi`
+- Changed the `Self > EWO` command to `mimi`
 - Removed `Settings > Experimental`
 - Removed `Settings > Experimental > RGB Skeleton`
 

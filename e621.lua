@@ -521,20 +521,6 @@ local function isPlayerGodmode(playerID)
 	return false
 end
 
-local function getSeatPedIsIn(ped)
-	local vehicle = GET_VEHICLE_PED_IS_USING(ped)
-	if vehicle == 0 then
-		return nil
-	end
-	local num_of_seats = GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GET_ENTITY_MODEL(vehicle))
-	for i = -1, num_of_seats - 1 do
-		local ped_in_seat = GET_PED_IN_VEHICLE_SEAT(vehicle, i)
-		if ped_in_seat == ped then
-			return i
-		end
-	end
-end
-
 local function isPlayerInAnyVehicle(playerID)
 	local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 	return IS_PED_IN_ANY_VEHICLE(ped) and not IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID)
@@ -600,19 +586,6 @@ local function RequestModel(hash, timeout)
 end
 local function IsPlayerFlyingAnyDrone(player)
    return BitTest(memory.read_int(memory.script_global(1853910 + (player * 862 + 1) + 267 + 365)), 26) -- Global_1853910[PLAYER::PLAYER_ID() /*862*/].f_267.f_365, 26
-end
-local function getSeatPedIsIn(ped)
-	local vehicle = GET_VEHICLE_PED_IS_USING(ped)
-	if vehicle == 0 then
-		return nil
-	end
-	local num_of_seats = GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GET_ENTITY_MODEL(vehicle))
-	for i = -1, num_of_seats - 1 do
-		local ped_in_seat = GET_PED_IN_VEHICLE_SEAT(vehicle, i)
-		if ped_in_seat == ped then
-			return i
-		end
-	end
 end
 
 local function get_transition_state(pid)
@@ -843,6 +816,7 @@ local detections = protections:list("Detections")
 local enhancements = online:list("Enhancements")
 local freemodetweaks = online:list("Freemode Tweaks")
 local hudSettings = game:list("HUD")
+local audioSettings = game:list("Audio")
 local teleports = world:list("Teleports")
 local cleanse = world:list("Clear area")
 local credits = misc:list("Credits")
@@ -1015,6 +989,72 @@ menu.toggle_loop(freemodetweaks, "Block Freemode Missions", {""}, "Such as Geral
     if val != 0 then
         memory.write_int(memory.script_global(262145 + 31220), 0)
     end
+end)
+
+--#audio
+audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
+	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
+		TRIGGER_MUSIC_EVENT("GLOBAL_KILL_MUSIC")
+	end
+end)
+
+audioSettings:toggle_loop("Disable Ambient Sounds", {"disableambientsounds"}, "Disables background noises such as sirens, distant honks, jackhammers, birds, crickets, etc.", function()
+	if util.is_session_transition_active() then STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE") return end
+	if not IS_AUDIO_SCENE_ACTIVE("CHARACTER_CHANGE_IN_SKY_SCENE") then
+		START_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
+	end
+end, function()
+	STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
+end)
+
+audioSettings:toggle("Disable Distant Sirens", {"disablesirens"}, "Disables the distant siren sounds you hear in freemode.", function(toggled)
+	DISTANT_COP_CAR_SIRENS(not toggled)
+end)
+
+audioSettings:toggle_loop("Disable Vehicle Audio", {"disablevehicleaudio"}, "Mutes all vehicle audio except for your own vehicle.", function()
+	if util.is_session_transition_active() or getPlayerCurrentShop(players.user()) != -1 then STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP") return end
+	if not IS_AUDIO_SCENE_ACTIVE("MP_CAR_MOD_SHOP") then
+		START_AUDIO_SCENE("MP_CAR_MOD_SHOP")
+	end
+end, function()
+	STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP")
+end)
+
+audioSettings:toggle_loop("Disable Radio", {"disableradio"}, "Disables the radio audio.", function()
+	if not IS_AUDIO_SCENE_ACTIVE("CAR_MOD_RADIO_MUTE_SCENE") then
+		START_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
+	end
+end, function()
+	STOP_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
+end)
+
+audioSettings:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
+	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+	if GET_PLAYER_RADIO_STATION_NAME() != "OFF" and GET_IS_VEHICLE_ENGINE_RUNNING(vehicle) then
+		yield(150)
+		SET_RADIO_TO_STATION_NAME("OFF")
+		repeat
+			local curVehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+			yield()
+		until not IS_PED_IN_ANY_VEHICLE(players.user_ped()) or curVehicle != vehicle
+	end
+end)
+
+audioSettings:toggle_loop("Disable Vehicle Alarms", {"disablevehiclealarms"}, "Disables the alarms that go off when stealing a car.", function()
+	local vehicle = GET_VEHICLE_PED_IS_TRYING_TO_ENTER(players.user_ped())
+	if IS_VEHICLE_ALARM_ACTIVATED(vehicle) then
+		SET_VEHICLE_ALARM(vehicle, false)
+	end
+end)	
+
+audioSettings:toggle_loop("Disable Vehicle Horn On Ped Death", {"disablehornondeath"}, "Disables the horn that sometimes goes off when a ped dies in their car.", function()
+	for entities.get_all_peds_as_handles() as ped do 
+		SET_PED_CONFIG_FLAG(ped, 46, true)
+	end
+end, function()
+	for entities.get_all_peds_as_handles() as ped do 
+		SET_PED_CONFIG_FLAG(ped, 46, false)
+	end
 end)
 
 --#hud
@@ -1491,19 +1531,6 @@ vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", func
 	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
 	DECOR_REMOVE(vehicle, "Player_Vehicle")
 	SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, 0, 0)
-end)
-
---#noradioentry
-vehicle:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
-	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
-	if GET_PLAYER_RADIO_STATION_NAME() != "OFF" and GET_IS_VEHICLE_ENGINE_RUNNING(vehicle) then
-		yield(150)
-		SET_RADIO_TO_STATION_NAME("OFF")
-		repeat
-			local curVehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
-			yield()
-		until not IS_PED_IN_ANY_VEHICLE(players.user_ped()) or curVehicle != vehicle
-	end
 end)
 
 --#disablevehgod
@@ -2488,7 +2515,7 @@ enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", funct
 end)
 
 --#joinmessages
-enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}, "Auto accepts join messages.", function() 
+enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}, "", function() 
 	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
 	for warnings as hash do
 		if msgHash == hash then
@@ -2500,7 +2527,7 @@ enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}
 end)
 
 --#transactionerrors
-enhancements:toggle_loop("Auto Accept Transaction Errors", {"autoaccepttransactionerrors"}, "Auto accepts transaction errors.", function() 
+enhancements:toggle_loop("Auto Accept Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
 	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
 	for transactionWarnings as hash do
 		if msgHash == hash then
