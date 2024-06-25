@@ -5,6 +5,7 @@
 ## **e621 v3.1.3** 25/06/2024 22:53
 
 - Some improvements and bugfixes
+- Removed `Online > Freemode Tweaks` until it's fixed
 
 ## **e621 v3.1.2** 25/06/2024 20:39
 
