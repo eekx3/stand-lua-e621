@@ -1,9 +1,14 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.1"
+local SCRIPT_VERSION = "3.1.2"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
+
+local supported_game_version <const> = "1.69-3258"
+if (game_version := menu.get_version().game) != supported_game_version then
+	util.toast($"This script was made for {supported_game_version}. The current game version is {game_version}.\nPlease note that some features or even the script may not work as intended.")
+end
 
 if SCRIPT_MANUAL_START then
 end
@@ -208,7 +213,7 @@ local e621_woof = {
     "WOOF WOOOF WOOF! BARK!", "*Wags tail*"
 }
 
-local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 65 80 41 FF C7") + 1)
+local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 7D 80") + 1)
 enum eDamageFlags begin
 	DF_None								= 0,
 	DF_IsAccurate						= 1,
