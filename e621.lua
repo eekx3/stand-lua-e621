@@ -172,16 +172,16 @@ local trashWeapons = {
     "removegunbullpuprifle", "removeguncompactrifle", "removegunmilitaryrifle", "removegunheavyrifle", "removegunservicecarbine",
     "removegununholyhellbringer", "removegunmachinepistol", "removegunminismg", "removegunsmg", "removegunassaultsmg",
     "removeguncombatpdw", "removegunmg", "removegunmicrosmg", "removegungusenbergsweeper", "removegunnavyrevolver",
-    "removegunwm29pistol", "removegunsnspistol", "removegunmarksmanpistol", "removegunmolotov", "removegungrenade",
+    "removegunwm29pistol", "removegunsnspistol", "removegunmarksmanpistol", "removegunmolotov", "removegungrenade", "removegunpistol",
     "removegunfireworklauncher", "removegunwidowmaker", "removegunbullpupshotgun", "removegunmusket", "removegunheavyshotgun",
-    "removegundoublebarrelshotgun", "removegunsweepershotgun", "removegunprecisionrifle", "removeguntacticalsmg", "removegunpistol50"
+    "removegundoublebarrelshotgun", "removegunsweepershotgun", "removegunprecisionrifle", "removeguntacticalsmg", "removegunpistol50",
 }
 
 local miscWeapons = {
-    "removegunspecialcarbinemkii", "removegunassaultriflemkii", "removegunmarksmanriflemkii",
-    "removegunpumpshotgunmkii", "removegunheavyrevolvermkii", "removegunpistolmkii", "removegunsawedoffshotgun",
-    "removegunassaultshotgun", "removegunstonehatchet", "removeguncarbineriflemkii", "removegunflaregun",
-    "removeguncombatmgmkii", "removegunupnatomizer", "removegunappistol", "removegunpistol",
+    "removegunspecialcarbinemkii", "removegunassaultriflemkii",
+    "removegunpumpshotgunmkii", "removegunheavyrevolvermkii", "removegunpistolmkii",
+    "removegunassaultshotgun", "removeguncarbineriflemkii", "removegunflaregun",
+    "removeguncombatmgmkii", "removegunsawedoffshotgun", "removegunmarksmanriflemkii",
 }
 
 local e621_meow = {
@@ -1502,9 +1502,11 @@ local function removeWeapons(weaponsList)
         menu.trigger_commands(weaponCommand)
     end
 end
-weapons:action("Remove Misc Weapons", {"removemiscweapons"}, "", function()
-    removeWeapons(miscWeapons)
-end)
+menu.toggle(weapons, "Remove Misc Weapons", {"removemiscweapons"}, "", function()
+    if on then
+        removeWeapons(miscWeapons)
+    end
+end, false)
 
 ---#vehicle
 --#stunlock
