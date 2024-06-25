@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.2"
+local SCRIPT_VERSION = "3.1.3"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -47,171 +47,9 @@ if SCRIPT_MANUAL_START then
     end)
 end
 
-local GlobalplayerBD = 2657921
-local GlobalplayerBD_FM = 1845263
-local GlobalplayerBD_FM_3 = 1886967
-
-local gun_van_locations = {
-    { name = "La Mesa", x = 729.6798, y = -736.43445, z = 26.240644 },
-    { name = "La Mesa2", x = 971.3711, y = -1718.646, z = 30.504404 },
-    { name = "Vespucci Beach", x = -1324.3976, y = -1163.7634, z = 4.6840196 },
-    { name = "Paleto Bay", x = -31.904795, y = 6437.721, z = 31.450659 },
-    { name = "Terminal", x = 779.1293, y = -3272.0833, z = 6.012522 },
-    { name = "Tatavian Mountains", x = 1910.4598, y = 564.6093, z = 175.65532 },
-    { name = "Sandy Shores", x = 1796.2365, y = 3896.4075, z = 34.02591 },
-    { name = "Paleto Forest", x = -795.2769, y = 5402.7837, z = 34.10175 },
-    { name = "Little Seoul", x = -473.65143, y = -741.56274, z = 30.563604 },
-    { name = "Downtown Vinewood", x = 278.04364, y = 72.38032, z = 94.366356 },
-    { name = "Mirror Park", x = 1098.1116, y = -337.02313, z = 67.2167 },
-    { name = "North Chumash", x = -2165.6982, y = 4286.3994, z = 48.972054 },
-    { name = "Palmen-Taylon Power Station", x = 2669.9106, y = 1469.542, z = 24.500776 },
-    { name = "Murrieta Heights ", x = 1141.6555, y = -1358.6732, z = 34.617126 },
-    { name = "Grand Senora Desert", x = 2343.5588, y = 3052.755, z = 48.151882 }
-}
-
-local cringe_locations = {
-    { name = "City", command = "city", x = -598.0578, y = -715.8913, z = 131.04039 },
-    { name = "LSIA", command = "lsia", x = -1335.8527, y = -3044.449, z = 13.944439 },
-    { name = "Beach", command = "beach", x = -1443.6354, y = -1460.5477, z = 2.5691736 },
-    { name = "Docks", command = "docks", x = 1020.8491, y = -3061.2935, z = 5.901044  },
-    { name = "Maze Bank", command = "mb", x = -75.12867, y = -819.2142, z = 326.17514  },
-    { name = "Del Perro", command = "dp", x = -1582.8209, y = -569.67413, z = 116.328445 },
-    { name = "Sandy Shores", command = "sandy", x = 1674.1045, y = 3238.1682, z = 40.70262 },
-}
-
-local oob_locations = {
-    { name = "Freakshop", x = 555.4394, y = -419.0929, z = -58.98762 },
-    { name = "LSIA Metro Station", x = -872.9433, y = -2284.0183, z = 1.718886 },
-    { name = "Zancudo Tunnel", x = -2603.019, y = 3010.4265, z = 12.422543 },
-    { name = "Orbital Cannon", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
-    { name = "LSCM Interior", x = -2110.68, y = 1177.9203, z = 37.079876 },
-    { name = "Aero's Home", x = 496.65686, y = -1467.392, z = 9.903037, description = "I was called a nigger for this." },
-    { name = "LSIA Hangar Glitch", x = -1407.6158, y = -3288.1548, z = 24.585745 },
-    { name = "Del Perro Lombank", x = -1576.7968, y = -576.2052, z = 45.107635 },
-    { name = "Arcadius Glitch 1 ", command = "tg", x = -182.27792, y = -581.04913, z = 124.220276 },
-    { name = "Arcadius Glitch 2", command = "tg2", x = -114.29317, y = -568.70154, z = 124.220245 },
-    { name = "Arcadius Glitch 3", command = "tg3", x = -137.3184, y = -636.91113, z = 124.220245 },
-    { name = "Murrieta Heights Drywall", x = 916.2871, y = -880.2023, z = 2.0877643, description = "Random drywall under the map." },
-    { name = "Little Seoul Light", x = -448.24057, y = -605.90216, z = 1.2188458, description = "Little lamp under the map, close to the middle of LS." },
-    { name = "MC Interior", x = 1004.10364, y = -3170.731, z = -30.022903 },
-    { name = "Wind Farm OOB", x = 1209.9845, y = 1855.5875, z = -41.646027 },
-    { name = "Santa Marina Rock", x = -1028.7477, y = -1865.7416, z = 3.1702237 },
-    { name = "Sandy Shores Lamp", x = 2077.8765, y = 3862.9395, z = 1.1025487 },
-    { name = "Terrorbyte Interior", command = "tbinter", x = -1419.0422, y = -3010.5852, z = -76.35101 },
-    { name = "Submarine Interior", command = "sbinter", x = 1561.3093, y = 382.88113, z = -46.4849 },
-    { name = "Under Map Beach Spot", command = "ump", x = -1078.0254, y = -1165.3585, z = -78.49683 },
-    { name = "Tinsel Towers", command = "ump2", x = -614.6791, y = 47.121822, z = -178.77605 },
-    { name = "Record A Studios", command = "ump3", x = -1010.5319, y = -58.991444, z = -94.59792 },
-    { name = "Agency Garage", command = "ump4", x = -1072.477, y = -75.01728, z = -86.59713 },
-    { name = "Rockford Hills Metro Station", x = -292.52103, y = -295.34946, z = 23.637678 },
-    { name = "LSIA Terminal", x = -1051.7388, y = -2759.8142, z = 13.944587 },
-    { name = "Apartment Interior", command = "opinter", x = 252.80753, y = -1001.6377, z = -96.010056, description = "Preferably have Levitation on when teleporting here." },
-}
-
-local interiors = {
-    { name = "Creepy ass place", x = -1922.0615, y = 3749.7983, z = -99.64585, description = "I don't know what this is for, but the ambient music & noises in there make me uneasy." },
-    { name = "Acid lab", x = 480.3165, y = -2623.9385, z = -47.227962, },
-    { name = "Flying Shoes", x = -24.612347, y = -1463.7196, z = 41.772713 },
-    { name = "Chilliad Tree", x = 1986.4318, y = 5726.588, z = 2.3640056 },
-    { name = "prip's Home", x = 154.61754, y = -1004.18097, z = -98.41931 },
-    { name = "prip's Home, But Outside", x = 150.92828, y = -1001.0686, z = -96.942215 },
-    { name = "Your Home", command = "myhome", x = 932.1479, y = -2269.465, z = -50.406315 },
-    { name = "Mugshot", x = 403.0112, y = -1002.5245, z = -99.004135 },
-    { name = "Mugshot #2", x = 415.23752, y = -998.3157, z = -99.40417 },
-    { name = "Warehouse Interior", x = 1006.4094, y = -3099.7756, z = -38.999916 },
-    { name = "Winning Race Interior", x = 405.3385, y = -967.20825, z = -99.00419, description = "You want to teleport/levitate upwards and either fall or parachute on top of it in order to be able to see the outside world." },
-    { name = "La Mesa Lamp Post", x = 692.2926, y = -900.46405, z = 1.3883853 },
-    { name = "Random Fence", x = -2169.7388, y = 3068.5571, z = 2.6443794, description = "Literally just a floating fence under Fort Zancudo. The rotation resets on its own so you might just fall towards the void whenever you tp here." },
-    { name = "Random Fence #2", x = 1025.8007, y = -2257.2246, z = 3.6108174, description = "Another one" },
-    { name = "Salvage Yard", x = 1089.2979, y = -2276.842, z = -48.999935 },
-    { name = "Nightclub Interior", x = -1618.4036, y = -3012.2046, z = -75.20511 },
-    { name = "Arcade Interior", x = 2696.013, y = -369.06625, z = -54.78093 },
-    { name = "Avenger Interior (LSIA)", x = -880.7326, y = -2769.0347, z = -41.404156 },
-    { name = "Casino Garage Interior", x = 1390.3984, y = 202.0952, z = -48.99538 },
-    { name = "Lillium's eep place", x= -1869.1552, y = 3749.7407, z= -99.84548, description = "Lillium's fav place to sleep"},
-}
-
-local pearlTypes = {
-    ["Metallic Black"] = 0, ["Metallic Graphite Black"] = 1, ["Metallic Black Steel"] = 2, ["Metallic Dark Silver"] = 3,
-    ["Metallic Silver"] = 4, ["Metallic Blue Silver"] = 5, ["Metallic Steel Gray"] = 6, ["Metallic Shadow Silver"] = 7,
-    ["Metallic Stone Silver"] = 8, ["Metallic Midnight Silver"] = 9, ["Metallic Gun Metal"] = 10, ["Metallic Anthracite Grey"] = 11,
-    ["Matte Black"] = 12, ["Matte Gray"] = 13, ["Matte Light Grey"] = 14, ["Util Black"] = 15, ["Util Black Poly"] = 16,
-    ["Util Dark silver"] = 17, ["Util Silver"] = 18, ["Util Gun Metal"] = 19, ["Util Shadow Silver"] = 20, ["Worn Black"] = 21,
-    ["Worn Graphite"] = 22, ["Worn Silver Grey"] = 23, ["Worn Silver"] = 24, ["Worn Blue Silver"] = 25, ["Worn Shadow Silver"] = 26,
-    ["Metallic Red"] = 27, ["Metallic Torino Red"] = 28, ["Metallic Formula Red"] = 29, ["Metallic Blaze Red"] = 30,
-    ["Metallic Graceful Red"] = 31, ["Metallic Garnet Red"] = 32, ["Metallic Desert Red"] = 33, ["Metallic Cabernet Red"] = 34,
-    ["Metallic Candy Red"] = 35, ["Metallic Sunrise Orange"] = 36, ["Metallic Classic Gold"] = 37, ["Metallic Orange"] = 38,
-    ["Matte Red"] = 39, ["Matte Dark Red"] = 40, ["Matte Orange"] = 41, ["Matte Yellow"] = 42, ["Util Red"] = 43,
-    ["Util Bright Red"] = 44, ["Util Garnet Red"] = 45, ["Worn Red"] = 46, ["Worn Golden Red"] = 47, ["Worn Dark Red"] = 48,
-    ["Metallic Dark Green"] = 49, ["Metallic Racing Green"] = 50, ["Metallic Sea Green"] = 51, ["Metallic Olive Green"] = 52,
-    ["Metallic Green"] = 53, ["Metallic Gasoline Blue Green"] = 54, ["Matte Lime Green"] = 55, ["Util Dark Green"] = 56,
-    ["Util Green"] = 57, ["Worn Dark Green"] = 58, ["Worn Green"] = 59, ["Worn Sea Wash"] = 60, ["Metallic Midnight Blue"] = 61,
-    ["Metallic Dark Blue"] = 62, ["Metallic Saxony Blue"] = 63, ["Metallic Blue"] = 64, ["Metallic Mariner Blue"] = 65,
-    ["Metallic Harbor Blue"] = 66, ["Metallic Diamond Blue"] = 67, ["Metallic Surf Blue"] = 68, ["Metallic Nautical Blue"] = 69,
-    ["Metallic Bright Blue"] = 70, ["Metallic Purple Blue"] = 71, ["Metallic Spinnaker Blue"] = 72, ["Metallic Ultra Blue"] = 73,
-    ["Util Dark Blue"] = 75, ["Util Midnight Blue"] = 76, ["Util Blue"] = 77, ["Util Sea Foam Blue"] = 78, ["Util Lightning blue"] = 79,
-    ["Util Maui Blue Poly"] = 80, ["Util Bright Blue"] = 81, ["Matte Dark Blue"] = 82, ["Matte Blue"] = 83, ["Matte Midnight Blue"] = 84,
-    ["Worn Dark blue"] = 85, ["Worn Blue"] = 86, ["Worn Light blue"] = 87, ["Metallic Taxi Yellow"] = 88, ["Metallic Race Yellow"] = 89,
-    ["Metallic Bronze"] = 90, ["Metallic Yellow Bird"] = 91, ["Metallic Lime"] = 92, ["Metallic Champagne"] = 93,
-    ["Metallic Pueblo Beige"] = 94, ["Metallic Dark Ivory"] = 95, ["Metallic Choco Brown"] = 96, ["Metallic Golden Brown"] = 97,
-    ["Metallic Light Brown"] = 98, ["Metallic Straw Beige"] = 99, ["Metallic Moss Brown"] = 100, ["Metallic Biston Brown"] = 101,
-    ["Metallic Beechwood"] = 102, ["Metallic Dark Beechwood"] = 103, ["Metallic Choco Orange"] = 104, ["Metallic Beach Sand"] = 105,
-    ["Metallic Sun Bleeched Sand"] = 106, ["Metallic Cream"] = 107, ["Util Brown"] = 108, ["Util Medium Brown"] = 109,
-    ["Util Light Brown"] = 110, ["Metallic White"] = 111, ["Metallic Frost White"] = 112, ["Worn Honey Beige"] = 113,
-    ["Worn Brown"] = 114, ["Worn Dark Brown"] = 115, ["Worn straw beige"] = 116, ["Brushed Steel"] = 117, ["Brushed Black steel"] = 118,
-    ["Brushed Aluminium"] = 119, ["Chrome"] = 120, ["Worn Off White"] = 121, ["Util Off White"] = 122, ["Worn Orange"] = 123,
-    ["Worn Light Orange"] = 124, ["Metallic Securicor Green"] = 125, ["Worn Taxi Yellow"] = 126, ["police car blue"] = 127,
-    ["Matte Green"] = 128, ["Matte Brown"] = 129, ["Worn Orange"] = 130, ["Matte White"] = 131, ["Worn White"] = 132,
-    ["Worn Olive Army Green"] = 133, ["Pure White"] = 134, ["Hot Pink"] = 135, ["Salmon pink"] = 136, ["Metallic Vermillion Pink"] = 137,
-    ["Orange"] = 138, ["Green"] = 139, ["Blue"] = 140, ["Mettalic Black Blue"] = 141, ["Metallic Black Purple"] = 142,
-    ["Metallic Black Red"] = 143, ["hunter green"] = 144, ["Metallic Purple"] = 145, ["Metaillic V Dark Blue"] = 146,
-    ["MODSHOP BLACK1"] = 147, ["Matte Purple"] = 148, ["Matte Dark Purple"] = 149, ["Metallic Lava Red"] = 150,
-    ["Matte Forest Green"] = 151, ["Matte Olive Drab"] = 152, ["Matte Desert Brown"] = 153, ["Matte Desert Tan"] = 154,
-    ["Matte Foilage Green"] = 155, ["DEFAULT ALLOY COLOUR"] = 156, ["Epsilon Blue"] = 157, ["MP100 GOLD"] = 158, ["MP100 GOLD SATIN"] = 159,
-    ["MP100 GOLD SPEC"] = 160
-}
-
-local trashWeapons = {
-    "removegundoubleactionrevolver", "removegunteargas", "removegunhazardousjerrycan", "removegunproximitymine", "removegunjerrycan",
-    "removegunbattlerifle", "removegunpumpshotgun", "removeguncarbinerifle","removeguncombatshotgun", "removegunadvancedrifle",
-    "removegunbullpuprifle", "removeguncompactrifle", "removegunmilitaryrifle", "removegunheavyrifle", "removegunservicecarbine",
-    "removegununholyhellbringer", "removegunmachinepistol", "removegunminismg", "removegunsmg", "removegunassaultsmg",
-    "removeguncombatpdw", "removegunmg", "removegunmicrosmg", "removegungusenbergsweeper", "removegunnavyrevolver",
-    "removegunwm29pistol", "removegunsnspistol", "removegunmarksmanpistol", "removegunmolotov", "removegungrenade", "removegunpistol",
-    "removegunfireworklauncher", "removegunwidowmaker", "removegunbullpupshotgun", "removegunmusket", "removegunheavyshotgun",
-    "removegundoublebarrelshotgun", "removegunsweepershotgun", "removegunprecisionrifle", "removeguntacticalsmg", "removegunpistol50",
-}
-
-local miscWeapons = {
-    "removegunspecialcarbinemkii", "removegunassaultriflemkii",
-    "removegunpumpshotgunmkii", "removegunheavyrevolvermkii", "removegunpistolmkii",
-    "removegunassaultshotgun", "removeguncarbineriflemkii", "removegunflaregun",
-    "removeguncombatmgmkii", "removegunsawedoffshotgun", "removegunmarksmanriflemkii",
-}
-
-local e621_meow = {
-    "Nya, purr!", "Meow, meow, purr, purr!", "Meow meow meow meow meow!", "Meow... *licks paw*",
-    "Purr, meow!", "Nya, purr purr!", "Nya nya", "Meow meow!", "Purrrrrrr...", "Nya nya! Time for a cat nap.",
-    "Purr purrr.. nya!", "Purr purr, meow!", "Nya... *licks paw*", "Meow, purr..", "Meow meow meow! Let's play!",
-    "Purrrrrrr... *curls up*", "Meow!", "Meow meow meow...", "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
-    "MRRRRPP", "Nya!", "Nya nya!", "Purr, purr, nya!", "Purr, purr, meow, meow!", "Meow, meow, purr!",
-    "Nya, nya, purr!", "MEOWOMEWEWE MEOOWWW", "Mmrpfh.. Meoww", "MEOWOMEWEWE MEOOWWW", "Meow meow meow...",
-    "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
-    "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
-    "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
-    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP"
-}
-
-local e621_woof = {
-    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
-    "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
-    "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
-    "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK", "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!",
-    "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
-    "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
-    "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
-    "WOOF WOOOF WOOF! BARK!", "*Wags tail*"
-}
+local GlobalplayerBD = 2657971
+local GlobalplayerBD_FM = 1845281
+local GlobalplayerBD_FM_3 = 1887305
 
 local CWeaponDamageEventTrigger = memory.rip(memory.scan("E8 ? ? ? ? 44 8B 7D 80") + 1)
 enum eDamageFlags begin
@@ -365,11 +203,182 @@ local randomPeds = {
 	joaat("u_m_m_yulemonster")
 }
 
-local function createRandomPed(pos)
-	local mdlHash = randomPeds[math.random(#randomPeds)]
-	util.request_model(mdlHash)
-	return entities.create_ped(26, mdlHash, pos, 0)
-end
+local gun_van_locations = {
+    { name = "La Mesa", x = 729.6798, y = -736.43445, z = 26.240644 },
+    { name = "La Mesa2", x = 971.3711, y = -1718.646, z = 30.504404 },
+    { name = "Vespucci Beach", x = -1324.3976, y = -1163.7634, z = 4.6840196 },
+    { name = "Paleto Bay", x = -31.904795, y = 6437.721, z = 31.450659 },
+    { name = "Terminal", x = 779.1293, y = -3272.0833, z = 6.012522 },
+    { name = "Tatavian Mountains", x = 1910.4598, y = 564.6093, z = 175.65532 },
+    { name = "Sandy Shores", x = 1796.2365, y = 3896.4075, z = 34.02591 },
+    { name = "Paleto Forest", x = -795.2769, y = 5402.7837, z = 34.10175 },
+    { name = "Little Seoul", x = -473.65143, y = -741.56274, z = 30.563604 },
+    { name = "Downtown Vinewood", x = 278.04364, y = 72.38032, z = 94.366356 },
+    { name = "Mirror Park", x = 1098.1116, y = -337.02313, z = 67.2167 },
+    { name = "North Chumash", x = -2165.6982, y = 4286.3994, z = 48.972054 },
+    { name = "Palmen-Taylon Power Station", x = 2669.9106, y = 1469.542, z = 24.500776 },
+    { name = "Murrieta Heights ", x = 1141.6555, y = -1358.6732, z = 34.617126 },
+    { name = "Grand Senora Desert", x = 2343.5588, y = 3052.755, z = 48.151882 }
+}
+
+local cringe_locations = {
+    { name = "City", command = "city", x = -598.0578, y = -715.8913, z = 131.04039 },
+    { name = "LSIA", command = "lsia", x = -1335.8527, y = -3044.449, z = 13.944439 },
+    { name = "Beach", command = "beach", x = -1443.6354, y = -1460.5477, z = 2.5691736 },
+    { name = "Docks", command = "docks", x = 1020.8491, y = -3061.2935, z = 5.901044  },
+    { name = "Maze Bank", command = "mb", x = -75.12867, y = -819.2142, z = 326.17514  },
+    { name = "Del Perro", command = "dp", x = -1582.8209, y = -569.67413, z = 116.328445 },
+    { name = "Sandy Shores", command = "sandy", x = 1674.1045, y = 3238.1682, z = 40.70262 },
+}
+
+local oob_locations = {
+    { name = "Freakshop", x = 555.4394, y = -419.0929, z = -58.98762 },
+    { name = "LSIA Metro Station", x = -872.9433, y = -2284.0183, z = 1.718886 },
+    { name = "Zancudo Tunnel", x = -2603.019, y = 3010.4265, z = 12.422543 },
+    { name = "Orbital Cannon", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
+    { name = "LSCM Interior", x = -2110.68, y = 1177.9203, z = 37.079876 },
+    { name = "Aero's Home", x = 496.65686, y = -1467.392, z = 9.903037, description = "I was called a nigger for this." },
+    { name = "LSIA Hangar Glitch", x = -1407.6158, y = -3288.1548, z = 24.585745 },
+    { name = "Del Perro Lombank", x = -1576.7968, y = -576.2052, z = 45.107635 },
+    { name = "Arcadius Glitch 1 ", command = "tg", x = -182.27792, y = -581.04913, z = 124.220276 },
+    { name = "Arcadius Glitch 2", command = "tg2", x = -114.29317, y = -568.70154, z = 124.220245 },
+    { name = "Arcadius Glitch 3", command = "tg3", x = -137.3184, y = -636.91113, z = 124.220245 },
+    { name = "Murrieta Heights Drywall", x = 916.2871, y = -880.2023, z = 2.0877643, description = "Random drywall under the map." },
+    { name = "Little Seoul Light", x = -448.24057, y = -605.90216, z = 1.2188458, description = "Little lamp under the map, close to the middle of LS." },
+    { name = "MC Interior", x = 1004.10364, y = -3170.731, z = -30.022903 },
+    { name = "Wind Farm OOB", x = 1209.9845, y = 1855.5875, z = -41.646027 },
+    { name = "Santa Marina Rock", x = -1028.7477, y = -1865.7416, z = 3.1702237 },
+    { name = "Sandy Shores Lamp", x = 2077.8765, y = 3862.9395, z = 1.1025487 },
+    { name = "Terrorbyte Interior", command = "tbinter", x = -1419.0422, y = -3010.5852, z = -76.35101 },
+    { name = "Submarine Interior", command = "sbinter", x = 1561.3093, y = 382.88113, z = -46.4849 },
+    { name = "Under Map Beach Spot", command = "ump", x = -1078.0254, y = -1165.3585, z = -78.49683 },
+    { name = "Tinsel Towers", command = "ump2", x = -614.6791, y = 47.121822, z = -178.77605 },
+    { name = "Record A Studios", command = "ump3", x = -1010.5319, y = -58.991444, z = -94.59792 },
+    { name = "Agency Garage", command = "ump4", x = -1072.477, y = -75.01728, z = -86.59713 },
+    { name = "Rockford Hills Metro Station", x = -292.52103, y = -295.34946, z = 23.637678 },
+    { name = "LSIA Terminal", x = -1051.7388, y = -2759.8142, z = 13.944587 },
+    { name = "Apartment Interior", command = "opinter", x = 252.80753, y = -1001.6377, z = -96.010056, description = "Preferably have Levitation on when teleporting here." },
+}
+
+local interiors = {
+    { name = "Creepy ass place", x = -1922.0615, y = 3749.7983, z = -99.64585, description = "I don't know what this is for, but the ambient music & noises in there make me uneasy." },
+    { name = "Acid lab", x = 480.3165, y = -2623.9385, z = -47.227962, },
+    { name = "Flying Shoes", x = -24.612347, y = -1463.7196, z = 41.772713 },
+    { name = "Chilliad Tree", x = 1986.4318, y = 5726.588, z = 2.3640056 },
+    { name = "prip's Home", x = 154.61754, y = -1004.18097, z = -98.41931 },
+    { name = "prip's Home, But Outside", x = 150.92828, y = -1001.0686, z = -96.942215 },
+    { name = "Your Home", command = "myhome", x = 932.1479, y = -2269.465, z = -50.406315 },
+    { name = "Mugshot", x = 403.0112, y = -1002.5245, z = -99.004135 },
+    { name = "Mugshot #2", x = 415.23752, y = -998.3157, z = -99.40417 },
+    { name = "Warehouse Interior", x = 1006.4094, y = -3099.7756, z = -38.999916 },
+    { name = "Winning Race Interior", x = 405.3385, y = -967.20825, z = -99.00419, description = "You want to teleport/levitate upwards and either fall or parachute on top of it in order to be able to see the outside world." },
+    { name = "La Mesa Lamp Post", x = 692.2926, y = -900.46405, z = 1.3883853 },
+    { name = "Random Fence", x = -2169.7388, y = 3068.5571, z = 2.6443794, description = "Literally just a floating fence under Fort Zancudo. The rotation resets on its own so you might just fall towards the void whenever you tp here." },
+    { name = "Random Fence #2", x = 1025.8007, y = -2257.2246, z = 3.6108174, description = "Another one" },
+    { name = "Salvage Yard", x = 1089.2979, y = -2276.842, z = -48.999935 },
+    { name = "Nightclub Interior", x = -1618.4036, y = -3012.2046, z = -75.20511 },
+    { name = "Arcade Interior", x = 2696.013, y = -369.06625, z = -54.78093 },
+    { name = "Avenger Interior (LSIA)", x = -880.7326, y = -2769.0347, z = -41.404156 },
+    { name = "Casino Garage Interior", x = 1390.3984, y = 202.0952, z = -48.99538 },
+    { name = "Lillium's eep place", x= -1869.1552, y = 3749.7407, z= -99.84548, description = "Lillium's fav place to sleep"},
+}
+
+local pearlTypes = {
+    ["Metallic Black"] = 0, ["Metallic Graphite Black"] = 1, ["Metallic Black Steel"] = 2, ["Metallic Dark Silver"] = 3,
+    ["Metallic Silver"] = 4, ["Metallic Blue Silver"] = 5, ["Metallic Steel Gray"] = 6, ["Metallic Shadow Silver"] = 7,
+    ["Metallic Stone Silver"] = 8, ["Metallic Midnight Silver"] = 9, ["Metallic Gun Metal"] = 10, ["Metallic Anthracite Grey"] = 11,
+    ["Matte Black"] = 12, ["Matte Gray"] = 13, ["Matte Light Grey"] = 14, ["Util Black"] = 15, ["Util Black Poly"] = 16,
+    ["Util Dark silver"] = 17, ["Util Silver"] = 18, ["Util Gun Metal"] = 19, ["Util Shadow Silver"] = 20, ["Worn Black"] = 21,
+    ["Worn Graphite"] = 22, ["Worn Silver Grey"] = 23, ["Worn Silver"] = 24, ["Worn Blue Silver"] = 25, ["Worn Shadow Silver"] = 26,
+    ["Metallic Red"] = 27, ["Metallic Torino Red"] = 28, ["Metallic Formula Red"] = 29, ["Metallic Blaze Red"] = 30,
+    ["Metallic Graceful Red"] = 31, ["Metallic Garnet Red"] = 32, ["Metallic Desert Red"] = 33, ["Metallic Cabernet Red"] = 34,
+    ["Metallic Candy Red"] = 35, ["Metallic Sunrise Orange"] = 36, ["Metallic Classic Gold"] = 37, ["Metallic Orange"] = 38,
+    ["Matte Red"] = 39, ["Matte Dark Red"] = 40, ["Matte Orange"] = 41, ["Matte Yellow"] = 42, ["Util Red"] = 43,
+    ["Util Bright Red"] = 44, ["Util Garnet Red"] = 45, ["Worn Red"] = 46, ["Worn Golden Red"] = 47, ["Worn Dark Red"] = 48,
+    ["Metallic Dark Green"] = 49, ["Metallic Racing Green"] = 50, ["Metallic Sea Green"] = 51, ["Metallic Olive Green"] = 52,
+    ["Metallic Green"] = 53, ["Metallic Gasoline Blue Green"] = 54, ["Matte Lime Green"] = 55, ["Util Dark Green"] = 56,
+    ["Util Green"] = 57, ["Worn Dark Green"] = 58, ["Worn Green"] = 59, ["Worn Sea Wash"] = 60, ["Metallic Midnight Blue"] = 61,
+    ["Metallic Dark Blue"] = 62, ["Metallic Saxony Blue"] = 63, ["Metallic Blue"] = 64, ["Metallic Mariner Blue"] = 65,
+    ["Metallic Harbor Blue"] = 66, ["Metallic Diamond Blue"] = 67, ["Metallic Surf Blue"] = 68, ["Metallic Nautical Blue"] = 69,
+    ["Metallic Bright Blue"] = 70, ["Metallic Purple Blue"] = 71, ["Metallic Spinnaker Blue"] = 72, ["Metallic Ultra Blue"] = 73,
+    ["Util Dark Blue"] = 75, ["Util Midnight Blue"] = 76, ["Util Blue"] = 77, ["Util Sea Foam Blue"] = 78, ["Util Lightning blue"] = 79,
+    ["Util Maui Blue Poly"] = 80, ["Util Bright Blue"] = 81, ["Matte Dark Blue"] = 82, ["Matte Blue"] = 83, ["Matte Midnight Blue"] = 84,
+    ["Worn Dark blue"] = 85, ["Worn Blue"] = 86, ["Worn Light blue"] = 87, ["Metallic Taxi Yellow"] = 88, ["Metallic Race Yellow"] = 89,
+    ["Metallic Bronze"] = 90, ["Metallic Yellow Bird"] = 91, ["Metallic Lime"] = 92, ["Metallic Champagne"] = 93,
+    ["Metallic Pueblo Beige"] = 94, ["Metallic Dark Ivory"] = 95, ["Metallic Choco Brown"] = 96, ["Metallic Golden Brown"] = 97,
+    ["Metallic Light Brown"] = 98, ["Metallic Straw Beige"] = 99, ["Metallic Moss Brown"] = 100, ["Metallic Biston Brown"] = 101,
+    ["Metallic Beechwood"] = 102, ["Metallic Dark Beechwood"] = 103, ["Metallic Choco Orange"] = 104, ["Metallic Beach Sand"] = 105,
+    ["Metallic Sun Bleeched Sand"] = 106, ["Metallic Cream"] = 107, ["Util Brown"] = 108, ["Util Medium Brown"] = 109,
+    ["Util Light Brown"] = 110, ["Metallic White"] = 111, ["Metallic Frost White"] = 112, ["Worn Honey Beige"] = 113,
+    ["Worn Brown"] = 114, ["Worn Dark Brown"] = 115, ["Worn straw beige"] = 116, ["Brushed Steel"] = 117, ["Brushed Black steel"] = 118,
+    ["Brushed Aluminium"] = 119, ["Chrome"] = 120, ["Worn Off White"] = 121, ["Util Off White"] = 122, ["Worn Orange"] = 123,
+    ["Worn Light Orange"] = 124, ["Metallic Securicor Green"] = 125, ["Worn Taxi Yellow"] = 126, ["police car blue"] = 127,
+    ["Matte Green"] = 128, ["Matte Brown"] = 129, ["Worn Orange"] = 130, ["Matte White"] = 131, ["Worn White"] = 132,
+    ["Worn Olive Army Green"] = 133, ["Pure White"] = 134, ["Hot Pink"] = 135, ["Salmon pink"] = 136, ["Metallic Vermillion Pink"] = 137,
+    ["Orange"] = 138, ["Green"] = 139, ["Blue"] = 140, ["Mettalic Black Blue"] = 141, ["Metallic Black Purple"] = 142,
+    ["Metallic Black Red"] = 143, ["hunter green"] = 144, ["Metallic Purple"] = 145, ["Metaillic V Dark Blue"] = 146,
+    ["MODSHOP BLACK1"] = 147, ["Matte Purple"] = 148, ["Matte Dark Purple"] = 149, ["Metallic Lava Red"] = 150,
+    ["Matte Forest Green"] = 151, ["Matte Olive Drab"] = 152, ["Matte Desert Brown"] = 153, ["Matte Desert Tan"] = 154,
+    ["Matte Foilage Green"] = 155, ["DEFAULT ALLOY COLOUR"] = 156, ["Epsilon Blue"] = 157, ["MP100 GOLD"] = 158, ["MP100 GOLD SATIN"] = 159,
+    ["MP100 GOLD SPEC"] = 160
+}
+
+local trashWeapons = {
+    "removegundoubleactionrevolver", "removegunteargas", 
+    "removegunproximitymine", "removegunjerrycan", 
+    "removegunbattlerifle", "removegunpumpshotgun", 
+    "removeguncombatshotgun", "removegunadvancedrifle",
+    "removegunbullpuprifle", "removeguncompactrifle", 
+    "removegunmilitaryrifle", "removeguncarbinerifle", 
+    "removegunheavyrifle", "removegunservicecarbine",
+    "removegununholyhellbringer", "removegunmachinepistol", 
+    "removegunsmg", "removegunassaultsmg", 
+    "removeguncombatpdw", "removegunmg", 
+    "removegungusenbergsweeper", "removegunnavyrevolver", 
+    "removegunwm29pistol", "removegunsnspistol", 
+    "removegunmolotov", "removegungrenade", 
+    "removegunfireworklauncher", "removegunwidowmaker", 
+    "removegunmusket", "removegunheavyshotgun", 
+    "removegundoublebarrelshotgun", "removegunsweepershotgun",  
+    "removegunhazardousjerrycan", "removegunbullpupshotgun", 
+    "removeguntacticalsmg", "removegunminismg", 
+    "removegunpistol50", "removegunpistol",
+    "removegunmarksmanpistol", "removegunmicrosmg", 
+    "removegunprecisionrifle",
+}
+
+local miscWeapons = {
+    "removegunspecialcarbinemkii", "removegunassaultriflemkii",
+    "removegunpumpshotgunmkii", "removegunheavyrevolvermkii", 
+    "removegunpistolmkii","removegunmarksmanriflemkii",
+    "removegunassaultshotgun", "removeguncarbineriflemkii",
+    "removeguncombatmgmkii", "removegunsawedoffshotgun", 
+    "removegunflaregun",
+}
+
+local e621_meow = {
+    "Nya, purr!", "Meow, meow, purr, purr!", "Meow meow meow meow meow!", "Meow... *licks paw*",
+    "Purr, meow!", "Nya, purr purr!", "Nya nya", "Meow meow!", "Purrrrrrr...", "Nya nya! Time for a cat nap.",
+    "Purr purrr.. nya!", "Purr purr, meow!", "Nya... *licks paw*", "Meow, purr..", "Meow meow meow! Let's play!",
+    "Purrrrrrr... *curls up*", "Meow!", "Meow meow meow...", "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
+    "MRRRRPP", "Nya!", "Nya nya!", "Purr, purr, nya!", "Purr, purr, meow, meow!", "Meow, meow, purr!",
+    "Nya, nya, purr!", "MEOWOMEWEWE MEOOWWW", "Mmrpfh.. Meoww", "MEOWOMEWEWE MEOOWWW", "Meow meow meow...",
+    "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
+    "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
+    "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
+    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP",
+}
+
+local e621_woof = {
+    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
+    "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
+    "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
+    "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK", "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!",
+    "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
+    "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
+    "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
+    "WOOF WOOOF WOOF! BARK!", "*Wags tail*",
+}
 
 local root = menu.my_root()
 local carYaw = 0
@@ -436,87 +445,67 @@ function SET_ENT_FACE_ENT(ent1, ent2)
 	return ENTITY.SET_ENTITY_HEADING(ent1, heading)
 end
 
-local function isNetPlayerOk(playerID, assert_playing = false, assert_done_transition = true)
+function isNetPlayerOk(playerID, assert_playing = false, assert_done_transition = true) -- credit to sapphire *sighs* yet again
 	if not NETWORK_IS_PLAYER_ACTIVE(playerID) then return false end
 	if assert_playing and not IS_PLAYER_PLAYING(playerID) then return false end
 	if assert_done_transition then
-		if playerID == memory.read_int(memory.script_global(2672741 + 3)) then
-			return memory.read_int(memory.script_global(2672741 + 2)) != 0
-		elseif memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 463))) != 4 then -- Global_2657921[iVar0 /*463*/] != 4
+		if playerID == memory.read_int(memory.script_global(2672855 + 3)) then -- Global_2672855.f_3
+			return memory.read_int(memory.script_global(2672855 + 2)) != 0 -- -- Global_2672855.f_2
+		elseif memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465))) != 4 then -- Global_2657971[iVar0 /*465*/] != 4
 			return false
 		end
 	end
 	return true
 end
 
-local function bitTest(bits, place)
+function bitTest(bits, place)
 	return (bits & (1 << place)) != 0
 end
 
-local function setBit(addr: number, bit: number)
+function setBit(addr: number, bit: number)
 	memory.write_int(addr, memory.read_int(addr) | 1 << bit)
 end
 
-local function clearBit(addr: number, bit: number)
+function clearBit(addr: number, bit: number)
 	memory.write_int(addr, memory.read_int(addr) ~ 1 << bit)
 end
 
-local function isPlayerUsingOrbitalCannon(playerID)
-	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 463) + 424)), 0) -- Global_2657921[PLAYER::PLAYER_ID() /*463*/].f_424
+function getPlayerJobPoints(playerID)
+	return memory.read_int(memory.script_global(GlobalplayerBD_FM + 1 + (playerID * 883) + 9))  -- Global_1845281[PLAYER::PLAYER_ID() /*883*/].f_9
 end
 
-local function isPlayerRidingRollerCoaster(playerID)
-	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD_FM + 1 + (playerID * 877) + 873)), 15) -- Global_1845263[PLAYER::PLAYER_ID() /*877*/].f_873
+function isPlayerUsingOrbitalCannon(playerID)
+	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465) + 426)), 0) -- Global_2657971[PLAYER::PLAYER_ID() /*465*/].f_426
 end
 
-local function getPlayerJobPoints(playerID)
-	return memory.read_int(memory.script_global(GlobalplayerBD_FM + 1 + (playerID * 877) + 9))  -- Global_1845263[PLAYER::PLAYER_ID() /*877*/].f_9
+function isPlayerRidingRollerCoaster(playerID)
+	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD_FM + 1 + (playerID * 883) + 879)), 15) -- Global_1845281[PLAYER::PLAYER_ID() /*883*/].f_879
 end
 
-local function getPlayerCurrentInterior(playerID)
+function getPlayerCurrentInterior(playerID)
 	if not isNetPlayerOk(playerID) then return end -- to prevent random access violations
-	return memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 463) + 245)) -- Global_2657921[bVar0 /*463*/].f_245
+	return memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465) + 246)) -- Global_2657971[bVar0 /*465*/].f_246)
 end
 
-local function IsPlayerInRcBandito(player)
-    return BitTest(memory.read_int(memory.script_global(1853910 + (player * 834 + 1) + 267 + 348)), 29)  -- Global_1853910[PLAYER::PLAYER_ID() /*834*/].f_267.f_348, 29
-end
-
-local function IsPlayerInRcTank(player)
-    return BitTest(memory.read_int(memory.script_global(1853910 + (player * 834 + 1) + 267 + 428 + 2)), 16) -- Global_1853910[PLAYER::PLAYER_ID() /*862*/].f_267.f_428.f_2
-end
-
-local function GetSpawnState(pid)
-    return memory.read_int(memory.script_global(((2657589 + 1) + (pid * 466)) + 232)) -- Global_2657589[PLAYER::PLAYER_ID() /*466*/].f_232
-end
-
-local function GetInteriorPlayerIsIn(pid)
-    return memory.read_int(memory.script_global(((2657589 + 1) + (pid * 466)) + 245)) -- Global_2657589[bVar0 /*466*/].f_245)
-end
-
-local function isFreemodeActive(playerID)
+function isFreemodeActive(playerID)
 	return NETWORK_IS_PLAYER_A_PARTICIPANT_ON_SCRIPT(playerID, "freemode", -1)
 end
 
-local function getTransitionState()
-	return memory.read_int(memory.script_global(1575008))  
-end
-
-local function isPlayerInInterior(playerID)
+function isPlayerInInterior(playerID)
 	if not isNetPlayerOk(playerID) then return end
     return GET_INTERIOR_GROUP_ID(getPlayerCurrentInterior(playerID)) == 0 and getPlayerCurrentInterior(playerID) != 0 or players.is_in_interior(playerID)
 end
 
-local function getPlayerCurrentShop(playerID)
+function getPlayerCurrentShop(playerID)
 	if not isNetPlayerOk(playerID) then return end
-	return memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 463) + 246)) -- Global_2657921[bVar0 /*463*/].f_246
+	return memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465) + 247)) -- Global_2657921[bVar0 /*465*/].f_247
 end
 
-local function isPlayerInCutscene(playerID)
+function isPlayerInCutscene(playerID)
 	return NETWORK_IS_PLAYER_IN_MP_CUTSCENE(playerID) or IS_PLAYER_IN_CUTSCENE(playerID)
 end
 
-local function isPlayerGodmode(playerID)
+function isPlayerGodmode(playerID)
 	local pos = players.get_position(playerID)
 	local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 	if isNetPlayerOk(playerID) and (players.is_godmode(playerID) or entities.is_invulnerable(ped)) and not isPlayerInInterior(playerID) and not isPlayerInCutscene(playerID) 
@@ -526,12 +515,12 @@ local function isPlayerGodmode(playerID)
 	return false
 end
 
-local function isPlayerInAnyVehicle(playerID)
+function isPlayerInAnyVehicle(playerID)
 	local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 	return IS_PED_IN_ANY_VEHICLE(ped) and not IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID)
 end
 
-local function isDetectionPresent(playerID, detection)
+function isDetectionPresent(playerID, detection)
 	if players.exists(playerID) and menu.player_root(playerID):isValid() then
 		for menu.player_root(playerID):getChildren() as cmd do
 			if cmd:getType() == COMMAND_LIST_CUSTOM_SPECIAL_MEANING and cmd:refByRelPath(detection):isValid() and players.exists(playerID) then
@@ -542,14 +531,14 @@ local function isDetectionPresent(playerID, detection)
 	return false
 end
 
-local function loadPtfxAsset(assetName)
+function loadPtfxAsset(assetName)
 	while not HAS_NAMED_PTFX_ASSET_LOADED(assetName) do
 		REQUEST_NAMED_PTFX_ASSET(assetName)
 		yield()
 	end
 end
 
-local function getTeamID(playerID)
+function getTeamID(playerID)
 	if not isNetPlayerOk(playerID) then return end
 	local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 	local pPed = entities.handle_to_pointer(ped)
@@ -573,13 +562,6 @@ local function getInstanceID(playerID)
 	end
 end
 
-local function createRandomPed(pos)
-	local mdlHash = randomPeds[math.random(#randomPeds)]
-	util.request_model(mdlHash)
-	return entities.create_ped(26, mdlHash, pos, 0)
-end
-
-
 local function RequestModel(hash, timeout)
     timeout = timeout or 3
     STREAMING.REQUEST_MODEL(hash)
@@ -589,35 +571,11 @@ local function RequestModel(hash, timeout)
     until STREAMING.HAS_MODEL_LOADED(hash) or os.time() >= end_time
     return STREAMING.HAS_MODEL_LOADED(hash)
 end
-local function IsPlayerFlyingAnyDrone(player)
-   return BitTest(memory.read_int(memory.script_global(1853910 + (player * 862 + 1) + 267 + 365)), 26) -- Global_1853910[PLAYER::PLAYER_ID() /*862*/].f_267.f_365, 26
-end
 
-local function get_transition_state(pid)
-    return memory.read_int(memory.script_global(((2657589 + 1) + (pid * 466)) + 232)) -- Global_2657589[PLAYER::PLAYER_ID() /*466*/].f_232
-end
-
-local function get_interior_player_is_in(pid)
-    return memory.read_int(memory.script_global(((2657589 + 1) + (pid * 466)) + 245)) -- Global_2657589[bVar0 /*466*/].f_245
-end
-
-local function is_player_in_interior(pid)
-    return (memory.read_int(memory.script_global(2657589 + 1 + (pid * 466) + 245)) ~= 0)
-end
-
-local function player_toggle_loop(root, pid, menu_name, command_names, help_text, callback)
-    return menu.toggle_loop(root, menu_name, command_names, help_text, function()
-        if not players.exists(pid) then util.stop_thread() end
-        callback()
-    end)
-end
-
-local spawned_objects = {}
-local function request_model(hash)
-    STREAMING.REQUEST_MODEL(hash)
-    while not STREAMING.HAS_MODEL_LOADED(hash) do
-        util.yield()
-    end
+function createRandomPed(pos)
+	local mdlHash = randomPeds[math.random(#randomPeds)]
+	util.request_model(mdlHash)
+	return entities.create_ped(26, mdlHash, pos, 0)
 end
 
 local function getSeatPedIsIn(ped)
@@ -632,12 +590,6 @@ local function getSeatPedIsIn(ped)
 			return i
 		end
 	end
-end
-
-local spawned_objects = {}
-
-local function BitTest(bits, place)
-    return (bits & (1 << place)) ~= 0
 end
 
 local function handle_player_list(pid)
@@ -659,7 +611,6 @@ local values = {
 }
 
 local http_pending = false
-
 local function fetch_file(base_url, url_specification, directory, file_name)
 
     if not async_http.have_access() then
@@ -776,9 +727,15 @@ local shortcuts = {
             if developer_mode_enabled then
                 menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>Developer"))
                 menu.trigger_commands("notifyx 10")
+                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Aiming...>Show Model Name"))
+                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Shooting...>Show Model Name"))
+                menu.trigger_command(menu.ref_by_path("World>Inhabitants>NPC Aim Punishments>Show Model Name"))
             else
                 menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>User"))
                 menu.trigger_commands("notifyx -420")
+                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Aiming...>Show Model Name"))
+                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Shooting...>Show Model Name"))
+                menu.trigger_command(menu.ref_by_path("World>Inhabitants>NPC Aim Punishments>Show Model Name"))
             end
         end 
     },
@@ -904,7 +861,7 @@ end
 players.on_join(create_player_menu)
 players.on_leave(handle_player_list)
 players.dispatch_on_join()
-
+--[[
 menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --Credit to SetThreadContext for this.
     local val = memory.read_int(memory.script_global(262145 + 13319))
     if val != 1 then
@@ -995,7 +952,7 @@ menu.toggle_loop(freemodetweaks, "Block Freemode Missions", {""}, "Such as Geral
         memory.write_int(memory.script_global(262145 + 31220), 0)
     end
 end)
-
+]]
 --#audio
 audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
 	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
@@ -3251,7 +3208,7 @@ trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsiste
     if getSeatPedIsIn(randomPed) == -1 then
         entities.request_control(vehicle, 2500)
         TASK_VEHICLE_DRIVE_WANDER(randomPed, vehicle, 9999.0, drivingStyle) 
-        toast("Bippity boppity their car is now your property :D")
+        toast("You just trolled them so hard cutie ^^")
         if not GET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID) then
             SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID, true)
         end
@@ -3287,22 +3244,12 @@ IS_PLAYER_DEAD = function(player)
 end
 end
 
-util.create_tick_handler(function()
-local local_player = players.user_ped()
-end)
-
 players.on_join(GenerateFeatures)
 
 for pid = 0, 30 do
 if players.exists(pid) then
     GenerateFeatures(pid)
 end
-end
-
-function delete_entity(ent)
-menu.delete(ent_lists[ent])
-ent_lists[ent] = nil
-entities.delete_by_handle(ent)
 end
 
 util.keep_running()
