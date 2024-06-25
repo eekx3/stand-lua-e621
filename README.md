@@ -2,9 +2,13 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.3** 25/06/2024 22:53
+
+- Some improvements and bugfixes
+
 ## **e621 v3.1.2** 25/06/2024 20:39
 
-- Updated to game version 1.69-3258
+- **Updated to game version 1.69-3258**
 
 ## **e621 v3.1.1** 25/06/2024 03:16
 
