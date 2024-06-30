@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.3"
+local SCRIPT_VERSION = "3.1.4"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -46,6 +46,36 @@ if SCRIPT_MANUAL_START then
         end
     end)
 end
+
+-- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
+local status, auto_updater = pcall(require, "auto-updater")
+if not status then
+    local auto_update_complete = nil util.toast("Installing auto-updater...", TOAST_ALL)
+    async_http.init("raw.githubusercontent.com", "/hexarobi/stand-lua-auto-updater/main/auto-updater.lua",
+        function(result, headers, status_code)
+            local function parse_auto_update_result(result, headers, status_code)
+                local error_prefix = "Error downloading auto-updater: "
+                if status_code ~= 200 then util.toast(error_prefix..status_code, TOAST_ALL) return false end
+                if not result or result == "" then util.toast(error_prefix.."Found empty file.", TOAST_ALL) return false end
+                filesystem.mkdir(filesystem.scripts_dir() .. "lib")
+                local file = io.open(filesystem.scripts_dir() .. "lib\\auto-updater.lua", "wb")
+                if file == nil then util.toast(error_prefix.."Could not open file for writing.", TOAST_ALL) return false end
+                file:write(result) file:close() util.toast("Successfully installed auto-updater lib", TOAST_ALL) return true
+            end
+            auto_update_complete = parse_auto_update_result(result, headers, status_code)
+        end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
+    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
+    if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
+    auto_updater = require("auto-updater")
+end
+if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
+
+-- Run auto-update
+local auto_update_config = {
+    source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
+    script_relpath=SCRIPT_RELPATH
+}
+-- auto_updater.run_auto_update(auto_update_config)
 
 local GlobalplayerBD = 2657971
 local GlobalplayerBD_FM = 1845281
@@ -232,7 +262,7 @@ local cringe_locations = {
 }
 
 local oob_locations = {
-    { name = "Freakshop", x = 555.4394, y = -419.0929, z = -58.98762 },
+    { name = "Freakshop", x = 584.2309, y = -416.0261, z = -69.86624 },
     { name = "LSIA Metro Station", x = -872.9433, y = -2284.0183, z = 1.718886 },
     { name = "Zancudo Tunnel", x = -2603.019, y = 3010.4265, z = 12.422543 },
     { name = "Orbital Cannon", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
@@ -250,17 +280,15 @@ local oob_locations = {
     { name = "Santa Marina Rock", x = -1028.7477, y = -1865.7416, z = 3.1702237 },
     { name = "Sandy Shores Lamp", x = 2077.8765, y = 3862.9395, z = 1.1025487 },
     { name = "Terrorbyte Interior", command = "tbinter", x = -1419.0422, y = -3010.5852, z = -76.35101 },
-    { name = "Submarine Interior", command = "sbinter", x = 1561.3093, y = 382.88113, z = -46.4849 },
     { name = "Under Map Beach Spot", command = "ump", x = -1078.0254, y = -1165.3585, z = -78.49683 },
     { name = "Tinsel Towers", command = "ump2", x = -614.6791, y = 47.121822, z = -178.77605 },
-    { name = "Record A Studios", command = "ump3", x = -1010.5319, y = -58.991444, z = -94.59792 },
-    { name = "Agency Garage", command = "ump4", x = -1072.477, y = -75.01728, z = -86.59713 },
+    { name = "Agency Garage", command = "ump3", x = -1072.477, y = -75.01728, z = -86.59713 },
     { name = "Rockford Hills Metro Station", x = -292.52103, y = -295.34946, z = 23.637678 },
     { name = "LSIA Terminal", x = -1051.7388, y = -2759.8142, z = 13.944587 },
     { name = "Apartment Interior", command = "opinter", x = 252.80753, y = -1001.6377, z = -96.010056, description = "Preferably have Levitation on when teleporting here." },
 }
 
-local interiors = {
+local interior_locations = {
     { name = "Creepy ass place", x = -1922.0615, y = 3749.7983, z = -99.64585, description = "I don't know what this is for, but the ambient music & noises in there make me uneasy." },
     { name = "Acid lab", x = 480.3165, y = -2623.9385, z = -47.227962, },
     { name = "Flying Shoes", x = -24.612347, y = -1463.7196, z = 41.772713 },
@@ -366,7 +394,12 @@ local e621_meow = {
     "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
     "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
     "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
-    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP",
+    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP", "Nyaa~", "Nyaa nyaa!",
+    "Meowww... purr...", "Nyaa meow!", "Purr nya nya!", "Meow purr nya!", "Nyaa nyaa... meow!", "Meow meow purr purr!",
+    "Nyaa... *stretches*", "Meow! Purr!", "Meow... nya~", "Meow meow... nya!", "Nyaa... time to nap.", "Meow meow nyaa~",
+    "Purr... nya...", "Nyaa... purr purr!", "Meow purr... nyaa!", "Nyaa meow meow!", "Meow meow... *rolls over*",
+    "Meow... purr purr!", "Nyaa nyaa... purr!", "Meow... *purrs loudly*", "Nyaa~ purr meow!", "Purr purr... nyaa meow!",
+    "Meow meow nyaa purr!", "Nyaa... *licks paw*",
 }
 
 local e621_woof = {
@@ -377,7 +410,14 @@ local e621_woof = {
     "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
     "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
     "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
-    "WOOF WOOOF WOOF! BARK!", "*Wags tail*",
+    "WOOF WOOOF WOOF! BARK!", "*Wags tail*", "Aruff!", "Woof arf arf!", "Woof woof woof!", "Awoo!",
+    "Bark bark arf!", "Arf arf bark!", "Bork bork woof!", "Woof... awoo!", "Aruff aruff!", "Awoo bark!",
+    "Arf arf aruff!", "Woof woof... aruff!", "Bark bark awoo!", "Awoo woof woof!", "Woof woof bork bork!",
+    "Arf arf awoo!", "Awoo arf arf!", "Bork bork bark!", "Woof woof bark bark bark!", "Bark bark woof arf!",
+    "Awoo bark bark!", "Woof... aruff aruff!", "Bark bork bork!", "Woof woof aruff bark!", "Bark bark awoo woof!",
+    "Awoo woof... bark!", "Arf arf... woof woof!", "Woof woof... awoo!", "Bark bark bark bark!", "Awoo... *wags tail*",
+    "Woof woof aruff woof!", "Bark bark awoo arf!", "Woof... awoo arf!", "Awoo arf bark!", "Aruff bark bark!",
+    "Woof woof... bark bark bark!", "Bark bark bark woof!", "Woof woof arf arf arf!", "Awoo... bark bark!",
 }
 
 local root = menu.my_root()
@@ -687,36 +727,6 @@ util.create_tick_handler(function()
     end
 end)
 
--- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
-local status, auto_updater = pcall(require, "auto-updater")
-if not status then
-    local auto_update_complete = nil util.toast("Installing auto-updater...", TOAST_ALL)
-    async_http.init("raw.githubusercontent.com", "/hexarobi/stand-lua-auto-updater/main/auto-updater.lua",
-        function(result, headers, status_code)
-            local function parse_auto_update_result(result, headers, status_code)
-                local error_prefix = "Error downloading auto-updater: "
-                if status_code ~= 200 then util.toast(error_prefix..status_code, TOAST_ALL) return false end
-                if not result or result == "" then util.toast(error_prefix.."Found empty file.", TOAST_ALL) return false end
-                filesystem.mkdir(filesystem.scripts_dir() .. "lib")
-                local file = io.open(filesystem.scripts_dir() .. "lib\\auto-updater.lua", "wb")
-                if file == nil then util.toast(error_prefix.."Could not open file for writing.", TOAST_ALL) return false end
-                file:write(result) file:close() util.toast("Successfully installed auto-updater lib", TOAST_ALL) return true
-            end
-            auto_update_complete = parse_auto_update_result(result, headers, status_code)
-        end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
-    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
-    if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
-    auto_updater = require("auto-updater")
-end
-if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
-
--- Run auto-update
-local auto_update_config = {
-    source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
-    script_relpath=SCRIPT_RELPATH
-}
--- auto_updater.run_auto_update(auto_update_config)
-
 local shortcuts = {
     { name = "Restart Script", command = {"rsc"}, description = "", action = function() util.restart_script() end },
     { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("gosolopublic") end },
@@ -744,7 +754,7 @@ local creditsList = {
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
     { name = "Aero", description = "Silly Puppy" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
-    { name = "Lillium", description = "Silly :3" },
+    { name = "Lillium", description = "Cutie :3" },
     { name = "Ilana", description = "" },
     { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
 }
@@ -776,7 +786,7 @@ local onlineGriefing = online:list("Griefing")
 local protections = online:list("Protections")
 local detections = protections:list("Detections")
 local enhancements = online:list("Enhancements")
---local freemodetweaks = online:list("Freemode Tweaks")
+local freemodetweaks = online:list("Freemode Tweaks")
 local hudSettings = game:list("HUD")
 local audioSettings = game:list("Audio")
 local teleports = world:list("Teleports")
@@ -861,98 +871,88 @@ end
 players.on_join(create_player_menu)
 players.on_leave(handle_player_list)
 players.dispatch_on_join()
---[[
-menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --Credit to SetThreadContext for this.
-    local val = memory.read_int(memory.script_global(262145 + 13319))
+
+menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 13093))
     if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13319), 1)
+    memory.write_int(memory.script_global(262145 + 13093), 1)
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Yacht Defences", {}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 13311))
+menu.toggle_loop(freemodetweaks, "Disable Yacht Defences", {"disableyachtdefences"}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 13088))
     if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13311), 1)
+    memory.write_int(memory.script_global(262145 + 13088), 1)
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable RP Gain", {}, "Credits to Jesus_Is_Cap", function()
+menu.toggle_loop(freemodetweaks, "Disable RP Gain", {"disablerpgain"}, "Credits to Jesus_Is_Cap", function()
     memory.write_float(memory.script_global(262145 + 1), 0)
 end, function()
     memory.write_float(memory.script_global(262145 + 1), 1)
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Payphone Calls", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 32289))
-    local val2 = memory.read_int(memory.script_global(262145 + 32288))
-    local val3 = memory.read_float(memory.script_global(262145 + 32290))
+menu.toggle_loop(freemodetweaks, "Block Payphone Calls", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 31286))
+	local val2 = memory.read_float(memory.script_global(262145 + 31288))
+	local val3 = memory.read_float(memory.script_global(262145 + 31289))
     if val != 0 then
-    memory.write_int(memory.script_global(262145 + 32289), 0)
+    memory.write_int(memory.script_global(262145 + 31286), 0)
+    end
+	if val2 != 0 then
+    memory.write_float(memory.script_global(262145 + 31288), 0.0)
+    end
+	if val3 != 0 then
+    memory.write_float(memory.script_global(262145 + 31289), 0.0)
+    end
+end)
+
+menu.toggle_loop(freemodetweaks, "Block Simeon Showroom", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 32000))
+    if val != 1 then
+        memory.write_int(memory.script_global(262145 + 32000), 1)
+    end
+end)
+
+menu.toggle_loop(freemodetweaks, "Block Lester Player Bounty Cut", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 7179))
+    if val != 0 then
+    memory.write_int(memory.script_global(262145 + 7179), 0)
+    end
+end)
+
+menu.toggle_loop(freemodetweaks, "Block Street Dealers", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33479))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 33479), 0)
+    end
+end)
+
+menu.toggle_loop(freemodetweaks, "Block G's Caches", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33223))
+    local val2 = memory.read_int(memory.script_global(1979280))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 33223), 0)
     end
     if val2 != 0 then
-    memory.write_int(memory.script_global(262145 + 32288), 0)
-    end
-    if val3 != 0 then
-    memory.write_float(memory.script_global(262145 + 32290), 0.0)
+        memory.write_int(memory.script_global(1979280), 0)
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Simeon Showroom", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 33014))
-    if val != 1 then
-        memory.write_int(memory.script_global(262145 + 33014), 1)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Music Locker Access", {""}, "", function()
-    local val = memory.read_int(memory.script_global(1942781 + 4706 + 1))
-    if not BitTest((memory.read_int(memory.script_global(1942781 + 4706 + 1))), 7) then
-    memory.write_int(memory.script_global(1942781 + 4706 + 1), 128)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Lester Player Bounty Cut", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 7178))
+menu.toggle_loop(freemodetweaks, "Block Junk Energy Skydives", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 32104))
     if val != 0 then
-    memory.write_int(memory.script_global(262145 + 7178), 0)
+        memory.write_int(memory.script_global(262145 + 32104), 0)
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Block Lester 'You have already set a Bounty'", {""}, "", function()
-    local val = memory.read_int(memory.script_global(2738587 + 1893 + 1))
+menu.toggle_loop(freemodetweaks, "Block Stash Houses", {""}, "", function() --added 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33476))
     if val != 0 then
-    memory.write_int(memory.script_global(2738587 + 1893 + 1), 0)
+        memory.write_int(memory.script_global(262145 + 33476), 0)
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Street Dealers", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 34551))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 34551), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block G's Caches", {""}, "", function()
-    local val = memory.read_int(memory.script_global(2707706 + 609))
-    if val != 1 then
-        memory.write_int(memory.script_global(2707706 + 609), 1)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Junk Energy Skydives", {""}, "", function()
-    local val = memory.read_int(memory.script_global(262145 + 33119))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 33119), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Freemode Missions", {""}, "Such as Gerald's stashes, Maude's Bounties etc", function()
-    local val = memory.read_int(memory.script_global(262145 + 31220))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 31220), 0)
-    end
-end)
-]]
 --#audio
 audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
 	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
@@ -2422,7 +2422,7 @@ local function teleportPlayerAndVehicle(x, y, z)
 end
 
 local oob_tps = teleports:list("Interiors & Inaccessible", {}, "")
-for _, loc in ipairs(interiors) do
+for _, loc in ipairs(interior_locations) do
     oob_tps:action(loc.name, {loc.command}, loc.description or "", function(on_click)
         teleportPlayerAndVehicle(loc.x, loc.y, loc.z)
     end)
