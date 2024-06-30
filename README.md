@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.4** 30/06/2024
+
+- Fixed `Online > Freemode Tweaks` thanks to nui
+
 ## **e621 v3.1.3** 25/06/2024 22:53
 
 - Some improvements and bugfixes
