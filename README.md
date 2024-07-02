@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.5** 02/07/2024 16:41
+
+- Fixed `Miscellaneous > Credits`
+
 ## **e621 v3.1.4** 30/06/2024 03:06
 
 - Fixed `Online > Freemode Tweaks` thanks to nui
