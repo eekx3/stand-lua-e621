@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.4"
+local SCRIPT_VERSION = "3.1.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -752,7 +752,6 @@ local shortcuts = {
 }
 local creditsList = {
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
-    { name = "Aero", description = "Silly Puppy" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
     { name = "Lillium", description = "Cutie :3" },
     { name = "Ilana", description = "" },
