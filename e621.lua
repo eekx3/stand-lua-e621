@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.5"
+local SCRIPT_VERSION = "3.1.6"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -267,7 +267,6 @@ local oob_locations = {
     { name = "Zancudo Tunnel", x = -2603.019, y = 3010.4265, z = 12.422543 },
     { name = "Orbital Cannon", command = "orb", x = 331.3636, y = 4830.759, z = -59.40202, description = "You will need to own the 'Grand Senora Desert Facility' for this to work." },
     { name = "LSCM Interior", x = -2110.68, y = 1177.9203, z = 37.079876 },
-    { name = "Aero's Home", x = 496.65686, y = -1467.392, z = 9.903037, description = "I was called a nigger for this." },
     { name = "LSIA Hangar Glitch", x = -1407.6158, y = -3288.1548, z = 24.585745 },
     { name = "Del Perro Lombank", x = -1576.7968, y = -576.2052, z = 45.107635 },
     { name = "Arcadius Glitch 1 ", command = "tg", x = -182.27792, y = -581.04913, z = 124.220276 },
@@ -2510,14 +2509,6 @@ enhancements:action("Passive ORG", {"passiveorg"}, "", function()
 end)
 
 ---#onlineChat
---#randome621link
-onlineChat:action("Send Random e621 Link", {}, "", function()
-    local randomNumber = math.random(1, 999999)
-    local randomNumber2 = string.format("%06d", randomNumber)
-    local url = "https://e621.net/posts/" .. randomNumber2
-    chat.send_message(url, false, true, true)
-end)
-
 local function send_random_message(message_table)
     if #message_table > 0 then
         local random_index = math.random(1, #message_table)
@@ -2540,7 +2531,7 @@ end, nil, nil, COMMANDPERM_FRIENDLY)
 
 onlineChat:action("Horny pup :3", {"pubby"}, "", function()
     chat.send_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF", false, true, true)
-end, nil, nil, COMMANDPERM_FRIENDLY) -- Aero said: This is stupid and I should be shot over this. -- Prip said: I love this.
+end, nil, nil, COMMANDPERM_FRIENDLY)
 
 --#premsg
 local customChatMessages = {"", "", ""}
@@ -2989,40 +2980,40 @@ playermenu:toggle_loop("Remove Vehicle Godmode", {}, lang.get_localised(-7480779
 end)
 
 --#playerOrbital
-playermenu:action("Orbital Strike", {"orb"}, "", function()
-    local playerID = pid
+local isOrbActive = false
+griefingPlayermenu:action("Orbital Strike", {"orb"}, "", function()
     local timer = util.current_time_millis() + 3000
-    if playerID == players.user() then
+    if playerID == players.user() then 
         util.toast("Nuhuh. Don't even think about it cutie <3")
         return
     end
-    if isOrbActive then
+    if isOrbActive then 
         util.toast("Hey! Orbital Strike is already active you silly :3 <3")
-        return
+        return 
     end
-    if IS_PLAYER_DEAD(playerID) or not isNetPlayerOk(playerID) then
-        return
+    if IS_PLAYER_DEAD(playerID) or not isNetPlayerOk(playerID) then 
+        return 
     end
     local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
     isOrbActive = true
-    setBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
-    util.yield(1000) -- yielding a second because it's a bit iffy on high(ish) ping players (150ms+)
+    setBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 465) + 426), 0)
+    yield(1000) -- yielding a second because its a bit iffy on high(ish) ping players (150ms+)
     local pos = players.get_position(playerID)
     ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
     USE_PARTICLE_FX_ASSET("scr_xm_orbital")
     START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
-    PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesn't work sometimes
-    util.yield(1000)
-    clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
+    PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesnt work sometimes
+    yield(1000)
+    clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 465) + 426), 0)
     repeat
         if util.current_time_millis() > timer and not IS_PED_DEAD_OR_DYING(ped) then
-            util.toast("I'm so sorry.. I failed... TwT")
+            toast($"I'm so sorry.. I failed... TwT")
+            isOrbActive = false
             timer = util.current_time_millis() + 3000
             return
         end
-        util.yield()
+        yield()
     until not IS_PED_DEAD_OR_DYING(ped)
-
     STOP_SOUND(0)
     isOrbActive = false
     timer = util.current_time_millis() + 3000
