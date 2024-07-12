@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.6** 12/07/2024 20:56
+
+- Fixed `Players > Player > >:33 > Orbital Strike` not working as intended
+
 ## **e621 v3.1.5** 02/07/2024 16:41
 
 - Fixed `Miscellaneous > Credits`
