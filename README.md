@@ -2,8 +2,13 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.8** 18/07/2024 5:54
+
+- Some more bugfixes
+
 ## **e621 v3.1.7** 18/07/2024 04:45
 
+- Removed `Self > Bark` because I cba fixing it.
 - Some bugfixes (Thank you Kreeako)
 
 ## **e621 v3.1.6** 12/07/2024 20:56
