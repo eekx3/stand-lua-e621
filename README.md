@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.1.9** 19/07/2024 
+
+- Fixed TPs not working
+
 ## **e621 v3.1.8** 18/07/2024 5:54
 
 - Some more bugfixes
