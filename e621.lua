@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.7"
+local SCRIPT_VERSION = "3.1.8"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -1914,38 +1914,6 @@ selfMacros:action("Bribe Authorities", {}, "", function()
     pressKey(176) -- Press Enter
 end)
 
---#bark
-local shepherdPedHandle = nil
-self:action("Bark", {}, "Note: The sound may not play consistently for all players every time.\n(It'll have to stay this way until I find a fix.)", function()
-    local function BarkThenDelete(pedHandle)
-        AUDIO.PLAY_ANIMAL_VOCALIZATION(pedHandle, 3, "BARK_SEQ")
-        util.yield(1200)
-        if ENTITY.DOES_ENTITY_EXIST(pedHandle) then
-            entities.delete_by_handle(pedHandle)
-        end
-        shepherdPedHandle = nil
-    end
-    if shepherdPedHandle and ENTITY.DOES_ENTITY_EXIST(shepherdPedHandle) then
-        BarkThenDelete(shepherdPedHandle)
-        return
-    end
-    local pedHash = util.joaat("a_c_shepherd")
-    if not STREAMING.HAS_MODEL_LOADED(pedHash) then
-        STREAMING.REQUEST_MODEL(pedHash)
-        while not STREAMING.HAS_MODEL_LOADED(pedHash) do
-            util.yield(0)
-        end
-    end
-    shepherdPedHandle = entities.create_ped(1, pedHash, ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID(), true), ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID()))
-    if shepherdPedHandle ~= 0 then
-        ENTITY.ATTACH_ENTITY_TO_ENTITY(shepherdPedHandle, PLAYER.PLAYER_PED_ID(), PED.GET_PED_BONE_INDEX(PLAYER.PLAYER_PED_ID(), 0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, false, false, false, 2, true, 0)
-        ENTITY.SET_ENTITY_INVINCIBLE(shepherdPedHandle, true)
-        ENTITY.SET_ENTITY_VISIBLE(shepherdPedHandle, false)
-        BarkThenDelete(shepherdPedHandle)
-    end    
-    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(pedHash)
-end)
-
 --#ewo
 local function write_to_global()
     memory.write_int(memory.script_global(1574582 + 6), 1)
@@ -2165,8 +2133,27 @@ end)
 
 ---#online
 --#killfeed
+SCRIPT = {
+    GET_EVENT_DATA = function(eventGroup, eventIndex, eventData, eventDataSize)
+        return native_invoker.unified_bool(eventGroup, eventIndex, eventData, eventDataSize, 0x2902843FCD2B2D79, "iipi")
+    end,
+    GET_EVENT_AT_INDEX = function(eventGroup, eventIndex)
+        return native_invoker.unified_int(eventGroup, eventIndex, 0xD8F66A3A60C62153, "ii")
+    end,
+    GET_NUMBER_OF_EVENTS = function(eventGroup)
+        return native_invoker.unified_int(eventGroup, 0x5F92A689A06620AA, "i")
+    end
+}
+
+NETWORK = {
+    NETWORK_GET_PLAYER_INDEX_FROM_PED = function(ped)
+        return native_invoker.unified_int(ped, 0x6C0E2E0125610278, "i")
+    end
+}
+
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
+
 local function checkPlayerKills()
     for eventNum = 0, SCRIPT.GET_NUMBER_OF_EVENTS(1) - 1 do
         local eventId = SCRIPT.GET_EVENT_AT_INDEX(1, eventNum)
@@ -2562,53 +2549,67 @@ onlinePreMSG:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (
 end)
 
 --#cleanse
-menu.toggle_loop(cleanse, "Vehicles", {"vehclear", "vclear"}, "", function(on_click)
-    local ct = 0
-    for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
-        entities.delete_by_handle(ent)
-        ct = ct + 1
+cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickups", "Projectiles", "Sounds"}, function(index, name)
+    local counter = 0
+    switch index do
+        case 1:
+            for entities.get_all_peds_as_handles() as ped do
+                if ped != players.user_ped() and not IS_PED_A_PLAYER(ped) then
+                    entities.delete_by_handle(ped)
+                    counter += 1
+                    util.yield()
+                end
+            end
+            break
+        case 2:
+            for entities.get_all_vehicles_as_handles() as vehicle do
+				local owner = entities.get_owner(vehicle)
+                if vehicle != GET_VEHICLE_PED_IS_IN(players.user_ped(), false) and DECOR_GET_INT(vehicle, "Player_Vehicle") == 0 and (owner == players.user() or owner == -1) then
+                    entities.delete_by_handle(vehicle)
+                    counter += 1
+                end
+                util.yield()
+            end
+            break
+        case 3:
+            for entities.get_all_objects_as_handles() as object do
+                entities.delete_by_handle(object)
+                counter += 1
+                util.yield()
+            end
+            break
+        case 4:
+            for entities.get_all_pickups_as_handles() as pickup do
+                entities.delete_by_handle(pickup)
+                counter += 1
+                util.yield()
+            end
+            break
+        case 5:
+            CLEAR_AREA_OF_PROJECTILES(players.get_position(players.user()), 1000.0, 0)
+            counter = "all"
+            break
+        case 6:
+            for i = 0, 99 do
+                STOP_SOUND(i)
+                util.yield()
+            end
+        break
     end
+    util.toast($"Cleared {tostring(counter)} {name:lower()}.")
 end)
-menu.toggle_loop(cleanse, "Objects", {"objectclear", "obclear"}, "", function(on_click)
-    local ct = 0
-    for k,ent in pairs(entities.get_all_objects_as_handles()) do
-        entities.delete_by_handle(ent)
-        ct = ct + 1
+
+local MISC = {
+    ADD_POP_MULTIPLIER_SPHERE = function(x, y, z, radius, pedMultiplier, vehicleMultiplier, p6, p7)
+        return native_invoker.unified_int(x, y, z, radius, pedMultiplier, vehicleMultiplier, p6, p7, 0x32C7A7E8C43A1F80, "ffffffbb")
+    end,
+    REMOVE_POP_MULTIPLIER_SPHERE = function(id, p1)
+        return native_invoker.unified_void(id, p1, 0xE6869BECDD8F2403, "ib")
+    end,
+    CLEAR_AREA = function(X, Y, Z, radius, p4, ignoreCopCars, ignoreObjects, p7)
+        return native_invoker.unified_void(X, Y, Z, radius, p4, ignoreCopCars, ignoreObjects, p7, 0xA56F01F3765B93A0, "ffffbbbb")
     end
-end)
-menu.toggle_loop(cleanse, "Peds", {"pedclear", "pclear"}, "", function(on_click)
-	local ct = 0
-    for k,ent in pairs(entities.get_all_peds_as_handles()) do
-		if not is_ped_player(ent) then
-			entities.delete_by_handle(ent)
-        end
-            ct = ct + 1
-    end
-end)
-menu.toggle_loop(cleanse, "Clear All", {"cleanse", "clr"}, "", function(on_click)
-	local ct = 0
-	for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
-		entities.delete_by_handle(ent)
-		ct = ct + 1
-	end
-	for k,ent in pairs(entities.get_all_peds_as_handles()) do
-		if not is_ped_player(ent) then
-			entities.delete_by_handle(ent)
-		end
-		ct = ct + 1
-	end
-	for k,ent in pairs(entities.get_all_objects_as_handles()) do
-		entities.delete_by_handle(ent)
-		ct = ct + 1
-	end
-end)
-function is_ped_player(ped)
-    if PED.GET_PED_TYPE(ped) >= 4 then
-        return false
-    else
-        return true
-    end
-end
+}
 local config = {
     disable_traffic = true,
     disable_peds = true,
