@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.6"
+local SCRIPT_VERSION = "3.1.7"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -649,72 +649,80 @@ local values = {
     [4] = 208,
 }
 
-local http_pending = false
-local function fetch_file(base_url, url_specification, directory, file_name)
+local llkr_notification_path = "Online>Reactions>Love Letter Kick Reactions>Notification"
 
-    if not async_http.have_access() then
-        util.toast("This script needs access to the internet to get a needed file, please disable 'Disable Internet Access'.")
-        util.stop_script()
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Command Functions
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--#region Command Functions
+
+local command = {}
+
+---For getting if a fed command is a string or a reference.
+---@param cmd string | userdata -- Feed a path or reference.
+---@return string -- Returns a string of the command type, "path", "ref", or "invalid" if it was fed neither.
+function command.get_type(cmd)
+    if type(cmd) == "string" then
+        return "path"
+    elseif type(cmd) == "userdata" then
+        return "ref"
+    else
+        return "invalid"
     end
-
-    local absolute_directory = filesystem.scripts_dir() .. directory
-    local absolute_file_path = absolute_directory .. "/" .. file_name
-    local relative_file_path = directory .. "/" .. file_name
-
-    if not filesystem.exists(absolute_directory) then
-        filesystem.mkdirs(absolute_directory)
-    end
-
-    local function on_http_success(result)
-
-        local lib_download_err = select(2, load(result))
-        if lib_download_err then
-            util.toast(lib_download_err, TOAST_LOGGER | TOAST_ABOVE_MAP)
-        end
-
-        if not filesystem.exists(absolute_file_path) then
-            file, file_error = io.open(absolute_file_path, "w+")
-
-            if file then
-                file:write(result)
-                file:flush()
-                file:close()
-            else
-                util.log("File error: " .. file_error)
-            end
-        end
-        http_pending = false
-    end
-
-    local function on_http_fail(result)
-        util.log("Failed to get file from url...")
-        http_pending = false
-    end
-
-    http_pending = true
-
-    async_http.init(tostring(base_url), tostring(url_specification), on_http_success, on_http_fail)
-    async_http.dispatch()
-    while http_pending do
-        util.yield()
-    end
-
-    while not filesystem.exists(absolute_file_path) do
-        util.yield()
-    end
-
-    util.require_no_lag(relative_file_path:gsub(".lua", ""))
 end
 
-fetch_file("raw.githubusercontent.com", "/Kreeako/kreeakos_lib/main/kreeakos_lib.lua", "lib", "kreeakos_lib.lua")
+---For checking if a command is valid.
+---@param cmd string | userdata -- Feed a path or reference.
+---@return boolean -- Returns a boolean indicating if the command is valid.
+function command.check_valid(cmd)
+    local cmd_type = command.get_type(cmd)
+    if cmd_type == "path" then
+        if menu.is_ref_valid(menu.ref_by_path(cmd)) then
+            return true
+        end
+    elseif cmd_type == "ref" then
+        if menu.is_ref_valid(cmd) then
+            return true
+        end
+    elseif cmd_type == "invalid" then
+        util.log("Not a valid command path or ref!")
+        return false
+    end
+    return false
+end
 
-local llkr_notification_path = "Online>Reactions>Love Letter Kick Reactions>Notification"
+---For getting a command ref from another reference or a path.
+---@param cmd string | userdata -- Feed a path or reference.
+---@return any -- Returns a command reference from a path or another reference.
+function command.get_ref(cmd)
+    local cmd_type = command.get_type(cmd)
+    if command.check_valid(cmd) then
+        if cmd_type == "path" then
+            return menu.ref_by_path(cmd)
+        else
+            return cmd
+        end
+    end
+end
+
+---Triggers a command from a reference or a path.
+---@param cmd string | userdata -- Feed a path or reference.
+---@param ... any -- Feed optional argument to meny.trigger_command.
+function command.trigger(cmd, ...)
+    local command = command.get_ref(cmd)
+    menu.trigger_command(command, ...)
+end
+
+--#endregion Command Functions
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Command Functions
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local user_state = menu.get_state(command.get_ref(llkr_notification_path))
 
 util.create_tick_handler(function()
-    if online.in_session() then
-        if client.player == client.session_host then
+    if util.is_session_started() and not util.is_session_transition_active() then
+        if players.user() == players.get_host() then
             if menu.get_state(command.get_ref(llkr_notification_path)) ~= "Disabled" then
                 menu.set_state(command.get_ref(llkr_notification_path), "Disabled")
             end
