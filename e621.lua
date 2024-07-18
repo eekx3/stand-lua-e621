@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.8"
+local SCRIPT_VERSION = "3.1.9"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -2052,11 +2052,11 @@ end)
 selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
     if on then
         menu.trigger_commands("levitate on")
-        local me = PLAYER.PLAYER_PED_ID()
+        local me = players.user_ped()
         if me ~= nil then
             menu.trigger_commands("copycoords")
             util.yield(110)
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
+            SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
             menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
             menu.trigger_commands("lodscale min")
             menu.trigger_commands("noidlekick on")
@@ -2353,17 +2353,17 @@ end)
 --#gun_van_locations
 gunvan = teleports:list("Gun Van Locations", {"gunvan"}, "")
 local function teleportPlayerAndVehicle(x, y, z)
-    local me = PLAYER.PLAYER_PED_ID()
+    local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-    if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
-        if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
+    if myVehicleHandle ~= 0 and IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
+        if GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
+            SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
+            SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
         else
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+            SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
     else
-        ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+        SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
     end
 end
 local function createTeleportAction(name, x, y, z)
@@ -2377,17 +2377,17 @@ end
 
 --#oob_location
 local function teleportPlayerAndVehicle(x, y, z)
-    local me = PLAYER.PLAYER_PED_ID()
+    local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-    if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
-        if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
+    if myVehicleHandle ~= 0 and IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
+        if GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
+            SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
+            SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0) -- Reset vehicle velocity
         else
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+            SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
     else
-        ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+        SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
     end
 end
 
@@ -2400,17 +2400,17 @@ end
 
 --#interiors_inaccessible
 local function teleportPlayerAndVehicle(x, y, z)
-    local me = PLAYER.PLAYER_PED_ID()
+    local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
-    if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
-        if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
+    if myVehicleHandle ~= 0 and IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
+        if GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
+            SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
+            SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
         else
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+            SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
     else
-        ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+        SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
     end
 end
 
@@ -2423,18 +2423,18 @@ end
 
 --#cringe_locations
 local function teleportPlayerAndVehicle(x, y, z)
-    local me = PLAYER.PLAYER_PED_ID()
+    local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
 
-    if myVehicleHandle ~= 0 and VEHICLE.IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
-        if VEHICLE.GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
-            ENTITY.SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
+    if myVehicleHandle ~= 0 and IS_VEHICLE_DRIVEABLE(myVehicleHandle) then
+        if GET_PED_IN_VEHICLE_SEAT(myVehicleHandle, -1) == me then
+            SET_ENTITY_COORDS_NO_OFFSET(myVehicleHandle, x, y, z, 0, 0, 0)
+            SET_ENTITY_VELOCITY(myVehicleHandle, 0, 0, 0)
         else
-            ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+            SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
         end
     else
-        ENTITY.SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
+        SET_ENTITY_COORDS_NO_OFFSET(me, x, y, z, 0, 0, 0)
     end
 end
 
