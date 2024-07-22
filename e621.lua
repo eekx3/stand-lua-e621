@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.9"
+local SCRIPT_VERSION = "3.1.10"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -351,27 +351,32 @@ local pearlTypes = {
 }
 
 local trashWeapons = {
-    "removegundoubleactionrevolver", "removegunteargas", 
-    "removegunproximitymine", "removegunjerrycan", 
-    "removegunbattlerifle", "removegunpumpshotgun", 
-    "removeguncombatshotgun", "removegunadvancedrifle",
-    "removegunbullpuprifle", "removeguncompactrifle", 
-    "removegunmilitaryrifle", "removeguncarbinerifle", 
-    "removegunheavyrifle", "removegunservicecarbine",
-    "removegununholyhellbringer", "removegunmachinepistol", 
-    "removegunsmg", "removegunassaultsmg", 
-    "removeguncombatpdw", "removegunmg", 
-    "removegungusenbergsweeper", "removegunnavyrevolver", 
-    "removegunwm29pistol", "removegunsnspistol", 
-    "removegunmolotov", "removegungrenade", 
-    "removegunfireworklauncher", "removegunwidowmaker", 
-    "removegunmusket", "removegunheavyshotgun", 
-    "removegundoublebarrelshotgun", "removegunsweepershotgun",  
-    "removegunhazardousjerrycan", "removegunbullpupshotgun", 
-    "removeguntacticalsmg", "removegunminismg", 
-    "removegunpistol50", "removegunpistol",
-    "removegunmarksmanpistol", "removegunmicrosmg", 
-    "removegunprecisionrifle",
+    "removegundoubleactionrevolver", "removegunteargas", "removegunpumpshotgun",
+    "removegunproximitymine", "removegunjerrycan", "removegunbattlerifle", 
+    "removeguncombatshotgun", "removegunadvancedrifle", "removegunbullpuprifle",
+    "removegunmilitaryrifle", "removeguncarbinerifle", "removegunheavyrifle",
+    "removegununholyhellbringer", "removegunmachinepistol", "removegunsmg",
+    "removeguncombatpdw", "removegunmg", "removegungusenbergsweeper",
+    "removegunwm29pistol", "removegunsnspistol", "removegunmolotov",
+    "removegunfireworklauncher", "removegunwidowmaker", "removegunmusket",
+    "removegundoublebarrelshotgun", "removegunsweepershotgun", "removegunhazardousjerrycan",
+    "removeguntacticalsmg", "removegunminismg", "removegunpistol50",
+    "removegunmarksmanpistol", "removegunmicrosmg", "removegunprecisionrifle",
+    "removegunassaultrifle", "removegunsniperrifle", "removegunspecialcarbine",
+    "removegunceramicpistol", "removegunpericopistol", "removegunheavypistol",
+    "removegunsnspistolmkii", "removegunstungunsp", "removegunrailgunsp", 
+    "removegunpipebomb", "removegunbzgas", "removegunsnowball", 
+    "removegunfertilizer", "removegunfireextinguisher", "removegunacidpackage", 
+    "removegunnightstick", "removegunhammer", "removeguncrowbar",
+    "removegunbottle", "removegunantiquecavalrydagger", "removegunknuckleduster", 
+    "removegunpipewrench", "removegunpoolcue", "removegunbattleaxe",
+    "removegunhatchet", "removeguncandycane", "removegunflare",
+    "removegunball", "removegunsnowballlauncher", "removegunvintagepistol",
+    "removegunheavyrevolver", "removegungolfclub", "removeguncombatpistol",
+    "removegunbullpupshotgun", "removegunheavyshotgun", "removegunpistol",
+    "removegungrenade", "removegunnavyrevolver",  "removegunassaultsmg", 
+    "removegunservicecarbine", "removeguncompactrifle", "removegunmarksmanrifle",
+    "removegunknife", "removegunbaseballbat",
 }
 
 local miscWeapons = {
@@ -380,7 +385,9 @@ local miscWeapons = {
     "removegunpistolmkii","removegunmarksmanriflemkii",
     "removegunassaultshotgun", "removeguncarbineriflemkii",
     "removeguncombatmgmkii", "removegunsawedoffshotgun", 
-    "removegunflaregun",
+    "removegunflaregun", "removegunsmgmkii",
+    "removegunbullpupriflemkii", "removegunswitchblade",
+    "removeguntheshocker", "removegunmachete",
 }
 
 local e621_meow = {
@@ -476,12 +483,12 @@ if vehicle == 0 then
 end
 
 function SET_ENT_FACE_ENT(ent1, ent2)
-	local a = ENTITY.GET_ENTITY_COORDS(ent1)
-	local b = ENTITY.GET_ENTITY_COORDS(ent2)
+	local a = GET_ENTITY_COORDS(ent1)
+	local b = GET_ENTITY_COORDS(ent2)
 	local dx = b.x - a.x
 	local dy = b.y - a.y
-	local heading = MISC.GET_HEADING_FROM_VECTOR_2D(dx, dy)
-	return ENTITY.SET_ENTITY_HEADING(ent1, heading)
+	local heading = GET_HEADING_FROM_VECTOR_2D(dx, dy)
+	return SET_ENTITY_HEADING(ent1, heading)
 end
 
 function isNetPlayerOk(playerID, assert_playing = false, assert_done_transition = true) -- credit to sapphire *sighs* yet again
@@ -758,9 +765,9 @@ local shortcuts = {
     },
 }
 local creditsList = {
+    { name = "Lillium", description = "Cutie :3" },
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
-    { name = "Lillium", description = "Cutie :3" },
     { name = "Ilana", description = "" },
     { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
 }
@@ -1451,30 +1458,35 @@ end, function()
 	end
 end)
 
-local lastExecutionTime = 0
+local lastTrashExecutionTime = 0
+local lastMiscExecutionTime = 0
 local interval = 7500
-weapons:toggle_loop("Remove Trash Weapons", {"removetrashweapons"}, "", function()
-    local currentTime = util.current_time_millis()
-    if currentTime - lastExecutionTime >= interval then
-        for _, weaponCommand in ipairs(trashWeapons) do
-            menu.trigger_commands(weaponCommand)
-        end
-        lastExecutionTime = currentTime
-    end
-end, function()
-    lastExecutionTime = 0
-end)
 
 local function removeWeapons(weaponsList)
     for _, weaponCommand in ipairs(weaponsList) do
         menu.trigger_commands(weaponCommand)
     end
 end
-menu.toggle(weapons, "Remove Misc Weapons", {"removemiscweapons"}, "", function()
-    if on then
-        removeWeapons(miscWeapons)
+
+weapons:toggle_loop("Remove Trash Weapons", {"removetrashweapons"}, "", function()
+    local currentTime = util.current_time_millis()
+    if currentTime - lastTrashExecutionTime >= interval then
+        removeWeapons(trashWeapons)
+        lastTrashExecutionTime = currentTime
     end
-end, false)
+end, function()
+    lastTrashExecutionTime = 0
+end)
+
+weapons:toggle_loop("Remove Misc Weapons", {"removemiscweapons"}, "", function()
+    local currentTime = util.current_time_millis()
+    if currentTime - lastMiscExecutionTime >= interval then
+        removeWeapons(miscWeapons)
+        lastMiscExecutionTime = currentTime
+    end
+end, function()
+    lastMiscExecutionTime = 0
+end)
 
 ---#vehicle
 --#stunlock
@@ -1754,47 +1766,47 @@ end)
 
 --#vehicleFly
 vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
-    yourself = PLAYER.GET_PLAYER_PED(players.user())
-    carUsed = PED.GET_VEHICLE_PED_IS_IN(yourself, false)
-    ENTITY.SET_ENTITY_COLLISION(carUsed, true, true)
-    if NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(carUsed) == false then
-        NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(carUsed)
+    yourself = GET_PLAYER_PED(players.user())
+    carUsed = GET_VEHICLE_PED_IS_IN(yourself, false)
+    SET_ENTITY_COLLISION(carUsed, true, true)
+    if NETWORK_HAS_CONTROL_OF_ENTITY(carUsed) == false then
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(carUsed)
         util.yield(3000)
     end
     if keepMomentum == false then
-        ENTITY.SET_ENTITY_VELOCITY(carUsed, 0, 0, 0)
+        SET_ENTITY_VELOCITY(carUsed, 0, 0, 0)
     end
-    if PED.IS_PED_IN_VEHICLE(yourself, carUsed, false) then
+    if IS_PED_IN_VEHICLE(yourself, carUsed, false) then
         if noClipCar then
-            ENTITY.SET_ENTITY_COLLISION(carUsed, false, true)
+            SET_ENTITY_COLLISION(carUsed, false, true)
         else
-            ENTITY.SET_ENTITY_COLLISION(carUsed, true, true)
+            SET_ENTITY_COLLISION(carUsed, true, true)
         end
-        local camRot = CAM.GET_GAMEPLAY_CAM_ROT(0) -- Fixed: added rotationOrder parameter
+        local camRot = GET_GAMEPLAY_CAM_ROT(0) -- Fixed: added rotationOrder parameter
         camYaw = math.floor(camRot.Z*10)/10
         camPitch = math.floor(camRot.X*10)/10
-        ENTITY.SET_ENTITY_ROTATION(carUsed, camPitch, 0, camYaw, 0, true)
+        SET_ENTITY_ROTATION(carUsed, camPitch, 0, camYaw, 0, true)
         if util.is_key_down(0x57) then -- W key
-            VEHICLE.SET_VEHICLE_FORWARD_SPEED(carUsed, carFlySpeed)
+            SET_VEHICLE_FORWARD_SPEED(carUsed, carFlySpeed)
         end
         if util.is_key_down(0x53) then -- S key
-            VEHICLE.SET_VEHICLE_FORWARD_SPEED(carUsed, -carFlySpeed)
+            SET_VEHICLE_FORWARD_SPEED(carUsed, -carFlySpeed)
         end
         if util.is_key_down(0x44) then -- D key
             local speedFly = carFlySpeed
-            ENTITY.APPLY_FORCE_TO_ENTITY(carUsed, 1, speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
         end
         if util.is_key_down(0x41) then -- A key
             local speedFly = carFlySpeed
-            ENTITY.APPLY_FORCE_TO_ENTITY(carUsed, 1, -speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, -speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
         end
         if util.is_key_down(0x10) then
             local speedFly = carFlySpeed
-            ENTITY.APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, speedFly, 0, 0, 0, 0, true, true, true, false)
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, speedFly, 0, 0, 0, 0, true, true, true, false)
         end
         if util.is_key_down(0x11) then
             local speedFly = carFlySpeed
-            ENTITY.APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, -speedFly, 0, 0, 0, 0, true, true, true, false)
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, -speedFly, 0, 0, 0, 0, true, true, true, false)
         end
         if util.is_key_down(0x20) then
             carFlySpeed = carFlySpeedSelect*10*2
@@ -1802,7 +1814,7 @@ vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
             carFlySpeed = carFlySpeedSelect*10
         end
     else
-        ENTITY.SET_ENTITY_COLLISION(carUsed, true, true)
+        SET_ENTITY_COLLISION(carUsed, true, true)
     end
 end)
 vehicleFly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
@@ -2287,8 +2299,8 @@ world:toggle_loop("Chaos", {}, "", function(on)
 	local maxspeed = 940
 	local ct = 0
 		for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
-			NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
-			VEHICLE.SET_VEHICLE_FORWARD_SPEED(ent, 900000)
+			NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
+			SET_VEHICLE_FORWARD_SPEED(ent, 900000)
 			ct = ct + 1
 		end
 end)
@@ -2599,17 +2611,6 @@ cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickup
     util.toast($"Cleared {tostring(counter)} {name:lower()}.")
 end)
 
-local MISC = {
-    ADD_POP_MULTIPLIER_SPHERE = function(x, y, z, radius, pedMultiplier, vehicleMultiplier, p6, p7)
-        return native_invoker.unified_int(x, y, z, radius, pedMultiplier, vehicleMultiplier, p6, p7, 0x32C7A7E8C43A1F80, "ffffffbb")
-    end,
-    REMOVE_POP_MULTIPLIER_SPHERE = function(id, p1)
-        return native_invoker.unified_void(id, p1, 0xE6869BECDD8F2403, "ib")
-    end,
-    CLEAR_AREA = function(X, Y, Z, radius, p4, ignoreCopCars, ignoreObjects, p7)
-        return native_invoker.unified_void(X, Y, Z, radius, p4, ignoreCopCars, ignoreObjects, p7, 0xA56F01F3765B93A0, "ffffbbbb")
-    end
-}
 local config = {
     disable_traffic = true,
     disable_peds = true,
@@ -2622,10 +2623,10 @@ cleanse:toggle("Clear Traffic", {"cleartraffic"}, "", function(on)
         local ped_sphere, traffic_sphere
         if config.disable_peds then ped_sphere = 0.0 else ped_sphere = 1.0 end
         if config.disable_traffic then traffic_sphere = 0.0 else traffic_sphere = 1.0 end
-        pop_multiplier_id = MISC.ADD_POP_MULTIPLIER_SPHERE(1.1, 1.1, 1.1, 15000.0, ped_sphere, traffic_sphere, false, true)
-        MISC.CLEAR_AREA(1.1, 1.1, 1.1, 19999.9, true, false, false, true)
+        pop_multiplier_id = ADD_POP_MULTIPLIER_SPHERE(1.1, 1.1, 1.1, 15000.0, ped_sphere, traffic_sphere, false, true)
+        CLEAR_AREA(1.1, 1.1, 1.1, 19999.9, true, false, false, true)
     else
-        MISC.REMOVE_POP_MULTIPLIER_SPHERE(pop_multiplier_id, false);
+        REMOVE_POP_MULTIPLIER_SPHERE(pop_multiplier_id, false);
         menu.trigger_commands("notraffic off")
         menu.trigger_commands("nomodpop on")
     end
@@ -3119,8 +3120,8 @@ end)
 
 --#restrainPlayer
 griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
-    local player_ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
-    local pos = ENTITY.GET_ENTITY_COORDS(player_ped)
+    local player_ped = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    local pos = GET_ENTITY_COORDS(player_ped)
     local theta = (math.random() + math.random(0, 1)) * math.pi
     local coord = vect.new(
         pos.x + 8 * math.cos(theta),
@@ -3128,16 +3129,16 @@ griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
         pos.z - 3 * math.sin(theta)
     )
     local veh_hash = util.joaat("khanjali")
-    STREAMING.REQUEST_MODEL(veh_hash)
-    while not STREAMING.HAS_MODEL_LOADED(veh_hash) do
+    REQUEST_MODEL(veh_hash)
+    while not HAS_MODEL_LOADED(veh_hash) do
         util.yield()
     end
-    local veh = entities.create_vehicle(veh_hash, coord, CAM.GET_GAMEPLAY_CAM_ROT(-8).z)
+    local veh = entities.create_vehicle(veh_hash, coord, GET_GAMEPLAY_CAM_ROT(-8).z)
     SET_ENT_FACE_ENT(veh, player_ped)
-    VEHICLE.SET_VEHICLE_DOORS_LOCKED(veh, 2)
-    VEHICLE.SET_VEHICLE_FORWARD_SPEED(veh, 125)
+    SET_VEHICLE_DOORS_LOCKED(veh, 2)
+    SET_VEHICLE_FORWARD_SPEED(veh, 125)
     util.yield(100)
-    NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(veh)
+    NETWORK_REQUEST_CONTROL_OF_ENTITY(veh)
     entities.delete_by_handle(veh)
     if not players.exists(pid) then
         util.stop_thread()
