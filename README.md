@@ -2,6 +2,11 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621** v3.1.10 22/07/2024 19:32
+
+- Some more bugfixes and improvements
+- Added more weapons to the `"Remove Misc Weapons"` and `"Remove Trash Weapons"` list
+
 ## **e621 v3.1.9** 19/07/2024 17:50
 
 - Fixed TPs not working
