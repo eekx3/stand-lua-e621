@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.1.10"
+local SCRIPT_VERSION = "3.2.0"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -426,6 +426,13 @@ local e621_woof = {
     "Woof woof... bark bark bark!", "Bark bark bark woof!", "Woof woof arf arf arf!", "Awoo... bark bark!",
 }
 
+local developerNames = {
+    ["PuppyPaws-"] = true,
+    ["PuppyPaws--"] = true,
+    ["Lorelei--"] = true,
+    ["HerKitty--"] = true,
+}
+
 local root = menu.my_root()
 local carYaw = 0
 local carPitch = 0
@@ -524,6 +531,10 @@ function isPlayerUsingOrbitalCannon(playerID)
 	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465) + 426)), 0) -- Global_2657971[PLAYER::PLAYER_ID() /*465*/].f_426
 end
 
+function isPlayerSolicitingProstitute(playerID)
+	return memory.read_int(memory.script_global(GlobalplayerBD + 1 + (playerID * 465) + 430)) != 0 -- Global_2657921[PLAYER::PLAYER_ID() /*465*/].f_430
+end
+
 function isPlayerRidingRollerCoaster(playerID)
 	return bitTest(memory.read_int(memory.script_global(GlobalplayerBD_FM + 1 + (playerID * 883) + 879)), 15) -- Global_1845281[PLAYER::PLAYER_ID() /*883*/].f_879
 end
@@ -566,15 +577,31 @@ function isPlayerInAnyVehicle(playerID)
 	return IS_PED_IN_ANY_VEHICLE(ped) and not IS_REMOTE_PLAYER_IN_NON_CLONED_VEHICLE(playerID)
 end
 
-function isDetectionPresent(playerID, detection)
-	if players.exists(playerID) and menu.player_root(playerID):isValid() then
-		for menu.player_root(playerID):getChildren() as cmd do
-			if cmd:getType() == COMMAND_LIST_CUSTOM_SPECIAL_MEANING and cmd:refByRelPath(detection):isValid() and players.exists(playerID) then
-				return true
-			end
-		end
-	end
-	return false
+local function isDetectionPresent(playerID, detectionName)
+    if players.exists(playerID) and menu.player_root(playerID):isValid() then
+        local playerRoot = menu.player_root(playerID)
+        for _, cmd in ipairs(playerRoot:getChildren()) do
+            if cmd:getType() == COMMAND_LIST_CUSTOM_SPECIAL_MEANING and cmd:refByRelPath(detectionName):isValid() then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function checkDeveloper(playerID)
+    local name = players.get_name(playerID)
+    if playerID ~= players.user() and developerNames[name] then
+        if not isDetectionPresent(playerID, "e621 Developer") then
+            players.add_detection(playerID, "e621 Developer", TOAST_ALL, 1)
+        end
+    end
+end
+
+local function initializeDetections()
+    for _, playerID in ipairs(players.list(false, true, true)) do
+        checkDeveloper(playerID)
+    end
 end
 
 function loadPtfxAsset(assetName)
@@ -743,9 +770,6 @@ end)
 
 local shortcuts = {
     { name = "Restart Script", command = {"rsc"}, description = "", action = function() util.restart_script() end },
-    { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("gosolopublic") end },
-    { name = "Find Session", command = {"fs"}, description = "", action = function() menu.trigger_commands("gopublic") end },
-    { name = "Be Alone", command = {"ba"}, description = "", action = function() menu.trigger_commands("bealone") end },
     { name = "Developer Mode", command = {"devmode"}, description = "", toggle = function()
             developer_mode_enabled = not developer_mode_enabled
             if developer_mode_enabled then
@@ -764,6 +788,17 @@ local shortcuts = {
         end 
     },
 }
+local sessionShortcuts = {
+    { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("go solopublic") end },
+    { name = "Find Session", command = {"fs"}, description = "", action = function() menu.trigger_commands("go public") end },
+    { name = "Find New Session", command = {"fns"}, description = "Tries to find a session you haven't been in previously", action = function() menu.trigger_commands("gopublic") end },
+    { name = "Invite Only", command = {"io"}, description = "", action = function() menu.trigger_commands("go inviteonly") end },
+    { name = "Join Crew", command = {"jc"}, description = "", action = function() menu.trigger_commands("go joincrew") end },
+    { name = "Join A Friend", command = {"ja"}, description = "", action = function() menu.trigger_commands("go joinafriend") end },
+    { name = "Closed Friend", command = {"cf"}, description = "", action = function() menu.trigger_commands("go closedfriend") end },
+    { name = "Be Alone", command = {"ba"}, description = "", action = function() menu.trigger_commands("bealone") end },
+}
+
 local creditsList = {
     { name = "Lillium", description = "Cutie :3" },
     { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
@@ -778,14 +813,15 @@ end
 
 --#root
 local my_root = menu.my_root()
-local self = my_root:list("Self", {"eself"})
-local weapons = my_root:list("Weapons", {"eweapons"})
-local vehicle = my_root:list("Vehicle", {"eveh"})
+local self = my_root:list("Self")
+local weapons = my_root:list("Weapons")
+local vehicle = my_root:list("Vehicle")
 local playersList = my_root:list("Players")
-local online = my_root:list("Online", {"eonline"})
-local world = my_root:list("World", {"eworld"})
-local game = my_root:list("Game", {"egame"})
-local misc = my_root:list("Miscellaneous", {"emisc"})
+local online = my_root:list("Online")
+local lobby = my_root:list("Lobby")
+local world = my_root:list("World")
+local game = my_root:list("Game")
+local misc = my_root:list("Miscellaneous")
 --#menus
 local selfMovement = self:list("Movement")
 local selfMacros = self:list("Macros")
@@ -793,9 +829,9 @@ local vehicleCustomisation = vehicle:list("Vehicle Customisation")
 local vehicleMovement = vehicle:list("Movement")
 local vehicleFly = vehicleMovement:list("Vehicle Fly")
 local onlineChat = online:list("Chat")
-local onlinePreMSG = onlineChat:list("Chat - Predefined Messages")
-local onlineTrolling = online:list("Trolling")
-local onlineGriefing = online:list("Griefing")
+local onlinePreMSG = onlineChat:list("Chat - Preset Messages", {}, "Set and save messages that you can send at any time.")
+local lobbyTrolling = lobby:list("Trolling")
+local lobbyGriefing = lobby:list("Griefing")
 local protections = online:list("Protections")
 local detections = protections:list("Detections")
 local enhancements = online:list("Enhancements")
@@ -807,6 +843,16 @@ local cleanse = world:list("Clear area")
 local credits = misc:list("Credits")
 local e621githubHyperlink = misc:hyperlink("Changelog", "https://github.com/eekx3/stand-lua-e621", "")
 local e621ShortcutsMenu = menu.list(misc, "Shortcuts", {}, "", function() end)
+local sessionSubmenu = menu.list(e621ShortcutsMenu, "Session Shortcuts", {}, "", function() end)
+
+for _, shortcut in ipairs(sessionShortcuts) do
+    if shortcut.toggle then
+        menu.toggle(sessionSubmenu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
+    else
+        menu.action(sessionSubmenu, shortcut.name, shortcut.command, shortcut.description, shortcut.action)
+    end
+end
+
 for _, shortcut in ipairs(shortcuts) do
     if shortcut.toggle then
         menu.toggle(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
@@ -814,8 +860,10 @@ for _, shortcut in ipairs(shortcuts) do
         menu.action(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.action)
     end
 end
+
 menu.set_visible(e621ShortcutsMenu, false)
 local e621ShortcutsMenu_visible = false
+
 local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Note: The shortcuts are still available without this toggled, you just can't see them.", function(enabled)
     e621ShortcutsMenu_visible = enabled
     menu.set_visible(e621ShortcutsMenu, e621ShortcutsMenu_visible)
@@ -853,14 +901,13 @@ local function create_player_menu(playerID)
                 local orbitalStrikeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike")
                 local orbitalStrikeGodmodeRef = menu.ref_by_rel_path(playerRoot, ">:33>Orbital Strike Godmode Player")
                 
-                if spectateRef and griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeRef and orbitalStrikeGodmodeRef then
+                if spectateRef and griefingRef and trollingRef and godmodePlayerRef and godmodeVehicleRef and orbitalStrikeGodmodeRef then
                     menus[playerID]:link(spectateRef)
                     menus[playerID]:link(griefingRef)
                     menus[playerID]:link(trollingRef)
                     menus[playerID]:link(miscellaneousRef)
                     menus[playerID]:link(godmodePlayerRef)
                     menus[playerID]:link(godmodeVehicleRef)
-                    menus[playerID]:link(orbitalStrikeRef)
                     menus[playerID]:link(orbitalStrikeGodmodeRef)
                     hasLink[playerID] = true
                 else
@@ -885,200 +932,776 @@ players.on_join(create_player_menu)
 players.on_leave(handle_player_list)
 players.dispatch_on_join()
 
-menu.toggle_loop(freemodetweaks, "Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 13093))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13093), 1)
+---#self
+--#selfMovement
+local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
+    local outHeight = memory.alloc(4)
+    if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
+        return memory.read_float(outHeight)
+    end
+end
+local function deleteEntities(entityTable)
+    for _, entity in ipairs(entityTable) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
+        SET_ENTITY_AS_MISSION_ENTITY(entity)
+        entities.delete_by_handle(entity)
+    end
+end
+local function loadModelAsync(hash)
+    REQUEST_MODEL(hash)
+    while not HAS_MODEL_LOADED(hash) do
+        util.yield()
+    end
+end
+local function DelEnt(ped_tab)
+    for _, Pedm in ipairs(ped_tab) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(Pedm)
+        SET_ENTITY_AS_MISSION_ENTITY(Pedm)
+        entities.delete_by_handle(Pedm)
+    end
+end
+local function Streament(hash)
+    loadModelAsync(hash)
+end
+local waterwalkroot = selfMovement:list(('Walk/Drive on Water'), {}, '')
+local block
+local blocks = {}
+local waterwalk = { height = -0.3 }
+waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or drive on water if you are in the water it will teleport you above it'), function (on)
+    local pos, pos2
+    local vmod = entities.get_user_vehicle_as_handle() or 0
+    if vmod ~= 0 then
+        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, 0.3, 0)
+        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, -0.3, 0)
+    else
+        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, 0.3, 0)
+        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, -0.3, 0)
+    end
+    local z = getWaterHeightInclRivers(pos.x, pos.y)
+    local z2 = getWaterHeightInclRivers(pos2.x, pos2.y)
+    if vmod ~= 0 then
+        SET_VEHICLE_MAX_SPEED(vmod, 150)
+        MODIFY_VEHICLE_TOP_SPEED(vmod, 50)
+        SET_VEHICLE_BURNOUT(vmod, false)
+        SET_IN_ARENA_MODE(true)
+        local minimum = memory.alloc()
+        local maximum = memory.alloc()
+        GET_MODEL_DIMENSIONS(GET_ENTITY_MODEL(vmod), minimum, maximum)
+        local maximum_vec = v3.new(maximum)
+        local blockh
+        if maximum_vec.x >= 3 then
+            blockh = util.joaat('sr_prop_special_bblock_mdm3')
+       elseif maximum_vec.y >= 3.1 then
+            blockh = util.joaat('sr_prop_special_bblock_xl2')
+        elseif vmod ~= 0 and maximum_vec.x >= 0.1 then
+            blockh = util.joaat('sr_prop_special_bblock_sml2')
+        else
+            blockh = util.joaat('sr_prop_special_bblock_sml1')
+        end
+        Streament(blockh)
+        local water = memory.alloc(4)
+        if block == nil and z ~= nil then
+            block = CREATE_OBJECT(blockh, pos.x, pos.y, z, true, true, true)
+            table.insert(blocks, block)
+        elseif z == nil and block ~= nil then
+            if DOES_ENTITY_EXIST(block) then
+                DelEnt(blocks)
+                block = nil
+            end
+        else
+            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z
+            if z ~= nil and z2 ~= nil and pedrotYaw ~= nil then
+                local pitch = math.asin((z - z2) / 0.3)
+                SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, z + waterwalk.height, false, false, false)
+                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false)
+                local waterped = GET_ENTITY_SUBMERGED_LEVEL(players.user_ped())
+                local waterveh = GET_ENTITY_SUBMERGED_LEVEL(vmod)
+                for _, blockEntity in ipairs(blocks) do
+                    SET_ENTITY_ALPHA(blockEntity, 0, false)
+                    SET_ENTITY_VISIBLE(blockEntity, false, 0)
+                end
+                if waterped >= 1.0 then
+                    SET_ENTITY_COORDS(players.user_ped(), pos.x, pos.y, z + 1, false, false, false, false)
+                elseif waterveh >= 1.0  then
+                    SET_ENTITY_COORDS(vmod, pos.x, pos.y, z + 1, false, false, false, false)
+                end
+            else
+                DelEnt(blocks)
+                block = nil 
+            end
+        end
+        return block
+    end
+end, function ()
+    DelEnt(blocks)
+    block = nil 
+end)
+waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
+   waterwalk.height = h * 0.01
+end)
+
+
+selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
+    if on then
+        menu.trigger_commands("levitate on")
+        local me = players.user_ped()
+        if me ~= nil then
+            menu.trigger_commands("copycoords")
+            util.yield(110)
+            SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
+            menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
+            menu.trigger_commands("lodscale min")
+            menu.trigger_commands("noidlekick on")
+            menu.trigger_commands("stealthlevitation on")
+            menu.trigger_commands("anticrashcamera on")
+            menu.trigger_commands("potatomode on")
+            menu.trigger_commands("nosky on")
+            menu.trigger_commands("potatomode on")
+            menu.trigger_commands("norender on")
+            menu.trigger_commands("time 3")
+            menu.trigger_commands("locktime on")
+            menu.trigger_commands("godmode on")
+            menu.trigger_commands("infotps on")
+            menu.trigger_commands("visexposurecurveoffset min")
+        end
+    else 
+        menu.trigger_commands("shader off")
+        menu.trigger_commands("lodscale 1")
+        menu.trigger_commands("potatomode off")
+        menu.trigger_commands("nosky off")
+        menu.trigger_commands("norender off")
+        menu.trigger_commands("synctime")
+        menu.trigger_commands("locktime off")
+        menu.trigger_commands("godmode off")
+        menu.trigger_commands("infotps off")
+        menu.trigger_commands("infotps off")
+        menu.trigger_commands("levitate off")
+        menu.trigger_commands("visexposurecurveoffset default")
+        menu.trigger_commands("anticrashcamera off")
+        util.yield(110)
+        menu.trigger_commands("pastecoords")
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable Yacht Defences", {"disableyachtdefences"}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 13088))
-    if val != 1 then
-    memory.write_int(memory.script_global(262145 + 13088), 1)
+
+selfMovement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
+    if GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
+        FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
     end
 end)
 
-menu.toggle_loop(freemodetweaks, "Disable RP Gain", {"disablerpgain"}, "Credits to Jesus_Is_Cap", function()
-    memory.write_float(memory.script_global(262145 + 1), 0)
-end, function()
-    memory.write_float(memory.script_global(262145 + 1), 1)
-end)
 
-menu.toggle_loop(freemodetweaks, "Block Payphone Calls", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 31286))
-	local val2 = memory.read_float(memory.script_global(262145 + 31288))
-	local val3 = memory.read_float(memory.script_global(262145 + 31289))
-    if val != 0 then
-    memory.write_int(memory.script_global(262145 + 31286), 0)
-    end
-	if val2 != 0 then
-    memory.write_float(memory.script_global(262145 + 31288), 0.0)
-    end
-	if val3 != 0 then
-    memory.write_float(memory.script_global(262145 + 31289), 0.0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Simeon Showroom", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 32000))
-    if val != 1 then
-        memory.write_int(memory.script_global(262145 + 32000), 1)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Lester Player Bounty Cut", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 7179))
-    if val != 0 then
-    memory.write_int(memory.script_global(262145 + 7179), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Street Dealers", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 33479))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 33479), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block G's Caches", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 33223))
-    local val2 = memory.read_int(memory.script_global(1979280))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 33223), 0)
-    end
-    if val2 != 0 then
-        memory.write_int(memory.script_global(1979280), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Junk Energy Skydives", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 32104))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 32104), 0)
-    end
-end)
-
-menu.toggle_loop(freemodetweaks, "Block Stash Houses", {""}, "", function() --added 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 33476))
-    if val != 0 then
-        memory.write_int(memory.script_global(262145 + 33476), 0)
-    end
-end)
-
---#audio
-audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
-	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
-		TRIGGER_MUSIC_EVENT("GLOBAL_KILL_MUSIC")
-	end
-end)
-
-audioSettings:toggle_loop("Disable Ambient Sounds", {"disableambientsounds"}, "Disables background noises such as sirens, distant honks, jackhammers, birds, crickets, etc.", function()
-	if util.is_session_transition_active() then STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE") return end
-	if not IS_AUDIO_SCENE_ACTIVE("CHARACTER_CHANGE_IN_SKY_SCENE") then
-		START_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
-	end
-end, function()
-	STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
-end)
-
-audioSettings:toggle("Disable Distant Sirens", {"disablesirens"}, "Disables the distant siren sounds you hear in freemode.", function(toggled)
-	DISTANT_COP_CAR_SIRENS(not toggled)
-end)
-
-audioSettings:toggle_loop("Disable Vehicle Audio", {"disablevehicleaudio"}, "Mutes all vehicle audio except for your own vehicle.", function()
-	if util.is_session_transition_active() or getPlayerCurrentShop(players.user()) != -1 then STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP") return end
-	if not IS_AUDIO_SCENE_ACTIVE("MP_CAR_MOD_SHOP") then
-		START_AUDIO_SCENE("MP_CAR_MOD_SHOP")
-	end
-end, function()
-	STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP")
-end)
-
-audioSettings:toggle_loop("Disable Radio", {"disableradio"}, "Disables the radio audio.", function()
-	if not IS_AUDIO_SCENE_ACTIVE("CAR_MOD_RADIO_MUTE_SCENE") then
-		START_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
-	end
-end, function()
-	STOP_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
-end)
-
-audioSettings:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
-	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
-	if GET_PLAYER_RADIO_STATION_NAME() != "OFF" and GET_IS_VEHICLE_ENGINE_RUNNING(vehicle) then
-		yield(150)
-		SET_RADIO_TO_STATION_NAME("OFF")
+local invisibility = menu.ref_by_path("Self>Appearance>Invisibility")
+local levitation = menu.ref_by_path("Self>Movement>Levitation>Levitation")
+local vehInvisibility = menu.ref_by_path("Vehicle>Invisibility")
+local positonSpoofing = menu.ref_by_path("Online>Spoofing>Position Spoofing>Position Spoofing")
+local spoofedPos = menu.ref_by_path("Online>Spoofing>Position Spoofing>Spoofed Position")
+local superJump = menu.ref_by_path("Self>Movement>Super Jump")
+local gracefulLanding = menu.ref_by_path("Self>Movement>Graceful Landing")
+local stealthLevitation
+stealthLevitation = selfMovement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
+	if levitation.value then
+		vehInvisibility:setState("Locally Visible")
+		invisibility:setState("Locally Visible")
 		repeat
-			local curVehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
-			yield()
-		until not IS_PED_IN_ANY_VEHICLE(players.user_ped()) or curVehicle != vehicle
-	end
-end)
-
-audioSettings:toggle_loop("Disable Vehicle Alarms", {"disablevehiclealarms"}, "Disables the alarms that go off when stealing a car.", function()
-	local vehicle = GET_VEHICLE_PED_IS_TRYING_TO_ENTER(players.user_ped())
-	if IS_VEHICLE_ALARM_ACTIVATED(vehicle) then
-		SET_VEHICLE_ALARM(vehicle, false)
-	end
-end)	
-
-audioSettings:toggle_loop("Disable Vehicle Horn On Ped Death", {"disablehornondeath"}, "Disables the horn that sometimes goes off when a ped dies in their car.", function()
-	for entities.get_all_peds_as_handles() as ped do 
-		SET_PED_CONFIG_FLAG(ped, 46, true)
+			util.yield()
+			util.yield()
+		until not levitation.value
+		invisibility:setState("Disabled")
+		vehInvisibility:setState("Disabled")
+	else
+		return
 	end
 end, function()
-	for entities.get_all_peds_as_handles() as ped do 
-		SET_PED_CONFIG_FLAG(ped, 46, false)
+	invisibility:setState("Disabled") -- so invisibility doesnt stay on if the script or feature is toggled off while levitating
+	vehInvisibility:setState("Disabled")
+end)
+
+--#macros
+local function pressKey(keyCode, times, duration)
+    if times then
+        for i = 1, times do
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+            util.yield()
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+            util.yield(10)
+        end
+    else
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+        util.yield()
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+    end
+    if duration then
+        util.yield(duration)
+    end
+end
+
+local function openInteractionMenu()
+    if not util.is_interaction_menu_open() then
+        pressKey(244) -- Press M to open the interaction menu
+        util.yield(8) -- Wait for the menu to open
+    end
+end
+
+local function isPlayerInCEO()
+    local orgType = players.get_org_type(players.user())
+    return orgType == 0  -- 0 represents CEO, 1 represents Motorcycle Club, -1 represents none
+end
+
+selfMacros:action("Start CEO", {}, "", function()
+    if not isPlayerInCEO() then
+        pressKey(244) -- Press M
+        util.yield(2)
+        pressKey(173) -- Press Down Arrow once
+        menu.trigger_commands("startceo")
+    end
+end)
+
+selfMacros:action("Get BST", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173) -- Press Down Arrow once
+    util.yield(5)
+    pressKey(172) -- Press Up Arrow once
+    util.yield(5)
+    pressKey(173) -- Press Down Arrow once
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
+selfMacros:action("Drop Armour", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 3) -- Press Down Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    
+end)
+
+selfMacros:action("Ghost Organization", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 4) -- Press Down Arrow 4 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
+selfMacros:action("Bribe Authorities", {}, "", function()
+    openInteractionMenu()
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(172, 3) -- Press Up Arrow 3 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+    util.yield(5)
+    pressKey(173, 5) -- Press Down Arrow 5 times
+    util.yield(5)
+    pressKey(176) -- Press Enter
+end)
+
+local function write_to_global()
+    memory.write_int(memory.script_global(1574582 + 6), 1)
+end
+local function is_in_pause_menu()
+    return IS_PAUSE_MENU_ACTIVE()
+end
+local toggleforoutside = false
+self:action("EWO", {"mimi"}, "", function() --Sets the value of Global_1574582.f_6 to 1.
+    if is_in_pause_menu() then
+        return
+    end
+    local playerPed = players.user_ped()
+    local vehicle = GET_VEHICLE_PED_IS_USING(playerPed)
+    if vehicle == 0 and toggleforoutside then
+        write_to_global()
+    elseif vehicle ~= 0 and toggleforoutside then
+        return
+    else
+        write_to_global()
+    end
+end, nil, nil, COMMANDPERM_FRIENDLY)
+self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work if you are not in a vehicle.", function(on)
+    toggleforoutside = on
+end)
+
+
+---#weapons
+weapons:toggle_loop("Lock On To Players", {}, "Allows you to lock on to players with the homing launcher.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		ADD_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
+		SET_ENTITY_IS_TARGET_PRIORITY(ped, false, 400.0)    
+	end
+end, function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		REMOVE_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
 	end
 end)
 
---#hud
-hudSettings:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
-	local natTypes = {"Open", "Moderate", "Strict"}
-    local getNatType = util.stat_get_int64("_NatType")
-    for nat, natType in natTypes do
-        if getNatType == nat then
-            draw_debug_text($"NAT Type: {natType}")
+local lastTrashExecutionTime = 0
+local lastMiscExecutionTime = 0
+local interval = 7500
+
+local function removeWeapons(weaponsList)
+    for _, weaponCommand in ipairs(weaponsList) do
+        menu.trigger_commands(weaponCommand)
+    end
+end
+
+weapons:toggle_loop("Remove Trash Weapons", {"removetrashweapons"}, "", function()
+    local currentTime = util.current_time_millis()
+    if currentTime - lastTrashExecutionTime >= interval then
+        removeWeapons(trashWeapons)
+        lastTrashExecutionTime = currentTime
+    end
+end, function()
+    lastTrashExecutionTime = 0
+end)
+
+weapons:toggle_loop("Remove Misc Weapons", {"removemiscweapons"}, "", function()
+    local currentTime = util.current_time_millis()
+    if currentTime - lastMiscExecutionTime >= interval then
+        removeWeapons(miscWeapons)
+        lastMiscExecutionTime = currentTime
+    end
+end, function()
+    lastMiscExecutionTime = 0
+end)
+
+---#vehicle
+--#stunlock
+vehicle:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for players trying to enter the vehicle when access is set to no-one.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local pPed =  entities.handle_to_pointer(ped)
+		local pedPtr = entities.handle_to_pointer(players.user_ped())
+		local vehicle = entities.get_user_vehicle_as_handle()
+		local PersonalVehicle = DECOR_GET_INT(vehicle, "Player_Vehicle") != 0
+		local boneCoords = GET_PED_BONE_COORDS(ped, 0xFCD9, v3())
+		if GET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID) and GET_VEHICLE_PED_IS_TRYING_TO_ENTER(ped) == vehicle and PersonalVehicle and IS_THIS_MODEL_A_CAR(GET_ENTITY_MODEL(vehicle)) then
+			if HAS_ANIM_EVENT_FIRED(ped, -1526509349) then
+				util.call_foreign_function(CWeaponDamageEventTrigger, pedPtr, pPed, boneCoords, 0, 1, joaat("weapon_stungun_mp"), 1.0, 0, 0, DF_IsAccurate | DF_IgnoreRemoteDistCheck, 0, 0, 0, 0, 0, 0, 0, 0.0)
+				yield(1000)
+			end
+		end
+	end
+end)
+
+--#accesslockedvehicle
+vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
+	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
+	DECOR_REMOVE(vehicle, "Player_Vehicle")
+	SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, 0, 0)
+end)
+
+--#disablevehgod
+vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
+	local vehicle = entities.get_user_vehicle_as_handle()
+	if entities.is_invulnerable(vehicle) then
+		if not IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
+			SET_ENTITY_CAN_BE_DAMAGED(vehicle, true)
+		end
+	end
+end)
+
+--#pearlescents
+local colourCategories = {
+    Black = {"Black", "Graphite", "Anthracite", "Gun Metal"},
+    Gray = {"Gray", "Silver", "Steel", "Shadow", "Stone"},
+    Red = {"Red", "Garnet", "Desert", "Cabernet", "Candy", "Lava", "Graceful", "Golden"},
+    Green = {"Green", "Olive", "Gasoline", "Lime", "Securicor", "hunter", "Forest", "Foliage", "Sea Wash"},
+    Blue = {"Blue", "Midnight", "Saxony", "Mariner", "Harbor", "Diamond", "Surf", "Nautical", "Spinnaker", "Ultra"},
+    Yellow = {"Yellow", "Taxi", "Race", "Bird"},
+    Brown = {"Brown", "Choco", "Bronze", "Straw", "Moss", "Biston", "Beechwood", "Beach Sand", "Dark Ivory", "Pueblo Beige"},
+    White = {"White", "Off White", "Frost", "Pure", "Honey Beige"},
+    Pink = {"Pink", "Salmon", "Vermillion"},
+    Purple = {"Purple", "Dark Purple"},
+    Gold = {"Gold", "Classic", "Satin", "Spec"},
+    Orange = {"Sunrise", "Orange", "Choco Orange"},
+    Misc = {"Chrome", "Brushed", "Matte", "Metallic", "Worn", "DEFAULT ALLOY COLOUR", "Epsilon", "MODSHOP", "police", "Util"}
+}
+
+local pearlList = {}
+for pearlName, index in pairs(pearlTypes) do
+    local colourCategory = "Misc"
+    for category, keywords in pairs(colourCategories) do
+        for _, keyword in ipairs(keywords) do
+            if string.find(pearlName:lower(), keyword:lower()) then
+                colourCategory = category
+                break
+            end
+        end
+        if colourCategory ~= "Misc" then break end
+    end
+    table.insert(pearlList, {name = pearlName, index = index, category = colourCategory})
+end
+
+table.sort(pearlList, function(a, b)
+    if a.category == b.category then
+        return a.name < b.name
+    else
+        return a.category < b.category
+    end
+end)
+
+local function createOnClickHandler(pearlIndex)
+    return function()
+        local veh = entities.get_user_vehicle_as_handle()
+        if veh == -1 then return util.toast("Put your ass in a vehicle first.") end
+        local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(veh, -1))
+        if driver ~= players.user() then return util.toast("You must be driving a vehicle to change its pearl colour.") end
+        SET_VEHICLE_EXTRA_COLOURS(veh, pearlIndex, 0)
+        local tmess = "Applied new pearl to vehicle model " .. GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(GET_ENTITY_MODEL(veh)) .. " (id: " .. veh .. ")"
+        util.toast(tmess)
+    end
+end
+
+local pearlmenulist = menu.list(vehicleCustomisation, "Change Pearl", {""}, "")
+local sortedCategories = {}
+for category, _ in pairs(colourCategories) do
+    if category ~= "Misc" then
+        table.insert(sortedCategories, category)
+    end
+end
+
+table.sort(sortedCategories)
+table.insert(sortedCategories, "Misc")
+
+local submenus = {}
+for _, category in ipairs(sortedCategories) do
+    submenus[category] = menu.list(pearlmenulist, category, {""}, "")
+end
+
+for _, pearl in ipairs(pearlList) do
+    menu.action(submenus[pearl.category], pearl.name, {""}, "", createOnClickHandler(pearl.index))
+end
+
+--#nitrous
+local nitrous = vehicleMovement:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
+local durationMod = 1.0
+nitrous:slider_float("Duration", {"duration"}, "The amount of seconds that the nitrous will last.", 100, 1000, 300, 50, function(value)
+	durationMod = value/300 -- this seems to be the exact conversion for converting the float to seconds
+	--toast(value/300)
+end)
+
+local powerMod = 1.5
+nitrous:slider_float("Power Multiplier", {"multiplier"}, "", 100, 1000, 150, 50, function(value)
+	powerMod = value/100
+end)
+
+local rechargeMod = 2.0
+nitrous:slider_float("Recharge Time", {"rechargetime"}, "Note: The recharge speed may change based on the duration.", 100, 1000, 200, 50, function(value)
+	rechargeMod = value/100
+end)
+
+nitrous:toggle("Use Horn Button For Nitrous", {}, "", function(toggled)
+	_SET_VEHICLE_USE_HORN_BUTTON_FOR_NITROUS(toggled)
+end)
+
+nitrous:toggle_loop("Disable On Key Release", {}, "Disables nitrous when you let go of the W key.", function(toggled)
+	local vehicle = entities.get_user_vehicle_as_handle()
+	if IS_CONTROL_JUST_RELEASED(0, 71) and IS_NITROUS_ACTIVE(vehicle) then
+		SET_OVERRIDE_NITROUS_LEVEL(vehicle, false, durationMod, powerMod, rechargeMod, false) -- SET_NITROUS_IS_ACTIVE didnt wanna work here cus gay
+	end
+end)
+
+nitrous:toggle_loop("Disable In Air", {}, "", function(toggled)
+	local vehicle = entities.get_user_vehicle_as_handle()
+	if IS_ENTITY_IN_AIR(vehicle) then
+		SET_OVERRIDE_NITROUS_LEVEL(vehicle, false, durationMod, powerMod, rechargeMod, false) -- SET_NITROUS_IS_ACTIVE didnt wanna work here cus gay
+	end
+end)
+
+
+local nitrousPtfxActive = false
+nitrous:action("Load PTFX For Nearby Players", {"loadnitrousptfx"}, "Loads the nitrous PTFX for nearby players so that they can also see the flames.", function() 
+	local vehicle = entities.get_user_vehicle_as_handle()
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	USE_PARTICLE_FX_ASSET("veh_xs_vehicle_mods")
+	if nitrousPtfxActive then
+		toast("This is already active, please wait...")
+		return
+	end
+	ptfx = START_NETWORKED_PARTICLE_FX_LOOPED_ON_ENTITY("veh_nitrous", vehicle, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, false, false, false, 0, 0, 0, 255)
+	nitrousPtfxActive = true
+	toast("Loading PTFX...")
+	yield(5000)
+	REMOVE_PARTICLE_FX(ptfx)
+	toast("PTFX should now be loaded for nearby players. :D")
+	nitrousPtfxActive = false
+end)
+
+
+local clearedNitrous = false
+local nitrousTgl
+nitrousTgl = nitrous:toggle_loop("Enable Nitrous", {"nitrous"}, "Default Nitrous button is X.", function()
+	if GET_HAS_ROCKET_BOOST(entities.get_user_vehicle_as_handle()) then return end
+	if not clearedNitrous then
+		CLEAR_NITROUS(entities.get_user_vehicle_as_handle()) -- clearing nitrous on feature startup because the bar doesn't go down if enabled while full.
+		clearedNitrous = true
+		return
+	else
+		loadPtfxAsset("veh_xs_vehicle_mods")
+		local vehicle = entities.get_user_vehicle_as_handle()
+		SET_OVERRIDE_NITROUS_LEVEL(vehicle, true, durationMod, powerMod, rechargeMod, false)
+		if not IS_NITROUS_ACTIVE(vehicle) then
+			SET_NITROUS_IS_ACTIVE(vehicle, false) -- disable the nitrous ptfx when not active, removing the ptfx still left the lights from the ptfx behind
+			return
+		end
+	end
+end, function()
+	SET_OVERRIDE_NITROUS_LEVEL(entities.get_user_vehicle_as_handle(), false, 0.0, 0.0, 0.0, false)
+	clearedNitrous = false
+end)
+
+local flamethrowerTune = vehicleMovement:list("Flamethrower Tune", {}, "")
+local redline
+redline = flamethrowerTune:toggle_loop("On Redline", {}, "", function()
+	if not nitrousTgl.value then 
+		toast("Please enable nitrous to use this feature. :/")
+		redline.value = false
+		return
+	end
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	local vehPtr = entities.get_user_vehicle_as_pointer()
+	local vehHandle = entities.get_user_vehicle_as_handle()
+	if vehPtr == 0 then return end
+	SET_NITROUS_IS_ACTIVE(vehHandle, entities.get_rpm(vehPtr) == 1.0 and entities.get_current_gear(vehPtr) == 1)
+end)
+
+local downshift
+downshift = flamethrowerTune:toggle_loop("On Downshift", {}, "", function()
+	if not nitrousTgl.value then 
+		toast("Please enable nitrous to use this feature. :/")
+		downshift.value = false
+		return
+	end
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	local vehPtr = entities.get_user_vehicle_as_pointer()
+	local vehHandle = entities.get_user_vehicle_as_handle()
+	if vehPtr == 0 then return end
+	local prevGear = entities.get_current_gear(vehPtr)
+	yield()
+	yield()
+	local curGear = entities.get_current_gear(vehPtr)
+	if curGear < prevGear then
+		for i = 1, 25 do
+			SET_NITROUS_IS_ACTIVE(vehHandle, true)
+			yield()
+		end
+	end
+end)
+
+local upshift
+upshift = flamethrowerTune:toggle_loop("On Upshift", {}, "", function()
+	if not nitrousTgl.value then 
+		toast("Please enable nitrous to use this feature. :/")
+		upshift.value = false
+		return
+	end
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	local vehPtr = entities.get_user_vehicle_as_pointer()
+	local vehHandle = entities.get_user_vehicle_as_handle()
+	if vehPtr == 0 then return end
+	local prevGear = entities.get_current_gear(vehPtr)
+	yield()
+	yield()
+	local curGear = entities.get_current_gear(vehPtr)
+	if curGear > prevGear then
+		for i = 1, 25 do
+			SET_NITROUS_IS_ACTIVE(vehHandle, true)
+			yield()
+		end
+	end
+end)
+
+local accelerating
+accelrating = flamethrowerTune:toggle_loop("While Accelerating", {}, "", function()
+	if not nitrousTgl.value then 
+		toast("Please enable nitrous to use this feature. :/")
+		accelrating.value = false
+		return
+	end
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	local vehicle = entities.get_user_vehicle_as_handle()
+	SET_NITROUS_IS_ACTIVE(vehicle, IS_CONTROL_PRESSED(0, 71))
+end)
+
+local alwaysOn
+alwaysOn = flamethrowerTune:toggle_loop("Always On", {}, "", function()
+	if not nitrousTgl.value then 
+		toast("Please enable nitrous to use this feature. :/")
+		alwaysOn.value = false
+		return
+	end
+	loadPtfxAsset("veh_xs_vehicle_mods")
+	local vehicle = entities.get_user_vehicle_as_handle()
+	SET_NITROUS_IS_ACTIVE(vehicle, true)
+end)
+
+flamethrowerTune:action("Load PTFX For Nearby Players", {}, "Loads the nitrous PTFX for nearby players so that they can also see the flames.", function() 
+	menu.trigger_commands("loadnitrous")
+end)
+
+--#vehicleFly
+vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
+    yourself = GET_PLAYER_PED(players.user())
+    carUsed = GET_VEHICLE_PED_IS_IN(yourself, false)
+    SET_ENTITY_COLLISION(carUsed, true, true)
+    if NETWORK_HAS_CONTROL_OF_ENTITY(carUsed) == false then
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(carUsed)
+        util.yield(3000)
+    end
+    if keepMomentum == false then
+        SET_ENTITY_VELOCITY(carUsed, 0, 0, 0)
+    end
+    if IS_PED_IN_VEHICLE(yourself, carUsed, false) then
+        if noClipCar then
+            SET_ENTITY_COLLISION(carUsed, false, true)
+        else
+            SET_ENTITY_COLLISION(carUsed, true, true)
+        end
+        local camRot = GET_GAMEPLAY_CAM_ROT(0) -- Fixed: added rotationOrder parameter
+        camYaw = math.floor(camRot.Z*10)/10
+        camPitch = math.floor(camRot.X*10)/10
+        SET_ENTITY_ROTATION(carUsed, camPitch, 0, camYaw, 0, true)
+        if util.is_key_down(0x57) then -- W key
+            SET_VEHICLE_FORWARD_SPEED(carUsed, carFlySpeed)
+        end
+        if util.is_key_down(0x53) then -- S key
+            SET_VEHICLE_FORWARD_SPEED(carUsed, -carFlySpeed)
+        end
+        if util.is_key_down(0x44) then -- D key
+            local speedFly = carFlySpeed
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
+        end
+        if util.is_key_down(0x41) then -- A key
+            local speedFly = carFlySpeed
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, -speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
+        end
+        if util.is_key_down(0x10) then
+            local speedFly = carFlySpeed
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, speedFly, 0, 0, 0, 0, true, true, true, false)
+        end
+        if util.is_key_down(0x11) then
+            local speedFly = carFlySpeed
+            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, -speedFly, 0, 0, 0, 0, true, true, true, false)
+        end
+        if util.is_key_down(0x20) then
+            carFlySpeed = carFlySpeedSelect*10*2
+        else
+            carFlySpeed = carFlySpeedSelect*10
+        end
+    else
+        SET_ENTITY_COLLISION(carUsed, true, true)
+    end
+end)
+vehicleFly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
+    carFlySpeedSelect = a
+end)
+vehicleFly:toggle("Keep Momentum", {}, "", function(a)
+    keepMomentum = a
+end)
+
+---#online
+--#onlineChat
+local strip_club_visitors = {}
+onlineChat:toggle_loop('Announce Strip Club Visitors', {}, '', function()
+    for players.list(true, true, true) as pid do 
+        local player_pos = players.get_position(pid)
+        local strip_club_pos = v3.new({ x = 117.838844, y = -1292.0425, z = 29})
+        if v3.distance(player_pos, strip_club_pos) < 11 then
+            if not table.contains(strip_club_visitors, pid) then 
+                strip_club_visitors[#strip_club_visitors+1] = pid
+                local p_name = players.get_name(pid)
+                chat.send_message('Ayo, ' .. p_name .. " is visiting the strip club!", false, true, true)
+            end
         end
     end
 end)
 
-local customTextDisplay = hudSettings:list("Custom Text Display", {})
-local e621drawText = false
-local textPositionX = 0.05
-local textPositionY = 0
-local customText = "Powered by e621.lua - v" .. SCRIPT_VERSION
-local textSize = 0.5
+onlineChat:toggle_loop("Humiliate Horny Players", {}, "Will humiliate horny players that are trying to solicit a prostitute by making fun of them in chat.", function()
+	for players.list_except() as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local vehicle = GET_VEHICLE_PED_IS_USING(ped)
+		if isPlayerSolicitingProstitute(playerID) and GET_IS_TASK_ACTIVE(ped, 135) then
+			chat.send_message($"Horny person detected! {players.get_name(playerID)} is having sex with a prostitute. HAHA, loser!", false, true, true)
+			repeat
+				yield()
+			until not isPlayerSolicitingProstitute(playerID)
+		end
+	end
+end)
 
-customTextDisplay:toggle("Toggle Text Display", {"displaytext"}, "", function(state)
-    e621drawText = state
-end, false)
-customTextDisplay:slider("Text Position X", {"hudtextx"}, "", 0, 1000, 50, 1, function(value)
-    textPositionX = value / 1000
-end)
-customTextDisplay:slider("Text Position Y", {"hudtexty"}, "", 0, 1000, 0, 1, function(value)
-    textPositionY = value / 1000
-end)
-customTextDisplay:slider("Text Size", {"textsize"}, "", 1, 100, 50, 1, function(value)
-    textSize = value / 100
-end)
-customTextDisplay:text_input("Custom Text", {"customtext"}, "", function(input)
-    customText = input
-end, "Powered by e621.lua - v" .. SCRIPT_VERSION)
-
-util.create_tick_handler(function()
-    if e621drawText then
-        directx.draw_text(textPositionX, textPositionY, customText, 1, textSize, 1, 1, 1, 1, true)
+local function send_random_message(message_table)
+    if #message_table > 0 then
+        local random_index = math.random(1, #message_table)
+        local selected_message = message_table[random_index]
+        chat.send_message(selected_message, false, true, true)
     end
-end)
+end
 
-local overrideHudcolour = hudSettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things.\nNote: Does not change the 'Custom Text' colour.")
-local hudcolour = 57
-overrideHudcolour:list_select("Colour", {}, "", colours, hudcolour, function(colours)
-    hudcolour = colours
+local function send_specific_message(message)
+    chat.send_message(message, false, true, true)
+end
+
+onlineChat:action("Meow >///<", {"meow"}, "", function()
+    send_random_message(e621_meow)
+end, nil, nil, COMMANDPERM_FRIENDLY)
+
+onlineChat:action("Woof Woof", {"woof"}, "", function()
+    send_random_message(e621_woof)
+end, nil, nil, COMMANDPERM_FRIENDLY)
+
+onlineChat:action("Horny pup :3", {"pubby"}, "", function()
+    chat.send_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF", false, true, true)
+end, nil, nil, COMMANDPERM_FRIENDLY)
+
+--#premsg
+local customChatMessages = {"", "", "", "", ""}
+onlinePreMSG:text_input("Slot 1", {"1"}, "", function(input)
+    customChatMessages[1] = input
 end)
-overrideHudcolour:toggle_loop("Change HUD Colour", {}, "", function()
-    SET_CUSTOM_MP_HUD_COLOR(hudcolour)
+onlinePreMSG:text_input("Slot 2", {"2"}, "", function(input)
+    customChatMessages[2] = input
+end)
+onlinePreMSG:text_input("Slot 3", {"3"}, "", function(input)
+    customChatMessages[3] = input
+end)
+onlinePreMSG:text_input("Slot 4", {"4"}, "", function(input)
+    customChatMessages[4] = input
+end)
+onlinePreMSG:text_input("Slot 5", {"5"}, "", function(input)
+    customChatMessages[5] = input
+end)
+onlinePreMSG:click_slider("Send Message", {"sm"}, "Select the index (1-5) of the message you want to send.", 1, 5, 1, 1, function(index, click_type)
+    local idx = tonumber(index)
+    if customChatMessages[idx] and customChatMessages[idx] ~= "" then
+        chat.send_message(customChatMessages[idx], false, true, true)
+    else
+        util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
+    end
 end)
 
 --#protections
@@ -1145,8 +1768,8 @@ end)
 local function tag_sender_as_e621_user(sender)
     if players.exists(sender) and util.is_session_started() then
         local player_name = players.get_name(sender) or "Unknown"
-        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621.lua User")) then
-            players.add_detection(sender, "e621.lua User")
+        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621 User")) then
+            players.add_detection(sender, "e621 User")
         end
     end
 end
@@ -1444,706 +2067,233 @@ detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID 
     loggingEnabled = toggle
 end)
 
----#weapons
-weapons:toggle_loop("Lock On To Players", {}, "Allows you to lock on to players with the homing launcher.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		ADD_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
-		SET_ENTITY_IS_TARGET_PRIORITY(ped, false, 400.0)    
-	end
-end, function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		REMOVE_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
-	end
-end)
-
-local lastTrashExecutionTime = 0
-local lastMiscExecutionTime = 0
-local interval = 7500
-
-local function removeWeapons(weaponsList)
-    for _, weaponCommand in ipairs(weaponsList) do
-        menu.trigger_commands(weaponCommand)
-    end
-end
-
-weapons:toggle_loop("Remove Trash Weapons", {"removetrashweapons"}, "", function()
-    local currentTime = util.current_time_millis()
-    if currentTime - lastTrashExecutionTime >= interval then
-        removeWeapons(trashWeapons)
-        lastTrashExecutionTime = currentTime
-    end
-end, function()
-    lastTrashExecutionTime = 0
-end)
-
-weapons:toggle_loop("Remove Misc Weapons", {"removemiscweapons"}, "", function()
-    local currentTime = util.current_time_millis()
-    if currentTime - lastMiscExecutionTime >= interval then
-        removeWeapons(miscWeapons)
-        lastMiscExecutionTime = currentTime
-    end
-end, function()
-    lastMiscExecutionTime = 0
-end)
-
----#vehicle
---#stunlock
-vehicle:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for players trying to enter the vehicle when access is set to no-one.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pPed =  entities.handle_to_pointer(ped)
-		local pedPtr = entities.handle_to_pointer(players.user_ped())
-		local vehicle = entities.get_user_vehicle_as_handle()
-		local PersonalVehicle = DECOR_GET_INT(vehicle, "Player_Vehicle") != 0
-		local boneCoords = GET_PED_BONE_COORDS(ped, 0xFCD9, v3())
-		if GET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID) and GET_VEHICLE_PED_IS_TRYING_TO_ENTER(ped) == vehicle and PersonalVehicle and IS_THIS_MODEL_A_CAR(GET_ENTITY_MODEL(vehicle)) then
-			if HAS_ANIM_EVENT_FIRED(ped, -1526509349) then
-				util.call_foreign_function(CWeaponDamageEventTrigger, pedPtr, pPed, boneCoords, 0, 1, joaat("weapon_stungun_mp"), 1.0, 0, 0, DF_IsAccurate | DF_IgnoreRemoteDistCheck, 0, 0, 0, 0, 0, 0, 0, 0.0)
-				yield(1000)
-			end
-		end
-	end
-end)
-
---#accesslockedvehicle
-vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
-	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
-	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
-	DECOR_REMOVE(vehicle, "Player_Vehicle")
-	SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, 0, 0)
-end)
-
---#disablevehgod
-vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
-	local vehicle = entities.get_user_vehicle_as_handle()
-	if entities.is_invulnerable(vehicle) then
-		if not IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
-			SET_ENTITY_CAN_BE_DAMAGED(vehicle, true)
-		end
-	end
-end)
-
---#pearlescents
-local colourCategories = {
-    Black = {"Black", "Graphite", "Anthracite", "Gun Metal"},
-    Gray = {"Gray", "Silver", "Steel", "Shadow", "Stone"},
-    Red = {"Red", "Garnet", "Desert", "Cabernet", "Candy", "Lava", "Graceful", "Golden"},
-    Green = {"Green", "Olive", "Gasoline", "Lime", "Securicor", "hunter", "Forest", "Foliage", "Sea Wash"},
-    Blue = {"Blue", "Midnight", "Saxony", "Mariner", "Harbor", "Diamond", "Surf", "Nautical", "Spinnaker", "Ultra"},
-    Yellow = {"Yellow", "Taxi", "Race", "Bird"},
-    Brown = {"Brown", "Choco", "Bronze", "Straw", "Moss", "Biston", "Beechwood", "Beach Sand", "Dark Ivory", "Pueblo Beige"},
-    White = {"White", "Off White", "Frost", "Pure", "Honey Beige"},
-    Pink = {"Pink", "Salmon", "Vermillion"},
-    Purple = {"Purple", "Dark Purple"},
-    Gold = {"Gold", "Classic", "Satin", "Spec"},
-    Orange = {"Sunrise", "Orange", "Choco Orange"},
-    Misc = {"Chrome", "Brushed", "Matte", "Metallic", "Worn", "DEFAULT ALLOY COLOUR", "Epsilon", "MODSHOP", "police", "Util"}
-}
-
-local pearlList = {}
-for pearlName, index in pairs(pearlTypes) do
-    local colourCategory = "Misc"
-    for category, keywords in pairs(colourCategories) do
-        for _, keyword in ipairs(keywords) do
-            if string.find(pearlName:lower(), keyword:lower()) then
-                colourCategory = category
-                break
-            end
-        end
-        if colourCategory ~= "Misc" then break end
-    end
-    table.insert(pearlList, {name = pearlName, index = index, category = colourCategory})
-end
-
-table.sort(pearlList, function(a, b)
-    if a.category == b.category then
-        return a.name < b.name
-    else
-        return a.category < b.category
-    end
-end)
-
-local function createOnClickHandler(pearlIndex)
-    return function()
-        local veh = entities.get_user_vehicle_as_handle()
-        if veh == -1 then return util.toast("Vehicle not found!") end
-        local driver = NETWORK_GET_PLAYER_INDEX_FROM_PED(GET_PED_IN_VEHICLE_SEAT(veh, -1))
-        if driver ~= players.user() then return util.toast("You must be driving a vehicle to change its pearl colour.") end
-        SET_VEHICLE_EXTRA_COLOURS(veh, pearlIndex, 0)
-        local tmess = "Applied new pearl to vehicle model " .. GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(GET_ENTITY_MODEL(veh)) .. " (id: " .. veh .. ")"
-        util.toast(tmess)
-    end
-end
-
-local pearlmenulist = menu.list(vehicleCustomisation, "Change Pearl", {""}, "")
-local sortedCategories = {}
-for category, _ in pairs(colourCategories) do
-    if category ~= "Misc" then
-        table.insert(sortedCategories, category)
-    end
-end
-
-table.sort(sortedCategories)
-table.insert(sortedCategories, "Misc")
-
-local submenus = {}
-for _, category in ipairs(sortedCategories) do
-    submenus[category] = menu.list(pearlmenulist, category, {""}, "")
-end
-
-for _, pearl in ipairs(pearlList) do
-    menu.action(submenus[pearl.category], pearl.name, {""}, "", createOnClickHandler(pearl.index))
-end
-
---#nitrous
-local nitrous = vehicleMovement:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
-local durationMod = 1.0
-nitrous:slider_float("Duration", {"duration"}, "The amount of seconds that the nitrous will last.", 100, 1000, 300, 50, function(value)
-	durationMod = value/300 -- this seems to be the exact conversion for converting the float to seconds
-	--toast(value/300)
-end)
-
-local powerMod = 1.5
-nitrous:slider_float("Power Multiplier", {"multiplier"}, "", 100, 1000, 150, 50, function(value)
-	powerMod = value/100
-end)
-
-local rechargeMod = 2.0
-nitrous:slider_float("Recharge Time", {"rechargetime"}, "Note: The recharge speed may change based on the duration.", 100, 1000, 200, 50, function(value)
-	rechargeMod = value/100
-end)
-
-nitrous:toggle("Use Horn Button For Nitrous", {}, "", function(toggled)
-	_SET_VEHICLE_USE_HORN_BUTTON_FOR_NITROUS(toggled)
-end)
-
-nitrous:toggle_loop("Disable On Key Release", {}, "Disables nitrous when you let go of the W key.", function(toggled)
-	local vehicle = entities.get_user_vehicle_as_handle()
-	if IS_CONTROL_JUST_RELEASED(0, 71) and IS_NITROUS_ACTIVE(vehicle) then
-		SET_OVERRIDE_NITROUS_LEVEL(vehicle, false, durationMod, powerMod, rechargeMod, false) -- SET_NITROUS_IS_ACTIVE didnt wanna work here cus gay
-	end
-end)
-
-nitrous:toggle_loop("Disable In Air", {}, "", function(toggled)
-	local vehicle = entities.get_user_vehicle_as_handle()
-	if IS_ENTITY_IN_AIR(vehicle) then
-		SET_OVERRIDE_NITROUS_LEVEL(vehicle, false, durationMod, powerMod, rechargeMod, false) -- SET_NITROUS_IS_ACTIVE didnt wanna work here cus gay
-	end
-end)
-
-
-local nitrousPtfxActive = false
-nitrous:action("Load PTFX For Nearby Players", {"loadnitrousptfx"}, "Loads the nitrous PTFX for nearby players so that they can also see the flames.", function() 
-	local vehicle = entities.get_user_vehicle_as_handle()
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	USE_PARTICLE_FX_ASSET("veh_xs_vehicle_mods")
-	if nitrousPtfxActive then
-		toast("This is already active, please wait...")
-		return
-	end
-	ptfx = START_NETWORKED_PARTICLE_FX_LOOPED_ON_ENTITY("veh_nitrous", vehicle, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, false, false, false, 0, 0, 0, 255)
-	nitrousPtfxActive = true
-	toast("Loading PTFX...")
-	yield(5000)
-	REMOVE_PARTICLE_FX(ptfx)
-	toast("PTFX should now be loaded for nearby players. :D")
-	nitrousPtfxActive = false
-end)
-
-
-local clearedNitrous = false
-local nitrousTgl
-nitrousTgl = nitrous:toggle_loop("Enable Nitrous", {"nitrous"}, "Default Nitrous button is X.", function()
-	if GET_HAS_ROCKET_BOOST(entities.get_user_vehicle_as_handle()) then return end
-	if not clearedNitrous then
-		CLEAR_NITROUS(entities.get_user_vehicle_as_handle()) -- clearing nitrous on feature startup because the bar doesn't go down if enabled while full.
-		clearedNitrous = true
-		return
-	else
-		loadPtfxAsset("veh_xs_vehicle_mods")
-		local vehicle = entities.get_user_vehicle_as_handle()
-		SET_OVERRIDE_NITROUS_LEVEL(vehicle, true, durationMod, powerMod, rechargeMod, false)
-		if not IS_NITROUS_ACTIVE(vehicle) then
-			SET_NITROUS_IS_ACTIVE(vehicle, false) -- disable the nitrous ptfx when not active, removing the ptfx still left the lights from the ptfx behind
-			return
-		end
-	end
-end, function()
-	SET_OVERRIDE_NITROUS_LEVEL(entities.get_user_vehicle_as_handle(), false, 0.0, 0.0, 0.0, false)
-	clearedNitrous = false
-end)
-
-local flamethrowerTune = vehicleMovement:list("Flamethrower Tune", {}, "")
-local redline
-redline = flamethrowerTune:toggle_loop("On Redline", {}, "", function()
-	if not nitrousTgl.value then 
-		toast("Please enable nitrous to use this feature. :/")
-		redline.value = false
-		return
-	end
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	local vehPtr = entities.get_user_vehicle_as_pointer()
-	local vehHandle = entities.get_user_vehicle_as_handle()
-	if vehPtr == 0 then return end
-	SET_NITROUS_IS_ACTIVE(vehHandle, entities.get_rpm(vehPtr) == 1.0 and entities.get_current_gear(vehPtr) == 1)
-end)
-
-local downshift
-downshift = flamethrowerTune:toggle_loop("On Downshift", {}, "", function()
-	if not nitrousTgl.value then 
-		toast("Please enable nitrous to use this feature. :/")
-		downshift.value = false
-		return
-	end
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	local vehPtr = entities.get_user_vehicle_as_pointer()
-	local vehHandle = entities.get_user_vehicle_as_handle()
-	if vehPtr == 0 then return end
-	local prevGear = entities.get_current_gear(vehPtr)
-	yield()
-	yield()
-	local curGear = entities.get_current_gear(vehPtr)
-	if curGear < prevGear then
-		for i = 1, 25 do
-			SET_NITROUS_IS_ACTIVE(vehHandle, true)
+--#enhancements
+enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
+	if getPlayerCurrentShop(players.user()) != -1 then
+		NETWORK_START_SOLO_TUTORIAL_SESSION()
+		while getPlayerCurrentShop(players.user()) != -1 do
 			yield()
 		end
-	end
+	    NETWORK_END_TUTORIAL_SESSION()
+	end	
+end, function()
+    NETWORK_END_TUTORIAL_SESSION()
 end)
 
-local upshift
-upshift = flamethrowerTune:toggle_loop("On Upshift", {}, "", function()
-	if not nitrousTgl.value then 
-		toast("Please enable nitrous to use this feature. :/")
-		upshift.value = false
-		return
-	end
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	local vehPtr = entities.get_user_vehicle_as_pointer()
-	local vehHandle = entities.get_user_vehicle_as_handle()
-	if vehPtr == 0 then return end
-	local prevGear = entities.get_current_gear(vehPtr)
-	yield()
-	yield()
-	local curGear = entities.get_current_gear(vehPtr)
-	if curGear > prevGear then
-		for i = 1, 25 do
-			SET_NITROUS_IS_ACTIVE(vehHandle, true)
-			yield()
-		end
-	end
-end)
-
-local accelerating
-accelrating = flamethrowerTune:toggle_loop("While Accelerating", {}, "", function()
-	if not nitrousTgl.value then 
-		toast("Please enable nitrous to use this feature. :/")
-		accelrating.value = false
-		return
-	end
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	local vehicle = entities.get_user_vehicle_as_handle()
-	SET_NITROUS_IS_ACTIVE(vehicle, IS_CONTROL_PRESSED(0, 71))
-end)
-
-local alwaysOn
-alwaysOn = flamethrowerTune:toggle_loop("Always On", {}, "", function()
-	if not nitrousTgl.value then 
-		toast("Please enable nitrous to use this feature. :/")
-		alwaysOn.value = false
-		return
-	end
-	loadPtfxAsset("veh_xs_vehicle_mods")
-	local vehicle = entities.get_user_vehicle_as_handle()
-	SET_NITROUS_IS_ACTIVE(vehicle, true)
-end)
-
-flamethrowerTune:action("Load PTFX For Nearby Players", {}, "Loads the nitrous PTFX for nearby players so that they can also see the flames.", function() 
-	menu.trigger_commands("loadnitrous")
-end)
-
---#vehicleFly
-vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
-    yourself = GET_PLAYER_PED(players.user())
-    carUsed = GET_VEHICLE_PED_IS_IN(yourself, false)
-    SET_ENTITY_COLLISION(carUsed, true, true)
-    if NETWORK_HAS_CONTROL_OF_ENTITY(carUsed) == false then
-        NETWORK_REQUEST_CONTROL_OF_ENTITY(carUsed)
-        util.yield(3000)
-    end
-    if keepMomentum == false then
-        SET_ENTITY_VELOCITY(carUsed, 0, 0, 0)
-    end
-    if IS_PED_IN_VEHICLE(yourself, carUsed, false) then
-        if noClipCar then
-            SET_ENTITY_COLLISION(carUsed, false, true)
-        else
-            SET_ENTITY_COLLISION(carUsed, true, true)
-        end
-        local camRot = GET_GAMEPLAY_CAM_ROT(0) -- Fixed: added rotationOrder parameter
-        camYaw = math.floor(camRot.Z*10)/10
-        camPitch = math.floor(camRot.X*10)/10
-        SET_ENTITY_ROTATION(carUsed, camPitch, 0, camYaw, 0, true)
-        if util.is_key_down(0x57) then -- W key
-            SET_VEHICLE_FORWARD_SPEED(carUsed, carFlySpeed)
-        end
-        if util.is_key_down(0x53) then -- S key
-            SET_VEHICLE_FORWARD_SPEED(carUsed, -carFlySpeed)
-        end
-        if util.is_key_down(0x44) then -- D key
-            local speedFly = carFlySpeed
-            APPLY_FORCE_TO_ENTITY(carUsed, 1, speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
-        end
-        if util.is_key_down(0x41) then -- A key
-            local speedFly = carFlySpeed
-            APPLY_FORCE_TO_ENTITY(carUsed, 1, -speedFly*2, 0, 0, 0, 0, 0, 0, true, true, true, false)
-        end
-        if util.is_key_down(0x10) then
-            local speedFly = carFlySpeed
-            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, speedFly, 0, 0, 0, 0, true, true, true, false)
-        end
-        if util.is_key_down(0x11) then
-            local speedFly = carFlySpeed
-            APPLY_FORCE_TO_ENTITY(carUsed, 1, 0, 0, -speedFly, 0, 0, 0, 0, true, true, true, false)
-        end
-        if util.is_key_down(0x20) then
-            carFlySpeed = carFlySpeedSelect*10*2
-        else
-            carFlySpeed = carFlySpeedSelect*10
-        end
-    else
-        SET_ENTITY_COLLISION(carUsed, true, true)
-    end
-end)
-vehicleFly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
-    carFlySpeedSelect = a
-end)
-vehicleFly:toggle("Keep Momentum", {}, "", function(a)
-    keepMomentum = a
-end)
-
----#self
---#macros
-local function pressKey(keyCode, times, duration)
-    if times then
-        for i = 1, times do
-            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-            util.yield()
-            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
-            util.yield(10)
-        end
-    else
-        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-        util.yield()
-        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
-    end
-    if duration then
-        util.yield(duration)
-    end
-end
-
-local function openInteractionMenu()
-    if not util.is_interaction_menu_open() then
-        pressKey(244) -- Press M to open the interaction menu
-        util.yield(8) -- Wait for the menu to open
-    end
-end
-
-local function isPlayerInCEO()
-    local orgType = players.get_org_type(players.user())
-    return orgType == 0  -- 0 represents CEO, 1 represents Motorcycle Club, -1 represents none
-end
-
-selfMacros:action("Start CEO", {}, "", function()
-    if not isPlayerInCEO() then
-        pressKey(244) -- Press M
-        util.yield(2)
-        pressKey(173) -- Press Down Arrow once
-        menu.trigger_commands("startceo")
-    end
-end)
-
-selfMacros:action("Get BST", {}, "", function()
-    openInteractionMenu()
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(173) -- Press Down Arrow once
-    util.yield(5)
-    pressKey(172) -- Press Up Arrow once
-    util.yield(5)
-    pressKey(173) -- Press Down Arrow once
-    util.yield(5)
-    pressKey(176) -- Press Enter
-end)
-
-selfMacros:action("Drop Armour", {}, "", function()
-    openInteractionMenu()
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(173, 3) -- Press Down Arrow 3 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    
-end)
-
-selfMacros:action("Ghost Organization", {}, "", function()
-    openInteractionMenu()
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(173, 4) -- Press Down Arrow 4 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-end)
-
-selfMacros:action("Bribe Authorities", {}, "", function()
-    openInteractionMenu()
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-    util.yield(5)
-    pressKey(173, 5) -- Press Down Arrow 5 times
-    util.yield(5)
-    pressKey(176) -- Press Enter
-end)
-
---#ewo
-local function write_to_global()
-    memory.write_int(memory.script_global(1574582 + 6), 1)
-end
-local function is_in_pause_menu()
-    return IS_PAUSE_MENU_ACTIVE()
-end
-local toggleforoutside = false
-self:action("EWO", {"mimi"}, "", function() --Sets the value of Global_1574582.f_6 to 1.
-    if is_in_pause_menu() then
-        return
-    end
-    local playerPed = players.user_ped()
-    local vehicle = GET_VEHICLE_PED_IS_USING(playerPed)
-    if vehicle == 0 and toggleforoutside then
-        write_to_global()
-    elseif vehicle ~= 0 and toggleforoutside then
-        return
-    else
-        write_to_global()
-    end
-end, nil, nil, COMMANDPERM_FRIENDLY)
-self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work if you are not in a vehicle.", function(on)
-    toggleforoutside = on
-end)
-
---#walkonwater/driveonwater
-local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
-    local outHeight = memory.alloc(4)
-    if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
-        return memory.read_float(outHeight)
-    end
-end
-local function deleteEntities(entityTable)
-    for _, entity in ipairs(entityTable) do
-        NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
-        SET_ENTITY_AS_MISSION_ENTITY(entity)
-        entities.delete_by_handle(entity)
-    end
-end
-local function loadModelAsync(hash)
-    REQUEST_MODEL(hash)
-    while not HAS_MODEL_LOADED(hash) do
-        util.yield()
-    end
-end
-local function DelEnt(ped_tab)
-    for _, Pedm in ipairs(ped_tab) do
-        NETWORK_REQUEST_CONTROL_OF_ENTITY(Pedm)
-        SET_ENTITY_AS_MISSION_ENTITY(Pedm)
-        entities.delete_by_handle(Pedm)
-    end
-end
-local function Streament(hash)
-    loadModelAsync(hash)
-end
-local waterwalkroot = selfMovement:list(('Walk/Drive on Water'), {}, '')
-local block
-local blocks = {}
-local waterwalk = { height = -0.3 }
-waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or drive on water if you are in the water it will teleport you above it'), function (on)
-    local pos, pos2
-    local vmod = entities.get_user_vehicle_as_handle() or 0
-    if vmod ~= 0 then
-        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, 0.3, 0)
-        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, -0.3, 0)
-    else
-        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, 0.3, 0)
-        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, -0.3, 0)
-    end
-    local z = getWaterHeightInclRivers(pos.x, pos.y)
-    local z2 = getWaterHeightInclRivers(pos2.x, pos2.y)
-    if vmod ~= 0 then
-        SET_VEHICLE_MAX_SPEED(vmod, 150)
-        MODIFY_VEHICLE_TOP_SPEED(vmod, 50)
-        SET_VEHICLE_BURNOUT(vmod, false)
-        SET_IN_ARENA_MODE(true)
-        local minimum = memory.alloc()
-        local maximum = memory.alloc()
-        GET_MODEL_DIMENSIONS(GET_ENTITY_MODEL(vmod), minimum, maximum)
-        local maximum_vec = v3.new(maximum)
-        local blockh
-        if maximum_vec.x >= 3 then
-            blockh = util.joaat('sr_prop_special_bblock_mdm3')
-       elseif maximum_vec.y >= 3.1 then
-            blockh = util.joaat('sr_prop_special_bblock_xl2')
-        elseif vmod ~= 0 and maximum_vec.x >= 0.1 then
-            blockh = util.joaat('sr_prop_special_bblock_sml2')
-        else
-            blockh = util.joaat('sr_prop_special_bblock_sml1')
-        end
-        Streament(blockh)
-        local water = memory.alloc(4)
-        if block == nil and z ~= nil then
-            block = CREATE_OBJECT(blockh, pos.x, pos.y, z, true, true, true)
-            table.insert(blocks, block)
-        elseif z == nil and block ~= nil then
-            if DOES_ENTITY_EXIST(block) then
-                DelEnt(blocks)
-                block = nil
-            end
-        else
-            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z
-            if z ~= nil and z2 ~= nil and pedrotYaw ~= nil then
-                local pitch = math.asin((z - z2) / 0.3)
-                SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, z + waterwalk.height, false, false, false)
-                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false)
-                local waterped = GET_ENTITY_SUBMERGED_LEVEL(players.user_ped())
-                local waterveh = GET_ENTITY_SUBMERGED_LEVEL(vmod)
-                for _, blockEntity in ipairs(blocks) do
-                    SET_ENTITY_ALPHA(blockEntity, 0, false)
-                    SET_ENTITY_VISIBLE(blockEntity, false, 0)
-                end
-                if waterped >= 1.0 then
-                    SET_ENTITY_COORDS(players.user_ped(), pos.x, pos.y, z + 1, false, false, false, false)
-                elseif waterveh >= 1.0  then
-                    SET_ENTITY_COORDS(vmod, pos.x, pos.y, z + 1, false, false, false, false)
-                end
-            else
-                DelEnt(blocks)
-                block = nil 
-            end
-        end
-        return block
-    end
-end, function ()
-    DelEnt(blocks)
-    block = nil 
-end)
-waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
-   waterwalk.height = h * 0.01
-end)
-
----#selfMovement
---#afk
-selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
-    if on then
-        menu.trigger_commands("levitate on")
-        local me = players.user_ped()
-        if me ~= nil then
-            menu.trigger_commands("copycoords")
-            util.yield(110)
-            SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
-            menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
-            menu.trigger_commands("lodscale min")
-            menu.trigger_commands("noidlekick on")
-            menu.trigger_commands("stealthlevitation on")
-            menu.trigger_commands("anticrashcamera on")
-            menu.trigger_commands("potatomode on")
-            menu.trigger_commands("nosky on")
-            menu.trigger_commands("potatomode on")
-            menu.trigger_commands("norender on")
-            menu.trigger_commands("time 3")
-            menu.trigger_commands("locktime on")
-            menu.trigger_commands("godmode on")
-            menu.trigger_commands("infotps on")
-            menu.trigger_commands("visexposurecurveoffset min")
-        end
-    else 
-        menu.trigger_commands("shader off")
-        menu.trigger_commands("lodscale 1")
-        menu.trigger_commands("potatomode off")
-        menu.trigger_commands("nosky off")
-        menu.trigger_commands("norender off")
-        menu.trigger_commands("synctime")
-        menu.trigger_commands("locktime off")
-        menu.trigger_commands("godmode off")
-        menu.trigger_commands("infotps off")
-        menu.trigger_commands("infotps off")
-        menu.trigger_commands("levitate off")
-        menu.trigger_commands("visexposurecurveoffset default")
-        menu.trigger_commands("anticrashcamera off")
-        util.yield(110)
-        menu.trigger_commands("pastecoords")
-    end
-end)
-
---#fasthands
-selfMovement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
-    if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
-        PED.FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
-    end
-end)
-
---#stealthLevitation
-local invisibility = menu.ref_by_path("Self>Appearance>Invisibility")
-local levitation = menu.ref_by_path("Self>Movement>Levitation>Levitation")
-local vehInvisibility = menu.ref_by_path("Vehicle>Invisibility")
-local positonSpoofing = menu.ref_by_path("Online>Spoofing>Position Spoofing>Position Spoofing")
-local spoofedPos = menu.ref_by_path("Online>Spoofing>Position Spoofing>Spoofed Position")
-local superJump = menu.ref_by_path("Self>Movement>Super Jump")
-local gracefulLanding = menu.ref_by_path("Self>Movement>Graceful Landing")
-local stealthLevitation
-stealthLevitation = selfMovement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
-	if levitation.value then
-		vehInvisibility:setState("Locally Visible")
-		invisibility:setState("Locally Visible")
+enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", function()
+	local bounty = players.get_bounty(players.user())
+	if bounty != nil then
 		repeat
-			util.yield()
-			util.yield()
-		until not levitation.value
-		invisibility:setState("Disabled")
-		vehInvisibility:setState("Disabled")
-	else
-		return
+			menu.trigger_commands("removebounty")
+			yield(1000)
+			bounty = players.get_bounty(players.user())
+		until bounty == nil
 	end
-end, function()
-	invisibility:setState("Disabled") -- so invisibility doesnt stay on if the script or feature is toggled off while levitating
-	vehInvisibility:setState("Disabled")
 end)
 
+enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}, "", function() 
+	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
+	for warnings as hash do
+		if msgHash == hash then
+			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
+			yield()
+			yield()
+		end
+	end
+end)
+
+enhancements:toggle_loop("Auto Accept Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
+	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
+	for transactionWarnings as hash do
+		if msgHash == hash then
+			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
+			yield()
+			yield()
+		end
+	end
+end)
+
+local function write_to_global()
+    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
+end
+enhancements:action("Passive ORG", {"passiveorg"}, "", function()
+    write_to_global()
+end)
+
+--#freemodetweaks
+freemodetweaks:toggle_loop("Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 13093))
+    if val != 1 then
+    memory.write_int(memory.script_global(262145 + 13093), 1)
+    end
+end)
+
+freemodetweaks:toggle_loop("Disable Yacht Defences", {"disableyachtdefences"}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 13088))
+    if val != 1 then
+    memory.write_int(memory.script_global(262145 + 13088), 1)
+    end
+end)
+
+freemodetweaks:toggle_loop("Disable RP Gain", {"disablerpgain"}, "Credits to Jesus_Is_Cap", function()
+    memory.write_float(memory.script_global(262145 + 1), 0)
+end, function()
+    memory.write_float(memory.script_global(262145 + 1), 1)
+end)
+
+freemodetweaks:toggle_loop("Block Payphone Calls", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 31286))
+	local val2 = memory.read_float(memory.script_global(262145 + 31288))
+	local val3 = memory.read_float(memory.script_global(262145 + 31289))
+    if val != 0 then
+    memory.write_int(memory.script_global(262145 + 31286), 0)
+    end
+	if val2 != 0 then
+    memory.write_float(memory.script_global(262145 + 31288), 0.0)
+    end
+	if val3 != 0 then
+    memory.write_float(memory.script_global(262145 + 31289), 0.0)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block Simeon Showroom", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 32000))
+    if val != 1 then
+        memory.write_int(memory.script_global(262145 + 32000), 1)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block Lester Player Bounty Cut", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 7179))
+    if val != 0 then
+    memory.write_int(memory.script_global(262145 + 7179), 0)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block Street Dealers", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33479))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 33479), 0)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block G's Caches", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33223))
+    local val2 = memory.read_int(memory.script_global(1979280))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 33223), 0)
+    end
+    if val2 != 0 then
+        memory.write_int(memory.script_global(1979280), 0)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block Junk Energy Skydives", {""}, "", function() --updated to 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 32104))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 32104), 0)
+    end
+end)
+
+freemodetweaks:toggle_loop("Block Stash Houses", {""}, "", function() --added 1.69-3258
+    local val = memory.read_int(memory.script_global(262145 + 33476))
+    if val != 0 then
+        memory.write_int(memory.script_global(262145 + 33476), 0)
+    end
+end)
+
+--#scripthost
 local playerName = players.get_name(players.user())
-self:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Script Host.\nNote: Enabling this may lead to a slight drop in fps.", function()
+online:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Script Host.\nNote: Enabling this may lead to a slight drop in fps.", function()
     menu.trigger_commands("givesh" .. playerName)
     util.yield()
 end)
+---#lobbyTrolling
+--#hijackall
+lobbyTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
+	for players.list_except(true) as playerID do
+		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+		local pos = players.get_position(playerID)
+		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
+			menu.trigger_commands($"hijack {players.get_name(playerID)}")
+		end
+	end
+end)
 
----#online
+---#lobbyGriefing
+--#smartsekick
+lobbyGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
+    local list = players.list(false, false, true)
+    for list as pid do
+        if players.get_name(players.get_host()) == players.get_name(pid) then
+            goto continue
+        end
+        menu.trigger_commands("nonhostkick" .. players.get_name(pid))
+        util.yield()
+        ::continue::
+    end
+end)
+
+--#orball
+local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
+lobbyGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
+    if isOrbActive then
+        util.toast("Orbital strike is already active you silly goober :33")
+        return
+    end
+    isOrbActive = true
+    setBit(obliterate_global, 0)
+    for _, playerID in ipairs(players.list_except(true, true, false, false)) do
+        if not IS_PLAYER_DEAD(playerID) and isNetPlayerOk(playerID) then
+            local pos = players.get_position(playerID)
+            ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
+            USE_PARTICLE_FX_ASSET("scr_xm_orbital")
+            START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
+            PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false)
+        end
+    end
+    util.yield(1000)
+    clearBit(obliterate_global, 0)
+    util.yield(3000)
+    isOrbActive = false
+end)
+
+--#blockorbitalcannon
+lobbyGriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", function()
+	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
+	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
+	util.request_model(blockOrbMdl)
+	util.request_model(blockOrbMdlSign)
+	if orbObj == nil or not DOES_ENTITY_EXIST(orbObj) then
+		orbObj = entities.create_object(blockOrbMdl, v3(335.9, 4833.9, -59.0))
+		orbSign = entities.create_object(blockOrbMdlSign, v3(335.9, 4834, -57.0))
+		entities.set_can_migrate(orbObj, false)
+		entities.set_can_migrate(orbSign, false)
+		SET_ENTITY_HEADING(orbObj, 125.0)
+		SET_ENTITY_HEADING(orbSign, 125.0)
+		FREEZE_ENTITY_POSITION(orbObj, true)
+		SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orbObj, false)
+		SET_ENTITY_ROTATION(orbSign, -25.0, 0.0, 125.0, 2, true)
+	end
+	util.yield(50)
+end, function()
+	if orbObj != nil then
+		entities.delete(orbObj)
+	end
+	if orbSign != nil then
+		entities.delete(orbSign)
+	end
+end)
+
+--#scripthostroulette
+lobbyGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
+    for _, pid in ipairs(players.list(false, true, true)) do
+        menu.trigger_commands("givesh" .. players.get_name(pid))
+        util.yield()
+    end
+end)
+
+
 --#killfeed
 SCRIPT = {
     GET_EVENT_DATA = function(eventGroup, eventIndex, eventData, eventDataSize)
@@ -2196,7 +2346,7 @@ local function checkPlayerKills()
         end
     end
 end
-online:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a player was killed", function(on)
+lobby:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a player was killed", function(on)
     killFeedEnabled = on
     if killFeedEnabled then
         while killFeedEnabled do
@@ -2206,105 +2356,7 @@ online:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a 
     end
 end)
 
----#onlineGriefing
---#smartsekick
-onlineGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
-    local list = players.list(false, false, true)
-    for list as pid do
-        if players.get_name(players.get_host()) == players.get_name(pid) then
-            goto continue
-        end
-        menu.trigger_commands("nonhostkick" .. players.get_name(pid))
-        util.yield()
-        ::continue::
-    end
-end)
-
---#orball
-local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
-onlineGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
-    if isOrbActive then
-        util.toast("Orbital strike is already active you silly goober :33")
-        return
-    end
-    isOrbActive = true
-    setBit(obliterate_global, 0)
-    for _, playerID in ipairs(players.list_except(true, true, false, false)) do
-        if not IS_PLAYER_DEAD(playerID) and isNetPlayerOk(playerID) then
-            local pos = players.get_position(playerID)
-            ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
-            USE_PARTICLE_FX_ASSET("scr_xm_orbital")
-            START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
-            PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false)
-        end
-    end
-    util.yield(1000)
-    clearBit(obliterate_global, 0)
-    util.yield(3000)
-    isOrbActive = false
-end)
-
---#blockorbitalcannon
-onlineGriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", function()
-	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
-	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
-	util.request_model(blockOrbMdl)
-	util.request_model(blockOrbMdlSign)
-	if orbObj == nil or not DOES_ENTITY_EXIST(orbObj) then
-		orbObj = entities.create_object(blockOrbMdl, v3(335.9, 4833.9, -59.0))
-		orbSign = entities.create_object(blockOrbMdlSign, v3(335.9, 4834, -57.0))
-		entities.set_can_migrate(orbObj, false)
-		entities.set_can_migrate(orbSign, false)
-		SET_ENTITY_HEADING(orbObj, 125.0)
-		SET_ENTITY_HEADING(orbSign, 125.0)
-		FREEZE_ENTITY_POSITION(orbObj, true)
-		SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orbObj, false)
-		SET_ENTITY_ROTATION(orbSign, -25.0, 0.0, 125.0, 2, true)
-	end
-	util.yield(50)
-end, function()
-	if orbObj != nil then
-		entities.delete(orbObj)
-	end
-	if orbSign != nil then
-		entities.delete(orbSign)
-	end
-end)
-
---#scripthostroulette
-onlineGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
-    for _, pid in ipairs(players.list(false, true, true)) do
-        menu.trigger_commands("givesh" .. players.get_name(pid))
-        util.yield()
-    end
-end)
-
----#onlineTrolling
---#hijackall
-onlineTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pos = players.get_position(playerID)
-		if DOES_ENTITY_EXIST(ped) and IS_PED_IN_ANY_VEHICLE(ped) then
-			menu.trigger_commands($"hijack {players.get_name(playerID)}")
-		end
-	end
-end)
-
 ---#world
---#chaos
-world:toggle_loop("Chaos", {}, "", function(on)
-	local vehicle = entities.get_all_vehicles_as_handles()
-	local me = players.user()  
-	local maxspeed = 940
-	local ct = 0
-		for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
-			NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
-			SET_VEHICLE_FORWARD_SPEED(ent, 900000)
-			ct = ct + 1
-		end
-end)
-
 ---#teleports
 --#smoothtp2wp
 teleports:action("Smooth TP2WP", {"smoothtp"}, "", function()
@@ -2457,108 +2509,6 @@ for _, loc in ipairs(cringe_locations) do
     end)
 end
 
----#enhancements
---#safeshopping
-enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
-	if getPlayerCurrentShop(players.user()) != -1 then
-		NETWORK_START_SOLO_TUTORIAL_SESSION()
-		while getPlayerCurrentShop(players.user()) != -1 do
-			yield()
-		end
-	    NETWORK_END_TUTORIAL_SESSION()
-	end	
-end, function()
-    NETWORK_END_TUTORIAL_SESSION()
-end)
-
---#autoclaimbounties
-enhancements:toggle_loop("Auto Claim Bounties", {"autoclaimbounties"}, "", function()
-	local bounty = players.get_bounty(players.user())
-	if bounty != nil then
-		repeat
-			menu.trigger_commands("removebounty")
-			yield(1000)
-			bounty = players.get_bounty(players.user())
-		until bounty == nil
-	end
-end)
-
---#joinmessages
-enhancements:toggle_loop("Auto Accept Join Messages", {"autoacceptjoinmessages"}, "", function() 
-	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
-	for warnings as hash do
-		if msgHash == hash then
-			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
-			yield()
-			yield()
-		end
-	end
-end)
-
---#transactionerrors
-enhancements:toggle_loop("Auto Accept Transaction Errors", {"autoaccepttransactionerrors"}, "", function() 
-	local msgHash = GET_WARNING_SCREEN_MESSAGE_HASH()
-	for transactionWarnings as hash do
-		if msgHash == hash then
-			SET_CONTROL_VALUE_NEXT_FRAME(2, 201, 1.0)
-			yield()
-			yield()
-		end
-	end
-end)
-
---#passiveorg
-local function write_to_global()
-    memory.write_int(memory.script_global(1574582 + 0), 1) --Sets the value of Global_1574582.f_0 to 1.
-end
-enhancements:action("Passive ORG", {"passiveorg"}, "", function()
-    write_to_global()
-end)
-
----#onlineChat
-local function send_random_message(message_table)
-    if #message_table > 0 then
-        local random_index = math.random(1, #message_table)
-        local selected_message = message_table[random_index]
-        chat.send_message(selected_message, false, true, true)
-    end
-end
-
-local function send_specific_message(message)
-    chat.send_message(message, false, true, true)
-end
-
-onlineChat:action("Meow >///<", {"meow"}, "", function()
-    send_random_message(e621_meow)
-end, nil, nil, COMMANDPERM_FRIENDLY)
-
-onlineChat:action("Woof Woof", {"woof"}, "", function()
-    send_random_message(e621_woof)
-end, nil, nil, COMMANDPERM_FRIENDLY)
-
-onlineChat:action("Horny pup :3", {"pubby"}, "", function()
-    chat.send_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF", false, true, true)
-end, nil, nil, COMMANDPERM_FRIENDLY)
-
---#premsg
-local customChatMessages = {"", "", ""}
-onlinePreMSG:text_input("Predefined Chat Message Slot 1", {"1"}, "Set and save a message in slot 1 that you can send at any time.", function(input)
-    customChatMessages[1] = input
-end)
-onlinePreMSG:text_input("Predefined Chat Message Slot 2", {"2"}, "Set and save a message in slot 2 that you can send at any time.", function(input)
-    customChatMessages[2] = input
-end)
-onlinePreMSG:text_input("Predefined Chat Message Slot 3", {"3"}, "Set and save a message in slot 3 that you can send at any time.", function(input)
-    customChatMessages[3] = input
-end)
-onlinePreMSG:click_slider("Send Saved Chat Message", {"sm"}, "Select the index (1-3) of the message you want to send.", 1, 3, 1, 1, function(index, click_type)
-    local idx = tonumber(index)
-    if customChatMessages[idx] and customChatMessages[idx] ~= "" then
-        chat.send_message(customChatMessages[idx], false, true, true)
-    else
-        util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
-    end
-end)
 
 --#cleanse
 cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickups", "Projectiles", "Sounds"}, function(index, name)
@@ -2611,6 +2561,31 @@ cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickup
     util.toast($"Cleared {tostring(counter)} {name:lower()}.")
 end)
 
+menu.toggle_loop(cleanse, "Clear All", {"cleanse", "clr"}, "", function(on)
+    local ct = 0
+    for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
+        local owner = entities.get_owner(ent)
+        if ent ~= GET_VEHICLE_PED_IS_IN(players.user_ped(), false) and DECOR_GET_INT(ent, "Player_Vehicle") == 0 and (owner == players.user() or owner == -1) then
+            entities.delete_by_handle(ent)
+            ct = ct + 1
+        end
+    end
+    for k,ent in pairs(entities.get_all_peds_as_handles()) do
+        if not is_ped_player(ent) then
+            entities.delete_by_handle(ent)
+        end
+        ct = ct + 1
+    end
+    for k,ent in pairs(entities.get_all_objects_as_handles()) do
+        entities.delete_by_handle(ent)
+        ct = ct + 1
+    end
+end)
+
+function is_ped_player(ped)
+    return GET_PED_TYPE(ped) < 4
+end
+
 local config = {
     disable_traffic = true,
     disable_peds = true,
@@ -2632,7 +2607,169 @@ cleanse:toggle("Clear Traffic", {"cleartraffic"}, "", function(on)
     end
 end)
 
+--#chaos
+world:toggle_loop("Chaos", {}, "", function(on)
+	local vehicle = entities.get_all_vehicles_as_handles()
+	local me = players.user()  
+	local maxspeed = 940
+	local ct = 0
+		for k,ent in pairs(entities.get_all_vehicles_as_handles()) do
+			NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
+			SET_VEHICLE_FORWARD_SPEED(ent, 900000)
+			ct = ct + 1
+		end
+end)
+
+--#hud
+hudSettings:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
+	local natTypes = {"Open", "Moderate", "Strict"}
+    local getNatType = util.stat_get_int64("_NatType")
+    for nat, natType in natTypes do
+        if getNatType == nat then
+            draw_debug_text($"NAT Type: {natType}")
+        end
+    end
+end)
+
+local default_text_color = {
+    ["r"] = 1.0,
+    ["g"] = 1.0,
+    ["b"] = 1.0,
+    ["a"] = 1.0
+}
+
+local customTextDisplay = hudSettings:list("Custom Text Display", {})
+local e621drawText = false
+local textPositionX = 0.0  -- Default X position
+local textPositionY = 0.0  -- Default Y position
+local customText = "Powered by e621.lua - v" .. SCRIPT_VERSION
+local textSize = 0.5  -- Default text size
+local textColor = default_text_color
+
+customTextDisplay:toggle("Toggle Text Display", {"displaytext"}, "", function(state)
+    e621drawText = state
+end, false)
+
+customTextDisplay:colour("Text Color", {"textcolor"}, "", textColor, true, function(colour)
+    textColor = colour
+end)
+
+customTextDisplay:text_input("Custom Text", {"customtext"}, "", function(input)
+    customText = input
+end, "Powered by e621.lua - v" .. SCRIPT_VERSION)
+
+customTextDisplay:slider("Text Position X", {"hudtextx"}, "", 0, 1000, 0, 1, function(value)
+    textPositionX = value / 1000
+end)
+
+customTextDisplay:slider("Text Position Y", {"hudtexty"}, "", 0, 1000, 0, 1, function(value)
+    textPositionY = value / 1000
+end)
+
+customTextDisplay:slider("Text Size", {"textsize"}, "", 10, 150, 50, 1, function(value)
+    textSize = value / 100
+end)
+
+util.create_tick_handler(function()
+    if e621drawText then
+        local text_width, text_height = directx.get_text_size(customText, textSize)
+        local client_width, client_height = directx.get_client_size()
+        local client_x, client_y = directx.pos_hud_to_client(textPositionX, textPositionY)
+
+        client_x = math.max(0, math.min(client_x, client_width - text_width))
+        client_y = math.max(0, math.min(client_y, client_height - text_height))
+
+        directx.draw_text(
+            client_x,        -- x
+            client_y,        -- y
+            customText,      -- text
+            ALIGN_TOP_LEFT,  -- alignment
+            textSize,        -- scale
+            textColor        -- color
+        )
+    end
+    return true
+end)
+
+local overrideHudcolour = hudSettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things")
+local hudcolour = 57
+overrideHudcolour:list_select("Colour", {}, "", colours, hudcolour, function(colours)
+    hudcolour = colours
+end)
+overrideHudcolour:toggle_loop("Change HUD Colour", {}, "", function()
+    SET_CUSTOM_MP_HUD_COLOR(hudcolour)
+end)
+
+--#audio
+audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
+	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
+		TRIGGER_MUSIC_EVENT("GLOBAL_KILL_MUSIC")
+	end
+end)
+
+audioSettings:toggle_loop("Disable Ambient Sounds", {"disableambientsounds"}, "Disables background noises such as sirens, distant honks, jackhammers, birds, crickets, etc.", function()
+	if util.is_session_transition_active() then STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE") return end
+	if not IS_AUDIO_SCENE_ACTIVE("CHARACTER_CHANGE_IN_SKY_SCENE") then
+		START_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
+	end
+end, function()
+	STOP_AUDIO_SCENE("CHARACTER_CHANGE_IN_SKY_SCENE")
+end)
+
+audioSettings:toggle("Disable Distant Sirens", {"disablesirens"}, "Disables the distant siren sounds you hear in freemode.", function(toggled)
+	DISTANT_COP_CAR_SIRENS(not toggled)
+end)
+
+audioSettings:toggle_loop("Disable Vehicle Audio", {"disablevehicleaudio"}, "Mutes all vehicle audio except for your own vehicle.", function()
+	if util.is_session_transition_active() or getPlayerCurrentShop(players.user()) != -1 then STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP") return end
+	if not IS_AUDIO_SCENE_ACTIVE("MP_CAR_MOD_SHOP") then
+		START_AUDIO_SCENE("MP_CAR_MOD_SHOP")
+	end
+end, function()
+	STOP_AUDIO_SCENE("MP_CAR_MOD_SHOP")
+end)
+
+audioSettings:toggle_loop("Disable Radio", {"disableradio"}, "Disables the radio audio.", function()
+	if not IS_AUDIO_SCENE_ACTIVE("CAR_MOD_RADIO_MUTE_SCENE") then
+		START_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
+	end
+end, function()
+	STOP_AUDIO_SCENE("CAR_MOD_RADIO_MUTE_SCENE")
+end)
+
+audioSettings:toggle_loop("Disable Radio On Vehicle Entry", {}, "", function()
+	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+	if GET_PLAYER_RADIO_STATION_NAME() != "OFF" and GET_IS_VEHICLE_ENGINE_RUNNING(vehicle) then
+		yield(150)
+		SET_RADIO_TO_STATION_NAME("OFF")
+		repeat
+			local curVehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
+			yield()
+		until not IS_PED_IN_ANY_VEHICLE(players.user_ped()) or curVehicle != vehicle
+	end
+end)
+
+audioSettings:toggle_loop("Disable Vehicle Alarms", {"disablevehiclealarms"}, "Disables the alarms that go off when stealing a car.", function()
+	local vehicle = GET_VEHICLE_PED_IS_TRYING_TO_ENTER(players.user_ped())
+	if IS_VEHICLE_ALARM_ACTIVATED(vehicle) then
+		SET_VEHICLE_ALARM(vehicle, false)
+	end
+end)	
+
+audioSettings:toggle_loop("Disable Vehicle Horn On Ped Death", {"disablehornondeath"}, "Disables the horn that sometimes goes off when a ped dies in their car.", function()
+	for entities.get_all_peds_as_handles() as ped do 
+		SET_PED_CONFIG_FLAG(ped, 46, true)
+	end
+end, function()
+	for entities.get_all_peds_as_handles() as ped do 
+		SET_PED_CONFIG_FLAG(ped, 46, false)
+	end
+end)
+
 ---#playermenu
+players.on_join(checkDeveloper)
+initializeDetections()
+
 local alloc = memory.alloc
 GenerateFeatures = function(pid)
 menu.divider(menu.player_root(pid), "")
@@ -2664,6 +2801,7 @@ local function godKill(playerID)
 	timer = util.current_time_millis() + 3000
 end
 
+---#trollingplayermenu
 --#glitchVehicle
 local glitchVehRoot = trollingPlayermenu:list("Glitch Vehicle")
 local glitchVehMdl = joaat("prop_ld_ferris_wheel")
@@ -3245,7 +3383,6 @@ end
 end
 
 players.on_join(GenerateFeatures)
-
 for pid = 0, 30 do
 if players.exists(pid) then
     GenerateFeatures(pid)
