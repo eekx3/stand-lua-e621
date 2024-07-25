@@ -2,10 +2,22 @@
 
 ### Dates and times are provided in Central Europe Time.
 
-## **e621** v3.1.10 22/07/2024 19:32
+## **e621 v3.2.0** 25/07/2024 02:22
 
+- Added `e621 > Lobby`
+- Moved `Online > Griefing` to `e621 > Lobby`
+- Moved `Online > Trolling` to `e621 > Lobby`
+- Moved `Online > Enable Kill Feed` to `e621 > Lobby`
+- Added Colour customisation to `Game > HUD > Custom Text Display`
+- Added `Online > Chat > Announce Strip Club Visitors`
+- Added `Online > Chat > Humiliate Horny Players`
+- Added More shortcuts to `Miscellaneous > Shortcuts`
 - Some more bugfixes and improvements
+
+## **e621 v3.1.10** 22/07/2024 19:32
+
 - Added more weapons to the `"Remove Misc Weapons"` and `"Remove Trash Weapons"` list
+- Some more bugfixes and improvements
 
 ## **e621 v3.1.9** 19/07/2024 17:50
 
@@ -60,7 +72,8 @@
 
 ## **e621 v3.0.0** 22/06/2024 10:26
 
-- Added `Game`
+Bumped to version 3.0.0
+- Added `e621 > Game`
 - Removed `Settings`
 - Removed `Settings > Auto Accept`
 - Moved `Settings > HUD` to `Game`
@@ -82,7 +95,6 @@
 
 ## **e621 v2.7.2** 22/06/2024 01:00
 
-- Changed the script start message
 - Changed the `Self > EWO` command to `mimi`
 - Removed `Settings > Experimental`
 - Removed `Settings > Experimental > RGB Skeleton`
@@ -95,7 +107,7 @@
 
 ## **e621 v2.7.0** 18/06/2024 10:30
 
-- Bumped to version 2.7.0
+Bumped to version 2.7.0
 - Added `Self > Macros`
     - Added `Self > Macros > Start CEO`
     - Added `Self > Macros > Get BST`
