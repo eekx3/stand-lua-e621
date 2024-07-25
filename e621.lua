@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.0"
+local SCRIPT_VERSION = "3.2.1"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -794,7 +794,7 @@ local sessionShortcuts = {
     { name = "Find New Session", command = {"fns"}, description = "Tries to find a session you haven't been in previously", action = function() menu.trigger_commands("gopublic") end },
     { name = "Invite Only", command = {"io"}, description = "", action = function() menu.trigger_commands("go inviteonly") end },
     { name = "Join Crew", command = {"jc"}, description = "", action = function() menu.trigger_commands("go joincrew") end },
-    { name = "Join A Friend", command = {"ja"}, description = "", action = function() menu.trigger_commands("go joinafriend") end },
+    { name = "Join A Friend", command = {"jf"}, description = "", action = function() menu.trigger_commands("go joinafriend") end },
     { name = "Closed Friend", command = {"cf"}, description = "", action = function() menu.trigger_commands("go closedfriend") end },
     { name = "Be Alone", command = {"ba"}, description = "", action = function() menu.trigger_commands("bealone") end },
 }

@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 3.2.1** 25/07/2024 17:52
+
+- Fixed minor spelling mistake
+
 ## **e621 v3.2.0** 25/07/2024 02:22
 
 - Added `e621 > Lobby`
