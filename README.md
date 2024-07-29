@@ -2,7 +2,13 @@
 
 ### Dates and times are provided in Central Europe Time.
 
-## **e621 3.2.1** 25/07/2024 17:52
+## **e621 v3.2.2**
+
+- Added more messages to `Online > Chat > Meow >///<` & `Online > Chat > Woof Woof`
+- Removed `Vehicle > Stun Lock` because it's useless and it sucks
+- Some other things done (I forgor)
+
+## **e621 v3.2.1** 25/07/2024 17:52
 
 - Fixed minor spelling mistake
 
