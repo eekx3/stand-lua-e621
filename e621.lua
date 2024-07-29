@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.1"
+local SCRIPT_VERSION = "3.2.2"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -405,25 +405,37 @@ local e621_meow = {
     "Nyaa... *stretches*", "Meow! Purr!", "Meow... nya~", "Meow meow... nya!", "Nyaa... time to nap.", "Meow meow nyaa~",
     "Purr... nya...", "Nyaa... purr purr!", "Meow purr... nyaa!", "Nyaa meow meow!", "Meow meow... *rolls over*",
     "Meow... purr purr!", "Nyaa nyaa... purr!", "Meow... *purrs loudly*", "Nyaa~ purr meow!", "Purr purr... nyaa meow!",
-    "Meow meow nyaa purr!", "Nyaa... *licks paw*",
+    "Meow meow nyaa purr!", "Nyaa... *licks paw*", "Mew mew!", "Nyaa! *purrs softly*", "Meowww... I'm hungry!", "Nyaa... play with me!",
+    "Mew, mew, meow... *playful pounce*", "Meow... *jumps on lap*", "Nyaa... let’s cuddle!", "Purr... nyaa, purr!", "Meow, meow, nyaa!",
+    "Nyaa... time for a snack!", "Mew, purr, meow!", "Purr... *rolls over happily*", "Meow! *paw taps*", "Nyaa! *chases tail*",
+    "Mew mew, purr purr!", "Nyaa... *stretches and purrs*", "Meow... *bat at string*", "Purr... *nuzzles*", "Nyaa, meow!",
+    "Meowww... purr softly", "Nyaa meow meow!", "Purr nya... *curled up*", "Meow, purr... *looking around*", "Nyaa! *paw kneading*",
 }
 
 local e621_woof = {
-    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Bark bark woof woof!", "Woof woof bark!",
-    "Woof woof bark bark!", "Woof woof!", "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!",
-    "Woof... *wags tail*", "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "Bark bark woof woof!",
-    "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK", "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!",
-    "WOOOF WOOF WOOF WOOF", "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
+    "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Woof woof bark bark!", "Woof woof!",
+    "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!", "Woof... *wags tail*",
+    "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK",
+    "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!", "WOOOF WOOF WOOF WOOF",
+    "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
     "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
     "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
     "WOOF WOOOF WOOF! BARK!", "*Wags tail*", "Aruff!", "Woof arf arf!", "Woof woof woof!", "Awoo!",
-    "Bark bark arf!", "Arf arf bark!", "Bork bork woof!", "Woof... awoo!", "Aruff aruff!", "Awoo bark!",
-    "Arf arf aruff!", "Woof woof... aruff!", "Bark bark awoo!", "Awoo woof woof!", "Woof woof bork bork!",
-    "Arf arf awoo!", "Awoo arf arf!", "Bork bork bark!", "Woof woof bark bark bark!", "Bark bark woof arf!",
-    "Awoo bark bark!", "Woof... aruff aruff!", "Bark bork bork!", "Woof woof aruff bark!", "Bark bark awoo woof!",
+    "Bark bark arf!", "Arf arf bark!", "Bark bark woof!", "Woof... awoo!", "Aruff aruff!", "Awoo bark!",
+    "Arf arf aruff!", "Woof woof... aruff!", "Bark bark awoo!", "Awoo woof woof!", "Woof woof bark bark!",
+    "Arf arf awoo!", "Awoo arf arf!", "Bark bark bark!", "Woof woof bark bark bark!", "Bark bark woof arf!",
+    "Awoo bark bark!", "Woof... aruff aruff!", "Bark bark bark!", "Woof woof aruff bark!", "Bark bark awoo woof!",
     "Awoo woof... bark!", "Arf arf... woof woof!", "Woof woof... awoo!", "Bark bark bark bark!", "Awoo... *wags tail*",
     "Woof woof aruff woof!", "Bark bark awoo arf!", "Woof... awoo arf!", "Awoo arf bark!", "Aruff bark bark!",
     "Woof woof... bark bark bark!", "Bark bark bark woof!", "Woof woof arf arf arf!", "Awoo... bark bark!",
+    "WOOFOWOFWFOWOOF WOOOFFFF WOOF AWOOO", "BARKABARK BARK BARK WOOF", "AWWOOOO.. WOOFF WOOFF", "Grrrrr.. Arufff",
+    "WOOOF WOOOF WOOOF WOOOF!", "GRRR WOOOF WOOOF!", "WOOOF! BARK BARK WOOF!", "ARF ARF WOOOF!", "WOOOF WOOF BARK!",
+    "BARK BARK WOOOF WOOOF!", "WOOF WOOOF ARF ARF!", "GRRRR... WOOF BARK!", "BARK BARK GRRR!", "AWOOOO WOOF WOOF!",
+    "RUFF RUFF! WOOF WOOF!", "BARK WOOOF GRRRR!", "WOOF WOOOF! ARF ARF!", "WOOF BARK WOOOF!", "GRRR BARK BARK WOOOF!",
+    "WOOOF ARF ARF GRRRR!", "WOOF WOOF BARK BARK!", "AWOOOO WOOOF WOOOF!", "BARK WOOOF ARF!", "GRRRR WOOF WOOOF!",
+    "WOOF WOOF! BARK BARK!", "ARF ARF WOOOF GRRRR!", "BARK BARK WOOF WOOF!", "WOOOF WOOOF ARF!", "GRRR BARK WOOF WOOOF!",
+    "AWOOOO BARK BARK!", "WOOOF GRRR WOOF!", "WOOF WOOOF BARK ARF!", "RUFF WOOF WOOF!", "WOOOF WOOOF BARK!",
+    "WOOF BARK GRRR!", "WOOOF ARF ARF BARK!", "BARK WOOOF GRRR WOOF!", "WOOOF BARK BARK!", "GRRR WOOOF ARF ARF!",
 }
 
 local developerNames = {
@@ -1040,56 +1052,53 @@ waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above
    waterwalk.height = h * 0.01
 end)
 
-
+local original_coords = nil
 selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
+    local me = players.user_ped()
     if on then
-        menu.trigger_commands("levitate on")
-        local me = players.user_ped()
         if me ~= nil then
-            menu.trigger_commands("copycoords")
-            util.yield(110)
+            original_coords = GET_ENTITY_COORDS(me, true)
+            menu.trigger_commands("levitate on")
             SET_ENTITY_COORDS_NO_OFFSET(me, -8112.612, -15999.334, 2695.6704, 4, 0, 0, 0)
-            menu.trigger_commands("shader stripnofog") --shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
+            menu.trigger_commands("shader stripnofog")
+--shader can be replaced with any of these: "shader vbahama" , "shader underwater" , "shader trailerexplosionoptimise" , "shader stripstage" , "shader stripoffice" , "shader stripchanging" , "shader stripnofog"
             menu.trigger_commands("lodscale min")
             menu.trigger_commands("noidlekick on")
             menu.trigger_commands("stealthlevitation on")
-            menu.trigger_commands("anticrashcamera on")
             menu.trigger_commands("potatomode on")
             menu.trigger_commands("nosky on")
-            menu.trigger_commands("potatomode on")
             menu.trigger_commands("norender on")
             menu.trigger_commands("time 3")
             menu.trigger_commands("locktime on")
             menu.trigger_commands("godmode on")
             menu.trigger_commands("infotps on")
             menu.trigger_commands("visexposurecurveoffset min")
+            menu.trigger_commands("anticrashcamera on")
         end
     else 
+        if original_coords ~= nil and me ~= nil then
+            SET_ENTITY_COORDS_NO_OFFSET(me, original_coords.x, original_coords.y, original_coords.z, 4, 0, 0, 0)
+        end
         menu.trigger_commands("shader off")
         menu.trigger_commands("lodscale 1")
         menu.trigger_commands("potatomode off")
-        menu.trigger_commands("nosky off")
         menu.trigger_commands("norender off")
+        menu.trigger_commands("nosky off")
         menu.trigger_commands("synctime")
+        menu.trigger_commands("infotps off")
         menu.trigger_commands("locktime off")
-        menu.trigger_commands("godmode off")
-        menu.trigger_commands("infotps off")
-        menu.trigger_commands("infotps off")
-        menu.trigger_commands("levitate off")
         menu.trigger_commands("visexposurecurveoffset default")
         menu.trigger_commands("anticrashcamera off")
-        util.yield(110)
-        menu.trigger_commands("pastecoords")
+        menu.trigger_commands("godmode off")
+        menu.trigger_commands("levitate off")
     end
 end)
-
 
 selfMovement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
         FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
     end
 end)
-
 
 local invisibility = menu.ref_by_path("Self>Appearance>Invisibility")
 local levitation = menu.ref_by_path("Self>Movement>Levitation>Levitation")
@@ -1117,7 +1126,6 @@ end, function()
 	vehInvisibility:setState("Disabled")
 end)
 
---#macros
 local function pressKey(keyCode, times, duration)
     if times then
         for i = 1, times do
@@ -1289,24 +1297,6 @@ end, function()
 end)
 
 ---#vehicle
---#stunlock
-vehicle:toggle_loop("Stun Lock", {}, "Mimics the ruiner 2000 stun lock for players trying to enter the vehicle when access is set to no-one.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		local pPed =  entities.handle_to_pointer(ped)
-		local pedPtr = entities.handle_to_pointer(players.user_ped())
-		local vehicle = entities.get_user_vehicle_as_handle()
-		local PersonalVehicle = DECOR_GET_INT(vehicle, "Player_Vehicle") != 0
-		local boneCoords = GET_PED_BONE_COORDS(ped, 0xFCD9, v3())
-		if GET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, playerID) and GET_VEHICLE_PED_IS_TRYING_TO_ENTER(ped) == vehicle and PersonalVehicle and IS_THIS_MODEL_A_CAR(GET_ENTITY_MODEL(vehicle)) then
-			if HAS_ANIM_EVENT_FIRED(ped, -1526509349) then
-				util.call_foreign_function(CWeaponDamageEventTrigger, pedPtr, pPed, boneCoords, 0, 1, joaat("weapon_stungun_mp"), 1.0, 0, 0, DF_IsAccurate | DF_IgnoreRemoteDistCheck, 0, 0, 0, 0, 0, 0, 0, 0.0)
-				yield(1000)
-			end
-		end
-	end
-end)
-
 --#accesslockedvehicle
 vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
 	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
@@ -1666,11 +1656,11 @@ local function send_specific_message(message)
     chat.send_message(message, false, true, true)
 end
 
-onlineChat:action("Meow >///<", {"meow"}, "", function()
+onlineChat:action("Meow >///<", {"meow", "nya"}, "", function()
     send_random_message(e621_meow)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
-onlineChat:action("Woof Woof", {"woof"}, "", function()
+onlineChat:action("Woof Woof", {"woof", "bark"}, "", function()
     send_random_message(e621_woof)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
@@ -1679,7 +1669,7 @@ onlineChat:action("Horny pup :3", {"pubby"}, "", function()
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
 --#premsg
-local customChatMessages = {"", "", "", "", ""}
+local customChatMessages = {"", "", "", "", "", "", "", ""}
 onlinePreMSG:text_input("Slot 1", {"1"}, "", function(input)
     customChatMessages[1] = input
 end)
@@ -1695,7 +1685,16 @@ end)
 onlinePreMSG:text_input("Slot 5", {"5"}, "", function(input)
     customChatMessages[5] = input
 end)
-onlinePreMSG:click_slider("Send Message", {"sm"}, "Select the index (1-5) of the message you want to send.", 1, 5, 1, 1, function(index, click_type)
+onlinePreMSG:text_input("Slot 6", {"6"}, "", function(input)
+    customChatMessages[6] = input
+end)
+onlinePreMSG:text_input("Slot 7", {"7"}, "", function(input)
+    customChatMessages[7] = input
+end)
+onlinePreMSG:text_input("Slot 8", {"8"}, "", function(input)
+    customChatMessages[8] = input
+end)
+onlinePreMSG:click_slider("Send Message", {"sm"}, "Select the index (1-8) of the message you want to send.", 1, 8, 1, 1, function(index, click_type)
     local idx = tonumber(index)
     if customChatMessages[idx] and customChatMessages[idx] ~= "" then
         chat.send_message(customChatMessages[idx], false, true, true)
