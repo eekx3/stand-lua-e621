@@ -2,6 +2,13 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.2.3** 01/08/2024 21:07
+
+- Removed `Weapons > Lock On To Players`
+- Removed `Self > Movement > Walk/Drive on Water` since it has been added to Stand
+    - Stand path: `Vehicle > Movement > Drive On Water`
+- Moved `Self > Movement > Fast Hands` to `Weapons > Fast Hands`
+
 ## **e621 v3.2.2** 29/07/2024 19:58
 
 - Added more messages to `Online > Chat > Meow >///<` & `Online > Chat > Woof Woof`
