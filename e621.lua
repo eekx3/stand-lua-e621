@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.2"
+local SCRIPT_VERSION = "3.2.3"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -946,112 +946,6 @@ players.dispatch_on_join()
 
 ---#self
 --#selfMovement
-local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
-    local outHeight = memory.alloc(4)
-    if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
-        return memory.read_float(outHeight)
-    end
-end
-local function deleteEntities(entityTable)
-    for _, entity in ipairs(entityTable) do
-        NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
-        SET_ENTITY_AS_MISSION_ENTITY(entity)
-        entities.delete_by_handle(entity)
-    end
-end
-local function loadModelAsync(hash)
-    REQUEST_MODEL(hash)
-    while not HAS_MODEL_LOADED(hash) do
-        util.yield()
-    end
-end
-local function DelEnt(ped_tab)
-    for _, Pedm in ipairs(ped_tab) do
-        NETWORK_REQUEST_CONTROL_OF_ENTITY(Pedm)
-        SET_ENTITY_AS_MISSION_ENTITY(Pedm)
-        entities.delete_by_handle(Pedm)
-    end
-end
-local function Streament(hash)
-    loadModelAsync(hash)
-end
-local waterwalkroot = selfMovement:list(('Walk/Drive on Water'), {}, '')
-local block
-local blocks = {}
-local waterwalk = { height = -0.3 }
-waterwalkroot:toggle_loop(('Walk/Drive on Water'), {'waterwalk'}, ('Walk or drive on water if you are in the water it will teleport you above it'), function (on)
-    local pos, pos2
-    local vmod = entities.get_user_vehicle_as_handle() or 0
-    if vmod ~= 0 then
-        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, 0.3, 0)
-        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0.0, -0.3, 0)
-    else
-        pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, 0.3, 0)
-        pos2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(vmod, 0.0, -0.3, 0)
-    end
-    local z = getWaterHeightInclRivers(pos.x, pos.y)
-    local z2 = getWaterHeightInclRivers(pos2.x, pos2.y)
-    if vmod ~= 0 then
-        SET_VEHICLE_MAX_SPEED(vmod, 150)
-        MODIFY_VEHICLE_TOP_SPEED(vmod, 50)
-        SET_VEHICLE_BURNOUT(vmod, false)
-        SET_IN_ARENA_MODE(true)
-        local minimum = memory.alloc()
-        local maximum = memory.alloc()
-        GET_MODEL_DIMENSIONS(GET_ENTITY_MODEL(vmod), minimum, maximum)
-        local maximum_vec = v3.new(maximum)
-        local blockh
-        if maximum_vec.x >= 3 then
-            blockh = util.joaat('sr_prop_special_bblock_mdm3')
-       elseif maximum_vec.y >= 3.1 then
-            blockh = util.joaat('sr_prop_special_bblock_xl2')
-        elseif vmod ~= 0 and maximum_vec.x >= 0.1 then
-            blockh = util.joaat('sr_prop_special_bblock_sml2')
-        else
-            blockh = util.joaat('sr_prop_special_bblock_sml1')
-        end
-        Streament(blockh)
-        local water = memory.alloc(4)
-        if block == nil and z ~= nil then
-            block = CREATE_OBJECT(blockh, pos.x, pos.y, z, true, true, true)
-            table.insert(blocks, block)
-        elseif z == nil and block ~= nil then
-            if DOES_ENTITY_EXIST(block) then
-                DelEnt(blocks)
-                block = nil
-            end
-        else
-            local pedrotYaw = GET_ENTITY_ROTATION(players.user_ped(), 2).z
-            if z ~= nil and z2 ~= nil and pedrotYaw ~= nil then
-                local pitch = math.asin((z - z2) / 0.3)
-                SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, z + waterwalk.height, false, false, false)
-                SET_ENTITY_ROTATION(block, 0, pitch * 10, pedrotYaw, 2, false)
-                local waterped = GET_ENTITY_SUBMERGED_LEVEL(players.user_ped())
-                local waterveh = GET_ENTITY_SUBMERGED_LEVEL(vmod)
-                for _, blockEntity in ipairs(blocks) do
-                    SET_ENTITY_ALPHA(blockEntity, 0, false)
-                    SET_ENTITY_VISIBLE(blockEntity, false, 0)
-                end
-                if waterped >= 1.0 then
-                    SET_ENTITY_COORDS(players.user_ped(), pos.x, pos.y, z + 1, false, false, false, false)
-                elseif waterveh >= 1.0  then
-                    SET_ENTITY_COORDS(vmod, pos.x, pos.y, z + 1, false, false, false, false)
-                end
-            else
-                DelEnt(blocks)
-                block = nil 
-            end
-        end
-        return block
-    end
-end, function ()
-    DelEnt(blocks)
-    block = nil 
-end)
-waterwalkroot:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
-   waterwalk.height = h * 0.01
-end)
-
 local original_coords = nil
 selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
     local me = players.user_ped()
@@ -1091,12 +985,6 @@ selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original positi
         menu.trigger_commands("anticrashcamera off")
         menu.trigger_commands("godmode off")
         menu.trigger_commands("levitate off")
-    end
-end)
-
-selfMovement:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
-    if GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
-        FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
     end
 end)
 
@@ -1253,17 +1141,10 @@ end)
 
 
 ---#weapons
-weapons:toggle_loop("Lock On To Players", {}, "Allows you to lock on to players with the homing launcher.", function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		ADD_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
-		SET_ENTITY_IS_TARGET_PRIORITY(ped, false, 400.0)    
-	end
-end, function()
-	for players.list_except(true) as playerID do
-		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-		REMOVE_PLAYER_TARGETABLE_ENTITY(players.user(), ped)
-	end
+weapons:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
+    if GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
+        FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
+    end
 end)
 
 local lastTrashExecutionTime = 0
