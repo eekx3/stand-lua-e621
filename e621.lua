@@ -1,6 +1,7 @@
+-- Haii Prisuhm :3
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.3"
+local SCRIPT_VERSION = "3.2.4"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -2102,7 +2103,7 @@ end)
 
 ---#lobbyGriefing
 --#smartsekick
-lobbyGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified", function() -- Credit to nui for this
+lobbyGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified.", function() -- Credit to nui for this
     local list = players.list(false, false, true)
     for list as pid do
         if players.get_name(players.get_host()) == players.get_name(pid) then
@@ -2173,34 +2174,15 @@ lobbyGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you us
     end
 end)
 
-
 --#killfeed
-SCRIPT = {
-    GET_EVENT_DATA = function(eventGroup, eventIndex, eventData, eventDataSize)
-        return native_invoker.unified_bool(eventGroup, eventIndex, eventData, eventDataSize, 0x2902843FCD2B2D79, "iipi")
-    end,
-    GET_EVENT_AT_INDEX = function(eventGroup, eventIndex)
-        return native_invoker.unified_int(eventGroup, eventIndex, 0xD8F66A3A60C62153, "ii")
-    end,
-    GET_NUMBER_OF_EVENTS = function(eventGroup)
-        return native_invoker.unified_int(eventGroup, 0x5F92A689A06620AA, "i")
-    end
-}
-
-NETWORK = {
-    NETWORK_GET_PLAYER_INDEX_FROM_PED = function(ped)
-        return native_invoker.unified_int(ped, 0x6C0E2E0125610278, "i")
-    end
-}
-
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
 
 local function checkPlayerKills()
-    for eventNum = 0, SCRIPT.GET_NUMBER_OF_EVENTS(1) - 1 do
-        local eventId = SCRIPT.GET_EVENT_AT_INDEX(1, eventNum)
+    for eventNum = 0, GET_NUMBER_OF_EVENTS(1) - 1 do
+        local eventId = GET_EVENT_AT_INDEX(1, eventNum)
         if eventId == 186 then
-            if SCRIPT.GET_EVENT_DATA(1, eventNum, eventData, 13) then
+            if GET_EVENT_DATA(1, eventNum, eventData, 13) then
                 local victim = memory.read_int(eventData)
                 local attacker = memory.read_int(eventData + 1 * 8)
                 local damage = memory.read_float(eventData + 2 * 8)
@@ -2210,15 +2192,15 @@ local function checkPlayerKills()
                 if weapon_name == "" then weapon_name = "unknown" end
 
                 if victim ~= attacker and victim ~= -1 and attacker ~= -1 then
-                    if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
+                    if NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
                         if victimDestroyed == 1 then
-                            util.toast(string.format("%s Killed %s With %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker)), players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                            util.toast(string.format("%s Killed %s With %s", players.get_name(NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker)), players.get_name(NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
                         end
                     end
                 elseif victim == attacker and victim ~= -1 and attacker ~= -1 then
-                    if NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
+                    if NETWORK_GET_PLAYER_INDEX_FROM_PED(attacker) ~= -1 and NETWORK_GET_PLAYER_INDEX_FROM_PED(victim) ~= -1 then
                         if victimDestroyed == 1 then
-                            util.toast(string.format("%s Killed Themselves With %s", players.get_name(NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
+                            util.toast(string.format("%s Killed Themselves With %s", players.get_name(NETWORK_GET_PLAYER_INDEX_FROM_PED(victim)), weapon_name), TOAST_ALL)
                         end
                     end
                 end
@@ -2226,7 +2208,7 @@ local function checkPlayerKills()
         end
     end
 end
-lobby:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a player was killed", function(on)
+lobby:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a player was killed.", function(on)
     killFeedEnabled = on
     if killFeedEnabled then
         while killFeedEnabled do
@@ -2571,7 +2553,7 @@ util.create_tick_handler(function()
     return true
 end)
 
-local overrideHudcolour = hudSettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things")
+local overrideHudcolour = hudSettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things.")
 local hudcolour = 57
 overrideHudcolour:list_select("Colour", {}, "", colours, hudcolour, function(colours)
     hudcolour = colours
