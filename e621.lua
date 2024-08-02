@@ -1,4 +1,3 @@
--- Haii Prisuhm :3
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
 local SCRIPT_VERSION = "3.2.4"
