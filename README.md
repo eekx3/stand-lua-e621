@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.2.4** 02/08/2024 17:42
+
+Some improvements made
+
 ## **e621 v3.2.3** 01/08/2024 21:07
 
 - Removed `Weapons > Lock On To Players`
