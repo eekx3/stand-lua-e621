@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.4"
+local SCRIPT_VERSION = "3.2.5"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -47,6 +47,12 @@ if SCRIPT_MANUAL_START then
     end)
 end
 
+util.ensure_package_is_installed('lua/auto-updater')
+local auto_updater = require('auto-updater')
+if auto_updater == true then
+    auto_updater.run_auto_update(auto_update_config)
+end
+
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
 if not status then
@@ -75,7 +81,7 @@ local auto_update_config = {
     source_url="https://raw.githubusercontent.com/eekx3/stand-lua-e621/main/e621.lua",
     script_relpath=SCRIPT_RELPATH
 }
--- auto_updater.run_auto_update(auto_update_config)
+auto_updater.run_auto_update(auto_update_config)
 
 local GlobalplayerBD = 2657971
 local GlobalplayerBD_FM = 1845281
@@ -438,6 +444,10 @@ local e621_woof = {
     "WOOF BARK GRRR!", "WOOOF ARF ARF BARK!", "BARK WOOOF GRRR WOOF!", "WOOOF BARK BARK!", "GRRR WOOOF ARF ARF!",
 }
 
+local e621_pubby = {
+    "BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF",
+}
+
 local developerNames = {
     ["PuppyPaws-"] = true,
     ["PuppyPaws--"] = true,
@@ -780,26 +790,6 @@ util.create_tick_handler(function()
     end
 end)
 
-local shortcuts = {
-    { name = "Restart Script", command = {"rsc"}, description = "", action = function() util.restart_script() end },
-    { name = "Developer Mode", command = {"devmode"}, description = "", toggle = function()
-            developer_mode_enabled = not developer_mode_enabled
-            if developer_mode_enabled then
-                menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>Developer"))
-                menu.trigger_commands("notifyx 10")
-                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Aiming...>Show Model Name"))
-                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Shooting...>Show Model Name"))
-                menu.trigger_command(menu.ref_by_path("World>Inhabitants>NPC Aim Punishments>Show Model Name"))
-            else
-                menu.trigger_command(menu.ref_by_path("Stand>Lua Scripts>Settings>Presets>User"))
-                menu.trigger_commands("notifyx -420")
-                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Aiming...>Show Model Name"))
-                menu.trigger_command(menu.ref_by_path("Self>Weapons>When Shooting...>Show Model Name"))
-                menu.trigger_command(menu.ref_by_path("World>Inhabitants>NPC Aim Punishments>Show Model Name"))
-            end
-        end 
-    },
-}
 local sessionShortcuts = {
     { name = "New Session", command = {"ns"}, description = "", action = function() menu.trigger_commands("go solopublic") end },
     { name = "Find Session", command = {"fs"}, description = "", action = function() menu.trigger_commands("go public") end },
@@ -865,14 +855,6 @@ for _, shortcut in ipairs(sessionShortcuts) do
     end
 end
 
-for _, shortcut in ipairs(shortcuts) do
-    if shortcut.toggle then
-        menu.toggle(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
-    else
-        menu.action(e621ShortcutsMenu, shortcut.name, shortcut.command, shortcut.description, shortcut.action)
-    end
-end
-
 menu.set_visible(e621ShortcutsMenu, false)
 local e621ShortcutsMenu_visible = false
 
@@ -880,10 +862,9 @@ local toggle_shortcuts_action = misc:toggle("Toggle Shortcuts", {}, "Note: The s
     e621ShortcutsMenu_visible = enabled
     menu.set_visible(e621ShortcutsMenu, e621ShortcutsMenu_visible)
 end)
-local developer_mode_enabled = false
 
 menu.action(misc, "Check For Update", {}, "The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
-    auto_update_config.check_interval = 0
+    auto_update_config.check_interval = 69420
     util.toast("Checking for updates")
     auto_updater.run_auto_update(auto_update_config)
 end)
@@ -1654,24 +1635,25 @@ local function tag_sender_as_e621_user(sender)
     end
 end
 chat.on_message(function(sender, reserved, text, team_chat, networked, is_auto)
-    if not is_auto then
-        if not players.is_typing(sender) then
-            for _, msg in ipairs(e621_meow) do
-                if text == msg then
-                    tag_sender_as_e621_user(sender)
-                    return
-                end
-            end
-
-            for _, msg in ipairs(e621_woof) do
-                if text == msg then
-                    tag_sender_as_e621_user(sender)
-                    return
-                end
-            end
-
-            if text == e621_horny_puppy then
+    if not is_auto and not players.is_typing(sender) then
+        for _, msg in ipairs(e621_meow) do
+            if text == msg then
                 tag_sender_as_e621_user(sender)
+                return
+            end
+        end
+
+        for _, msg in ipairs(e621_woof) do
+            if text == msg then
+                tag_sender_as_e621_user(sender)
+                return
+            end
+        end
+
+        for _, msg in ipairs(e621_pubby) do
+            if text == msg then
+                tag_sender_as_e621_user(sender)
+                return
             end
         end
     end
