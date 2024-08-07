@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.2.5** 07/08/2024 07:24
+
+Some more improvements and bugfixes
+
 ## **e621 v3.2.4** 02/08/2024 17:42
 
 Some improvements made
