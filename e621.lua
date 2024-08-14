@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.5"
+local SCRIPT_VERSION = "3.2.6"
 
 local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
@@ -403,45 +403,40 @@ local e621_meow = {
     "Purrrrrrr... *curls up*", "Meow!", "Meow meow meow...", "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW",
     "MRRRRPP", "Nya!", "Nya nya!", "Purr, purr, nya!", "Purr, purr, meow, meow!", "Meow, meow, purr!",
     "Nya, nya, purr!", "MEOWOMEWEWE MEOOWWW", "Mmrpfh.. Meoww", "MEOWOMEWEWE MEOOWWW", "Meow meow meow...",
-    "MEMEOEMWEMMOWEWEEMOWWWW", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
-    "MEMEOEMWEMMOWEWEEMOWWWW!!", "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
-    "MRPPP MEOOW MEMEOW", "MEMEOW MEOOWWWW", "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP",
-    "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEEEOWWWW", "MEOWW... MEOWWW", "MEOOOW MRRPPP", "Nyaa~", "Nyaa nyaa!",
-    "Meowww... purr...", "Nyaa meow!", "Purr nya nya!", "Meow purr nya!", "Nyaa nyaa... meow!", "Meow meow purr purr!",
-    "Nyaa... *stretches*", "Meow! Purr!", "Meow... nya~", "Meow meow... nya!", "Nyaa... time to nap.", "Meow meow nyaa~",
-    "Purr... nya...", "Nyaa... purr purr!", "Meow purr... nyaa!", "Nyaa meow meow!", "Meow meow... *rolls over*",
-    "Meow... purr purr!", "Nyaa nyaa... purr!", "Meow... *purrs loudly*", "Nyaa~ purr meow!", "Purr purr... nyaa meow!",
+    "Purr.. get fucked", "MEOWEWME MEOW MEOWWW MEOEEWWOWW", "MRRRRPP", "MEOWOMEWEWE MEOOWWW! Time for a cat nap.",
+    "MRRRRPP, meow!", "MEOWEWME... *licks paw*", "MEOOOOWWW MRRRPPP", "MEOWMEW MEMEOWWW",
+    "MEOW MEOW MEMEOWWW", "MEMEMEM MEOWWWW", "MEOWOWOW MRRPPP", "MEOW MEW MEOWWWW", "MEOOOWWW MEMEOWWWW", "MEOWWW... MEEEEEOWWWW",
+    "MEOOOW MRRPPP", "Nyaa", "Nyaa nyaa!", "Meowww... purr...", "Nyaa meow!", "Purr nya nya!", "Meow purr nya!", "Nyaa nyaa... meow!", 
+    "Meow meow purr purr!", "Nyaa... *stretches*", "Meow! Purr!", "Meow... nya *licks chain*", "Meow meow... nya!", "Nyaa... time to nap.", 
+    "Meow meow nyaa", "Purr... nya...", "Nyaa... purr purr!", "Meow purr... nyaa!", "Nyaa meow meow!", "Meow meow... *rolls over*",
+    "Meow... purr purr!", "Nyaa nyaa... purr!", "Meow... *purrs loudly*", "Nyaa purr meow!", "Purr purr... nyaa meow!",
     "Meow meow nyaa purr!", "Nyaa... *licks paw*", "Mew mew!", "Nyaa! *purrs softly*", "Meowww... I'm hungry!", "Nyaa... play with me!",
     "Mew, mew, meow... *playful pounce*", "Meow... *jumps on lap*", "Nyaa... let’s cuddle!", "Purr... nyaa, purr!", "Meow, meow, nyaa!",
-    "Nyaa... time for a snack!", "Mew, purr, meow!", "Purr... *rolls over happily*", "Meow! *paw taps*", "Nyaa! *chases tail*",
+    "Nyaa... Snack time!", "Mew, purr, meow!", "Purr... *rolls over happily*", "Meow! *paw taps*", "Nyaa! *chases tail*",
     "Mew mew, purr purr!", "Nyaa... *stretches and purrs*", "Meow... *bat at string*", "Purr... *nuzzles*", "Nyaa, meow!",
-    "Meowww... purr softly", "Nyaa meow meow!", "Purr nya... *curled up*", "Meow, purr... *looking around*", "Nyaa! *paw kneading*",
+    "Meowww... *purrs softly*", "Nyaa meow meow!", "Purr.. Nya!", "Meow, purr...", "Nyaa! *paw kneading*",
 }
 
 local e621_woof = {
     "Bark bark woof!", "Woof woof bark!", "Bark bark... woof!", "Woof woof bark bark!", "Woof woof!",
-    "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof woof woof woof!", "Woof... *wags tail*",
-    "Arffff...", "Arf arf arf!", "Woof woof arf arf!", "WOOF WOOF WOOF BARKBAKRABRK", "BARKBARK",
-    "WOFOOWOFWWF WOOF", "BARKARBAKRK WOOF WOOF", "BARK BARK WOOOF!", "WOOOF WOOF WOOF WOOF",
-    "WOOF WOOF... bark bark!", "BARK! WOOF! BARK!", "BARKBARK WOOF", "WOOF WOOOF WOOF",
-    "BARKBARK! Time to play!", "WOOF WOOOF WOOF WOOOF!", "BARK BARK WOOF WOOF", "BARK! WOOF! BARK! WOOF!",
-    "WOOF WOOF... *sniffs*", "BARK BARK... WOOF!", "WOOF WOOF! Let's go!", "BARK WOOF WOOF BARK",
-    "WOOF WOOOF WOOF! BARK!", "*Wags tail*", "Aruff!", "Woof arf arf!", "Woof woof woof!", "Awoo!",
-    "Bark bark arf!", "Arf arf bark!", "Bark bark woof!", "Woof... awoo!", "Aruff aruff!", "Awoo bark!",
-    "Arf arf aruff!", "Woof woof... aruff!", "Bark bark awoo!", "Awoo woof woof!", "Woof woof bark bark!",
-    "Arf arf awoo!", "Awoo arf arf!", "Bark bark bark!", "Woof woof bark bark bark!", "Bark bark woof arf!",
-    "Awoo bark bark!", "Woof... aruff aruff!", "Bark bark bark!", "Woof woof aruff bark!", "Bark bark awoo woof!",
-    "Awoo woof... bark!", "Arf arf... woof woof!", "Woof woof... awoo!", "Bark bark bark bark!", "Awoo... *wags tail*",
+    "Bark bark!", "Arf arf!", "Arf arf woof!", "Woof... *wags tail*", "Arffff...",
+    "Aruff!", "Woof arf arf!", "Awoo!", "Bark bark arf!", "Arf arf bark!",
+    "Woof... awoo!", "Aruff aruff!", "Awoo bark!", "Arf arf aruff!", "Woof woof... aruff!",
+    "Bark bark awoo!", "Awoo woof woof!", "Woof woof bark bark!", "Arf arf awoo!", "Awoo arf arf!",
+    "Awoo bark bark!", "Woof... aruff aruff!", "Woof woof aruff bark!", "Bark bark awoo woof!",
+    "Awoo woof... bark!", "Arf arf... woof woof!", "Woof woof... awoo!", "Awoo... *wags tail*",
     "Woof woof aruff woof!", "Bark bark awoo arf!", "Woof... awoo arf!", "Awoo arf bark!", "Aruff bark bark!",
-    "Woof woof... bark bark bark!", "Bark bark bark woof!", "Woof woof arf arf arf!", "Awoo... bark bark!",
-    "WOOFOWOFWFOWOOF WOOOFFFF WOOF AWOOO", "BARKABARK BARK BARK WOOF", "AWWOOOO.. WOOFF WOOFF", "Grrrrr.. Arufff",
-    "WOOOF WOOOF WOOOF WOOOF!", "GRRR WOOOF WOOOF!", "WOOOF! BARK BARK WOOF!", "ARF ARF WOOOF!", "WOOOF WOOF BARK!",
-    "BARK BARK WOOOF WOOOF!", "WOOF WOOOF ARF ARF!", "GRRRR... WOOF BARK!", "BARK BARK GRRR!", "AWOOOO WOOF WOOF!",
-    "RUFF RUFF! WOOF WOOF!", "BARK WOOOF GRRRR!", "WOOF WOOOF! ARF ARF!", "WOOF BARK WOOOF!", "GRRR BARK BARK WOOOF!",
-    "WOOOF ARF ARF GRRRR!", "WOOF WOOF BARK BARK!", "AWOOOO WOOOF WOOOF!", "BARK WOOOF ARF!", "GRRRR WOOF WOOOF!",
-    "WOOF WOOF! BARK BARK!", "ARF ARF WOOOF GRRRR!", "BARK BARK WOOF WOOF!", "WOOOF WOOOF ARF!", "GRRR BARK WOOF WOOOF!",
-    "AWOOOO BARK BARK!", "WOOOF GRRR WOOF!", "WOOF WOOOF BARK ARF!", "RUFF WOOF WOOF!", "WOOOF WOOOF BARK!",
-    "WOOF BARK GRRR!", "WOOOF ARF ARF BARK!", "BARK WOOOF GRRR WOOF!", "WOOOF BARK BARK!", "GRRR WOOOF ARF ARF!",
+    "Awoo... bark bark!", "I'm a good little pet, ruff ruff :3", "Leash me like the good puppy I am!",
+    "WOOOF WOOOF!", "GRRRR... WOOF BARK!", "AWOOOO WOOF WOOF!", "RUFF RUFF! WOOF WOOF!", 
+    "WOOOF WOOOF! ARF ARF!", "GRRR BARK WOOOF!", "WOOF WOOOF ARF!", "GRRR WOOF WOOOF!", "BREASTFEED MEEE!!!!!!!!!!!!!",
+    "AWOOOO BARK BARK!", "Collar me! Ruff ruff!", "WOOF WOOOF BARK ARF!", "RUFF WOOF WOOF!",
+    "Pet me! Ruff ruff!", "WOOF WOOF... treat time?", "GRRR... but only a little!", "BARK BARK WOOF... *rolls over*",
+    "I'm your loyal puppy, ruff!", "Woof woof! Let's cuddle!", "Awoo... please pet me!", "BARK! Feed me treats!", 
+    "WOOOF WOOOF... I'm a good puppy! :3", "Awoo... belly rubs?", "Woof woof... time for walkies!", 
+    "Ruff ruff... let's play!", "Have I been a good dog?", "Awoo... cuddle time?", "WOOF WOOOF... let's go for a run!", 
+    "Arf arf... chase me!", "Aruff ruff.. Can we cuddle?", "BARK BARK... I'm so excited!", "Awoo... let's have fun!",
+    "Woof woof... can we play? :3", "Ruff ruff... pet me more!", "WOOF WOOOF... I'm ready for adventures!",
+    "Arf.. Pet me please", "BARK BARK... I love you!", "I'm a good puppy I promise :3", "BOOBIES!! ARF ARF ARF",
 }
 
 local e621_pubby = {
@@ -449,10 +444,7 @@ local e621_pubby = {
 }
 
 local developerNames = {
-    ["PuppyPaws-"] = true,
-    ["PuppyPaws--"] = true,
     ["Lorelei--"] = true,
-    ["HerKitty--"] = true,
 }
 
 local root = menu.my_root()
@@ -687,6 +679,40 @@ local function getSeatPedIsIn(ped)
 	end
 end
 
+local function getWaterHeightInclRivers(pos_x, pos_y, z_hint)
+    local outHeight = memory.alloc(4)
+    if TEST_VERTICAL_PROBE_AGAINST_ALL_WATER(pos_x, pos_y, z_hint or 200.0, 0, outHeight) ~= 0 then
+        return memory.read_float(outHeight)
+    end
+end
+
+local function deleteEntities(entityTable)
+    for _, entity in ipairs(entityTable) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
+        SET_ENTITY_AS_MISSION_ENTITY(entity)
+        entities.delete_by_handle(entity)
+    end
+end
+
+local function loadModelAsync(hash)
+    REQUEST_MODEL(hash)
+    while not HAS_MODEL_LOADED(hash) do
+        util.yield()
+    end
+end
+
+local function DelEnt(ent_table)
+    for _, ent in ipairs(ent_table) do
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(ent)
+        SET_ENTITY_AS_MISSION_ENTITY(ent)
+        entities.delete_by_handle(ent)
+    end
+end
+
+local function Streament(hash)
+    loadModelAsync(hash)
+end
+
 local function handle_player_list(pid)
     local ref = menus[pid]
     if not players.exists(pid) then
@@ -802,11 +828,11 @@ local sessionShortcuts = {
 }
 
 local creditsList = {
-    { name = "Lillium", description = "Cutie :3" },
-    { name = "SetThreadContext", description = "Helping me understand how stuff works and giving me some things to copy paste" },
+    { name = "Nui", description = "Helping me understand how stuff works and giving me some things to copy paste" },
     { name = "Kreeako", description = "Fixed the code for the EWO function and had 'DisableLoveLetterKickNotificationsWhileHost' appended to the script without her knowledge." },
+    { name = "Lillium", description = "Cutie :3" },
     { name = "Ilana", description = "" },
-    { name = "SimeonFootJobs", description = "SimeonCheapFootJobs" },
+    { name = "SimeonFootJobs", description = "SimeonFootJobs" },
 }
 
 if not SCRIPT_SILENT_START then
@@ -826,6 +852,7 @@ local game = my_root:list("Game")
 local misc = my_root:list("Miscellaneous")
 --#menus
 local selfMovement = self:list("Movement")
+local waterWalk = selfMovement:list("Walk on Water")
 local selfMacros = self:list("Macros")
 local vehicleCustomisation = vehicle:list("Vehicle Customisation")
 local vehicleMovement = vehicle:list("Movement")
@@ -927,6 +954,36 @@ players.dispatch_on_join()
 
 ---#self
 --#selfMovement
+local block
+local blocks = {}
+local waterwalk = { height = -0.3 }
+
+waterWalk:toggle_loop(('Walk on Water'), {'waterwalk'}, ('Walk on water. If you are in the water, it will keep you above it.'), function (on)
+    local pos = GET_ENTITY_COORDS(players.user_ped(), true)
+    local waterHeight = getWaterHeightInclRivers(pos.x, pos.y)
+    if waterHeight ~= nil then
+        local blockh = util.joaat('sr_prop_special_bblock_sml1')
+        Streament(blockh)
+        if block == nil then
+            block = CREATE_OBJECT(blockh, pos.x, pos.y, waterHeight, true, true, true)
+            table.insert(blocks, block)
+        end
+        if DOES_ENTITY_EXIST(block) then
+            SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, waterHeight + waterwalk.height, false, false, false)
+            SET_ENTITY_VISIBLE(block, false, 0)
+        end
+    else
+        DelEnt(blocks)
+        block = nil
+    end
+end, function ()
+    DelEnt(blocks)
+    block = nil
+end)
+waterWalk:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
+   waterwalk.height = h * 0.01
+end)
+
 local original_coords = nil
 selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
     local me = players.user_ped()
