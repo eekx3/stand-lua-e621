@@ -5,15 +5,15 @@
 ## **e621 v3.2.6** 12/08/2024 23:38
 
 - Added `Walk/Drive on Water` back as just `Walk on Water`
-Some more improvements
+- Some more improvements
 
 ## **e621 v3.2.5** 07/08/2024 07:24
 
-Some more improvements and bugfixes
+- Some more improvements and bugfixes
 
 ## **e621 v3.2.4** 02/08/2024 17:42
 
-Some improvements made
+- Some improvements made
 
 ## **e621 v3.2.3** 01/08/2024 21:07
 
