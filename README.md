@@ -2,6 +2,11 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.2.6** 12/08/2024 23:38
+
+- Added `Walk/Drive on Water` back as just `Walk on Water`
+Some more improvements
+
 ## **e621 v3.2.5** 07/08/2024 07:24
 
 Some more improvements and bugfixes
