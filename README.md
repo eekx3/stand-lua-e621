@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.3.1** 15/08/2024 23:19
+
+- Fixed minor spelling mistake causing `Walk on Water` to not work
+
 ## **e621 v3.3.0** 15/08/2024 13:16
 
 Bumped to version 3.3.0
