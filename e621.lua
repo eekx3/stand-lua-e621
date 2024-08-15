@@ -1,8 +1,10 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
 local SCRIPT_VERSION = "3.2.6"
+local resources_dir = filesystem.resources_dir() .. '\\e621\\'
+local store_dir = filesystem.store_dir() .. '\\e621\\'
 
-local isDebugMode = false
+-- local isDebugMode = false
 local joaat, toast, yield, draw_debug_text, reverse_joaat = util.joaat, util.toast, util.yield, util.draw_debug_text, util.reverse_joaat
 
 local supported_game_version <const> = "1.69-3274"
@@ -12,8 +14,6 @@ end
 
 if SCRIPT_MANUAL_START then
 end
-local resources_dir = filesystem.resources_dir() .. '\\e621\\'
-local store_dir = filesystem.store_dir() .. '\\e621\\'
 local start_loading = directx.create_texture(resources_dir .. 'start.png')
 if SCRIPT_MANUAL_START then
     logo_alpha = 0
@@ -453,9 +453,9 @@ local carPitch = 0
 local camYaw = 0
 local camPitch = 0
 local carFlySpeedSelect = 5
-local vehicleFly
+local vehiclefly
 local carFlySpeed = carFlySpeedSelect*10
-local vehicleFlyCheck
+local vehicleflyCheck
 local noClipCar
 local yourself
 local carUsed
@@ -635,6 +635,36 @@ function getTeamID(playerID)
 	if net_obj != 0 and teamID != 6 then
 		return teamID
 	end
+end
+
+local function pressKey(keyCode, times, duration)
+    if times then
+        for i = 1, times do
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+            util.yield()
+            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+            util.yield(10)
+        end
+    else
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
+        util.yield()
+        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
+    end
+    if duration then
+        util.yield(duration)
+    end
+end
+
+local function openInteractionMenu()
+    if not util.is_interaction_menu_open() then
+        pressKey(244) -- Press M to open the interaction menu
+        util.yield(8) -- Wait for menu to open
+    end
+end
+
+local function isPlayerInORG()
+    local orgType = players.get_org_type(players.user())
+    return orgType == 0  -- 0 = CEO, 1 = MC, -1 = None
 end
 
 local function getInstanceID(playerID)
@@ -835,37 +865,35 @@ local creditsList = {
     { name = "SimeonFootJobs", description = "SimeonFootJobs" },
 }
 
-if not SCRIPT_SILENT_START then
-    util.toast("HIHHIHIHIHIHI " .. players.get_name(players.user()) .. " !! :3\nWELCOMEEEE CUTIE, MWUAHHH~ >~<" .. "\ne621 - v" .. SCRIPT_VERSION)
-end
-
---#root
+local localuser = players.get_name(players.user())
+util.show_corner_help($"HIHHIHIHIHIHI {localuser} !! :3\nWELCOMEEEE CUTIE, MWUAHHH \nYou're using ~r~e621.lua - v{SCRIPT_VERSION}~w~")
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local my_root = menu.my_root()
 local self = my_root:list("Self")
 local weapons = my_root:list("Weapons")
 local vehicle = my_root:list("Vehicle")
-local playersList = my_root:list("Players")
+local playerlist = my_root:list("Players")
 local online = my_root:list("Online")
 local lobby = my_root:list("Lobby")
 local world = my_root:list("World")
 local game = my_root:list("Game")
 local misc = my_root:list("Miscellaneous")
---#menus
-local selfMovement = self:list("Movement")
-local waterWalk = selfMovement:list("Walk on Water")
-local selfMacros = self:list("Macros")
-local vehicleCustomisation = vehicle:list("Vehicle Customisation")
-local vehicleMovement = vehicle:list("Movement")
-local vehicleFly = vehicleMovement:list("Vehicle Fly")
-local onlineChat = online:list("Chat")
-local onlinePreMSG = onlineChat:list("Chat - Preset Messages", {}, "Set and save messages that you can send at any time.")
-local lobbyTrolling = lobby:list("Trolling")
-local lobbyGriefing = lobby:list("Griefing")
+
+local selfmovement = self:list("Movement")
+local waterwalk = selfmovement:list("Walk on Water")
+local selfmacros = self:list("Macros")
+local vehiclecustomisation = vehicle:list("Vehicle Customisation")
+local vehiclemovement = vehicle:list("Movement")
+local vehiclefly = vehiclemovement:list("Vehicle Fly")
+local onlinechat = online:list("Chat")
+local onlinepremsg = onlinechat:list("Chat - Preset Messages", {}, "Set and save messages that you can send at any time.")
+local lobbytrolling = lobby:list("Trolling")
+local lobbygriefing = lobby:list("Griefing")
 local protections = online:list("Protections")
 local detections = protections:list("Detections")
 local enhancements = online:list("Enhancements")
 local freemodetweaks = online:list("Freemode Tweaks")
-local hudSettings = game:list("HUD")
+local hudsettings = game:list("HUD")
 local audioSettings = game:list("Audio")
 local teleports = world:list("Teleports")
 local cleanse = world:list("Clear area")
@@ -873,7 +901,7 @@ local credits = misc:list("Credits")
 local e621githubHyperlink = misc:hyperlink("Changelog", "https://github.com/eekx3/stand-lua-e621", "")
 local e621ShortcutsMenu = menu.list(misc, "Shortcuts", {}, "", function() end)
 local sessionSubmenu = menu.list(e621ShortcutsMenu, "Session Shortcuts", {}, "", function() end)
-
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 for _, shortcut in ipairs(sessionShortcuts) do
     if shortcut.toggle then
         menu.toggle(sessionSubmenu, shortcut.name, shortcut.command, shortcut.description, shortcut.toggle)
@@ -910,7 +938,7 @@ local hasLink = {}
 local function create_player_menu(playerID)
     if NETWORK_IS_SESSION_ACTIVE() and not menus[playerID] then
         local playerRoot = menu.player_root(playerID)
-        menus[playerID] = playersList:list(players.get_name(playerID), {}, "", function()
+        menus[playerID] = playerlist:list(players.get_name(playerID), {}, "", function()
             if not hasLink[playerID] then
                 local spectateRef = menu.ref_by_rel_path(playerRoot, "Spectate")
                 local griefingRef = menu.ref_by_rel_path(playerRoot, ">:33>Griefing")
@@ -952,13 +980,16 @@ players.on_join(create_player_menu)
 players.on_leave(handle_player_list)
 players.dispatch_on_join()
 
----#self
---#selfMovement
+
+-------------------
+-- Self 
+---- Self Movement
+-------------------
+
 local block
 local blocks = {}
-local waterwalk = { height = -0.3 }
-
-waterWalk:toggle_loop(('Walk on Water'), {'waterwalk'}, ('Walk on water. If you are in the water, it will keep you above it.'), function (on)
+local waterwalkh = { height = -0.3 }
+waterwalk:toggle_loop(('Walk on Water'), {"waterwalk"}, ('Walk on water. If you are in the water, it will keep you above it.'), function (on)
     local pos = GET_ENTITY_COORDS(players.user_ped(), true)
     local waterHeight = getWaterHeightInclRivers(pos.x, pos.y)
     if waterHeight ~= nil then
@@ -969,7 +1000,7 @@ waterWalk:toggle_loop(('Walk on Water'), {'waterwalk'}, ('Walk on water. If you 
             table.insert(blocks, block)
         end
         if DOES_ENTITY_EXIST(block) then
-            SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, waterHeight + waterwalk.height, false, false, false)
+            SET_ENTITY_COORDS_NO_OFFSET(block, pos.x, pos.y, waterHeight + waterwalkh.height, false, false, false)
             SET_ENTITY_VISIBLE(block, false, 0)
         end
     else
@@ -980,12 +1011,12 @@ end, function ()
     DelEnt(blocks)
     block = nil
 end)
-waterWalk:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
+waterwalk:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
    waterwalk.height = h * 0.01
 end)
 
 local original_coords = nil
-selfMovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
+selfmovement:toggle("AFK", {"afk"}, "Will bring you back to your original position after you turn this off.", function(on)
     local me = players.user_ped()
     if on then
         if me ~= nil then
@@ -1034,7 +1065,7 @@ local spoofedPos = menu.ref_by_path("Online>Spoofing>Position Spoofing>Spoofed P
 local superJump = menu.ref_by_path("Self>Movement>Super Jump")
 local gracefulLanding = menu.ref_by_path("Self>Movement>Graceful Landing")
 local stealthLevitation
-stealthLevitation = selfMovement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
+stealthLevitation = selfmovement:toggle_loop("Stealth Levitation", {"stealthlevitation"}, "", function()
 	if levitation.value then
 		vehInvisibility:setState("Locally Visible")
 		invisibility:setState("Locally Visible")
@@ -1052,38 +1083,13 @@ end, function()
 	vehInvisibility:setState("Disabled")
 end)
 
-local function pressKey(keyCode, times, duration)
-    if times then
-        for i = 1, times do
-            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-            util.yield()
-            SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
-            util.yield(10)
-        end
-    else
-        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-        util.yield()
-        SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
-    end
-    if duration then
-        util.yield(duration)
-    end
-end
 
-local function openInteractionMenu()
-    if not util.is_interaction_menu_open() then
-        pressKey(244) -- Press M to open the interaction menu
-        util.yield(8) -- Wait for the menu to open
-    end
-end
+-------------------
+-- Macros
+-------------------
 
-local function isPlayerInCEO()
-    local orgType = players.get_org_type(players.user())
-    return orgType == 0  -- 0 represents CEO, 1 represents Motorcycle Club, -1 represents none
-end
-
-selfMacros:action("Start CEO", {}, "", function()
-    if not isPlayerInCEO() then
+selfmacros:action("Start CEO", {}, "", function()
+    if not isPlayerInORG() then
         pressKey(244) -- Press M
         util.yield(2)
         pressKey(173) -- Press Down Arrow once
@@ -1091,7 +1097,7 @@ selfMacros:action("Start CEO", {}, "", function()
     end
 end)
 
-selfMacros:action("Get BST", {}, "", function()
+selfmacros:action("Get BST", {}, "", function()
     openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
@@ -1109,7 +1115,7 @@ selfMacros:action("Get BST", {}, "", function()
     pressKey(176) -- Press Enter
 end)
 
-selfMacros:action("Drop Armour", {}, "", function()
+selfmacros:action("Drop Armour", {}, "", function()
     openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
@@ -1124,7 +1130,7 @@ selfMacros:action("Drop Armour", {}, "", function()
     
 end)
 
-selfMacros:action("Ghost Organization", {}, "", function()
+selfmacros:action("Ghost Organization", {}, "", function()
     openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
@@ -1138,7 +1144,7 @@ selfMacros:action("Ghost Organization", {}, "", function()
     pressKey(176) -- Press Enter
 end)
 
-selfMacros:action("Bribe Authorities", {}, "", function()
+selfmacros:action("Bribe Authorities", {}, "", function()
     openInteractionMenu()
     util.yield(5)
     pressKey(176) -- Press Enter
@@ -1178,7 +1184,10 @@ self:toggle("Enable EWO Only On Foot", {}, "If enabled, EWO will only work if yo
 end)
 
 
----#weapons
+-------------------
+-- Weapons
+-------------------
+
 weapons:toggle_loop("Fast Hands", {"fasthands"}, "Swaps your weapons faster.", function()
     if GET_IS_TASK_ACTIVE(players.user_ped(), 56) then
         FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
@@ -1215,8 +1224,11 @@ end, function()
     lastMiscExecutionTime = 0
 end)
 
----#vehicle
---#accesslockedvehicle
+
+-------------------
+-- Vehicle
+-------------------
+
 vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", function()
 	local vehicle = GET_VEHICLE_PED_IS_USING(players.user_ped())
 	SET_VEHICLE_DOORS_LOCKED_FOR_PLAYER(vehicle, players.user(), false)
@@ -1224,7 +1236,6 @@ vehicle:toggle_loop("Access Locked Vehicles", {"accesslockedvehicles"}, "", func
 	SET_VEHICLE_EXCLUSIVE_DRIVER(vehicle, 0, 0)
 end)
 
---#disablevehgod
 vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 	local vehicle = entities.get_user_vehicle_as_handle()
 	if entities.is_invulnerable(vehicle) then
@@ -1234,7 +1245,11 @@ vehicle:toggle_loop("Disable Vehicle God On Exit", {}, "", function()
 	end
 end)
 
---#pearlescents
+
+-------------------
+-- Vehicle LSC
+-------------------
+
 local colourCategories = {
     Black = {"Black", "Graphite", "Anthracite", "Gun Metal"},
     Gray = {"Gray", "Silver", "Steel", "Shadow", "Stone"},
@@ -1286,7 +1301,7 @@ local function createOnClickHandler(pearlIndex)
     end
 end
 
-local pearlmenulist = menu.list(vehicleCustomisation, "Change Pearl", {""}, "")
+local pearlmenulist = menu.list(vehiclecustomisation, "Change Pearl", {""}, "")
 local sortedCategories = {}
 for category, _ in pairs(colourCategories) do
     if category ~= "Misc" then
@@ -1306,8 +1321,12 @@ for _, pearl in ipairs(pearlList) do
     menu.action(submenus[pearl.category], pearl.name, {""}, "", createOnClickHandler(pearl.index))
 end
 
---#nitrous
-local nitrous = vehicleMovement:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
+
+-------------------
+-- Vehicle Movement
+-------------------
+
+local nitrous = vehiclemovement:list("Nitrous", {}, "Note: Other players can also see this, but, their game will have to load the ptfx asset on their side. The game usually does this rather quickly but sometimes it just doesn't load for others.")
 local durationMod = 1.0
 nitrous:slider_float("Duration", {"duration"}, "The amount of seconds that the nitrous will last.", 100, 1000, 300, 50, function(value)
 	durationMod = value/300 -- this seems to be the exact conversion for converting the float to seconds
@@ -1342,7 +1361,6 @@ nitrous:toggle_loop("Disable In Air", {}, "", function(toggled)
 	end
 end)
 
-
 local nitrousPtfxActive = false
 nitrous:action("Load PTFX For Nearby Players", {"loadnitrousptfx"}, "Loads the nitrous PTFX for nearby players so that they can also see the flames.", function() 
 	local vehicle = entities.get_user_vehicle_as_handle()
@@ -1360,7 +1378,6 @@ nitrous:action("Load PTFX For Nearby Players", {"loadnitrousptfx"}, "Loads the n
 	toast("PTFX should now be loaded for nearby players. :D")
 	nitrousPtfxActive = false
 end)
-
 
 local clearedNitrous = false
 local nitrousTgl
@@ -1384,7 +1401,7 @@ end, function()
 	clearedNitrous = false
 end)
 
-local flamethrowerTune = vehicleMovement:list("Flamethrower Tune", {}, "")
+local flamethrowerTune = vehiclemovement:list("Flamethrower Tune", {}, "")
 local redline
 redline = flamethrowerTune:toggle_loop("On Redline", {}, "", function()
 	if not nitrousTgl.value then 
@@ -1473,8 +1490,12 @@ flamethrowerTune:action("Load PTFX For Nearby Players", {}, "Loads the nitrous P
 	menu.trigger_commands("loadnitrous")
 end)
 
---#vehicleFly
-vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
+
+-------------------
+-- Vehicle fly
+-------------------
+
+vehiclefly:toggle_loop("Vehicle Fly", {""}, "", function()
     yourself = GET_PLAYER_PED(players.user())
     carUsed = GET_VEHICLE_PED_IS_IN(yourself, false)
     SET_ENTITY_COLLISION(carUsed, true, true)
@@ -1526,17 +1547,54 @@ vehicleFly:toggle_loop("Vehicle Fly", {""}, "", function()
         SET_ENTITY_COLLISION(carUsed, true, true)
     end
 end)
-vehicleFly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
+vehiclefly:slider("Fly Speed", {}, "", 1, 100, 5, 1, function(a)
     carFlySpeedSelect = a
 end)
-vehicleFly:toggle("Keep Momentum", {}, "", function(a)
+vehiclefly:toggle("Keep Momentum", {}, "", function(a)
     keepMomentum = a
 end)
 
----#online
---#onlineChat
+
+-------------------
+-- Chat
+-------------------
+
+local customChatMessages = {"", "", "", "", "", "", "", ""}
+onlinepremsg:text_input("Slot 1", {"1"}, "", function(input)
+    customChatMessages[1] = input
+end)
+onlinepremsg:text_input("Slot 2", {"2"}, "", function(input)
+    customChatMessages[2] = input
+end)
+onlinepremsg:text_input("Slot 3", {"3"}, "", function(input)
+    customChatMessages[3] = input
+end)
+onlinepremsg:text_input("Slot 4", {"4"}, "", function(input)
+    customChatMessages[4] = input
+end)
+onlinepremsg:text_input("Slot 5", {"5"}, "", function(input)
+    customChatMessages[5] = input
+end)
+onlinepremsg:text_input("Slot 6", {"6"}, "", function(input)
+    customChatMessages[6] = input
+end)
+onlinepremsg:text_input("Slot 7", {"7"}, "", function(input)
+    customChatMessages[7] = input
+end)
+onlinepremsg:text_input("Slot 8", {"8"}, "", function(input)
+    customChatMessages[8] = input
+end)
+onlinepremsg:click_slider("Send Message", {"sm"}, "Select the index (1-8) of the message you want to send.", 1, 8, 1, 1, function(index, click_type)
+    local idx = tonumber(index)
+    if customChatMessages[idx] and customChatMessages[idx] ~= "" then
+        chat.send_message(customChatMessages[idx], false, true, true)
+    else
+        util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
+    end
+end)
+
 local strip_club_visitors = {}
-onlineChat:toggle_loop('Announce Strip Club Visitors', {}, '', function()
+onlinechat:toggle_loop('Announce Strip Club Visitors', {}, '', function()
     for players.list(true, true, true) as pid do 
         local player_pos = players.get_position(pid)
         local strip_club_pos = v3.new({ x = 117.838844, y = -1292.0425, z = 29})
@@ -1550,7 +1608,7 @@ onlineChat:toggle_loop('Announce Strip Club Visitors', {}, '', function()
     end
 end)
 
-onlineChat:toggle_loop("Humiliate Horny Players", {}, "Will humiliate horny players that are trying to solicit a prostitute by making fun of them in chat.", function()
+onlinechat:toggle_loop("Humiliate Horny Players", {}, "", function()
 	for players.list_except() as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 		local vehicle = GET_VEHICLE_PED_IS_USING(ped)
@@ -1575,54 +1633,66 @@ local function send_specific_message(message)
     chat.send_message(message, false, true, true)
 end
 
-onlineChat:action("Meow >///<", {"meow", "nya"}, "", function()
+onlinechat:action("Meow >///<", {"meow", "nya"}, "", function()
     send_random_message(e621_meow)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
-onlineChat:action("Woof Woof", {"woof", "bark"}, "", function()
+onlinechat:action("Woof Woof", {"woof", "bark"}, "", function()
     send_random_message(e621_woof)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
-onlineChat:action("Horny pup :3", {"pubby"}, "", function()
+onlinechat:action("Horny pup :3", {"pubby"}, "", function()
     chat.send_message("BARK BARK BARK WOOF WOOF RUFF RUFF GRRR WOOOF RUFF RUFF BARK BARK WUFF AWOOOOOOOOOO AWOOOOOOOOOO BARK BRARK GRRR WOOF", false, true, true)
 end, nil, nil, COMMANDPERM_FRIENDLY)
 
---#premsg
-local customChatMessages = {"", "", "", "", "", "", "", ""}
-onlinePreMSG:text_input("Slot 1", {"1"}, "", function(input)
-    customChatMessages[1] = input
+
+-------------------
+-- Online
+-------------------
+
+online:toggle_loop("Script Host " .. localuser, {"sch"}, "Gives you constant Script Host.\nNote: Enabling this may lead to a slight drop in fps.", function()
+    menu.trigger_commands("givesh" .. localuser)
+    util.yield()
 end)
-onlinePreMSG:text_input("Slot 2", {"2"}, "", function(input)
-    customChatMessages[2] = input
-end)
-onlinePreMSG:text_input("Slot 3", {"3"}, "", function(input)
-    customChatMessages[3] = input
-end)
-onlinePreMSG:text_input("Slot 4", {"4"}, "", function(input)
-    customChatMessages[4] = input
-end)
-onlinePreMSG:text_input("Slot 5", {"5"}, "", function(input)
-    customChatMessages[5] = input
-end)
-onlinePreMSG:text_input("Slot 6", {"6"}, "", function(input)
-    customChatMessages[6] = input
-end)
-onlinePreMSG:text_input("Slot 7", {"7"}, "", function(input)
-    customChatMessages[7] = input
-end)
-onlinePreMSG:text_input("Slot 8", {"8"}, "", function(input)
-    customChatMessages[8] = input
-end)
-onlinePreMSG:click_slider("Send Message", {"sm"}, "Select the index (1-8) of the message you want to send.", 1, 8, 1, 1, function(index, click_type)
-    local idx = tonumber(index)
-    if customChatMessages[idx] and customChatMessages[idx] ~= "" then
-        chat.send_message(customChatMessages[idx], false, true, true)
-    else
-        util.toast("Invalid index or message is empty!", TOAST_DEFAULT)
+
+local function tag_sender_as_e621_user(sender)
+    if players.exists(sender) and util.is_session_started() then
+        local player_name = players.get_name(sender) or "Unknown"
+        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621 User")) then
+            players.add_detection(sender, "e621 User")
+        end
+    end
+end
+chat.on_message(function(sender, reserved, text, team_chat, networked, is_auto)
+    if not is_auto and not players.is_typing(sender) then
+        for _, msg in ipairs(e621_meow) do
+            if text == msg then
+                tag_sender_as_e621_user(sender)
+                return
+            end
+        end
+
+        for _, msg in ipairs(e621_woof) do
+            if text == msg then
+                tag_sender_as_e621_user(sender)
+                return
+            end
+        end
+
+        for _, msg in ipairs(e621_pubby) do
+            if text == msg then
+                tag_sender_as_e621_user(sender)
+                return
+            end
+        end
     end
 end)
 
---#protections
+
+-------------------
+-- Protections
+-------------------
+
 protections:toggle_loop("Block Ped Hijack", {"blockpedhijack"}, "", function()
 	local vehicle = entities.get_user_vehicle_as_handle()
 	if not IS_PED_IN_VEHICLE(players.user_ped(), vehicle, false) then return end
@@ -1682,39 +1752,10 @@ end, function()
 	end
 end)
 
---#detections
-local function tag_sender_as_e621_user(sender)
-    if players.exists(sender) and util.is_session_started() then
-        local player_name = players.get_name(sender) or "Unknown"
-        if not menu.is_ref_valid(menu.ref_by_rel_path(menu.player_root(sender), "Classification: Modder>e621 User")) then
-            players.add_detection(sender, "e621 User")
-        end
-    end
-end
-chat.on_message(function(sender, reserved, text, team_chat, networked, is_auto)
-    if not is_auto and not players.is_typing(sender) then
-        for _, msg in ipairs(e621_meow) do
-            if text == msg then
-                tag_sender_as_e621_user(sender)
-                return
-            end
-        end
 
-        for _, msg in ipairs(e621_woof) do
-            if text == msg then
-                tag_sender_as_e621_user(sender)
-                return
-            end
-        end
-
-        for _, msg in ipairs(e621_pubby) do
-            if text == msg then
-                tag_sender_as_e621_user(sender)
-                return
-            end
-        end
-    end
-end)
+-------------------
+-- Detections
+-------------------
 
 detections:toggle_loop("Bullshark Testosterone", {}, "Notifies you if a player has collected BST.", function()
     local data = memory.alloc(56 * 8)
@@ -1729,7 +1770,7 @@ detections:toggle_loop("Bullshark Testosterone", {}, "Notifies you if a player h
                 end
                 if memory.read_int(data) == -584633745 then
                     local playerID = memory.read_int(data + 1 * 8)
-                    if playerID ~= user_id then -- Check if the player is not the user
+                    if playerID ~= user_id then
                         local playerName = players.get_name(playerID)
                         local message = string.format("%s has collected BST", playerName)
                         toast($"{players.get_name(playerID)} has collected BST", TOAST_CONSOLE)
@@ -1925,68 +1966,11 @@ detections:toggle_loop("Voice Chat", {"voicechat"}, "Detects who is talking in v
 	end 
 end)
 
-local trackedPlayers = {}
-local localPlayerName = players.get_name(players.user())
-local loggingEnabled = false
-local resources_dir = filesystem.resources_dir() .. '\\e621\\'
-local playerDBFilePath = resources_dir .. "PlayerDB.md"
-local loggedPlayersFilePath = resources_dir .. "LoggedPlayers.txt"
 
-local function loadPlayerDB()
-    local dbFile = io.open(playerDBFilePath, "r")
-    if dbFile then
-        for playerName in dbFile:lines() do
-            trackedPlayers[playerName] = true
-        end
-        dbFile:close()
-    end
-end
+-------------------
+-- Enhancements
+-------------------
 
-local function savePlayerDB()
-    local dbFile = io.open(playerDBFilePath, "w")
-    if dbFile then
-        for playerName in pairs(trackedPlayers) do
-            dbFile:write(playerName .. "\n")
-        end
-        dbFile:close()
-    end
-end
-
-local function logPlayerInfo(playerID, sesslog)
-    if not loggingEnabled and not sesslog then return end
-    local playerName = players.get_name(playerID)
-    if playerName == localPlayerName or trackedPlayers[playerName] then return end
-
-    local logFile = io.open(loggedPlayersFilePath, "a")
-    if logFile then
-        local dateSeen = os.date("%Y-%m-%d %H:%M:%S")
-        local hostTokenHex = players.get_host_token_hex(playerID)
-        logFile:write(string.format("Date Seen: %s \\ Name: %s \\ RID: %d \\ Host Token: %s\n", dateSeen, playerName, players.get_rockstar_id(playerID), hostTokenHex))
-        logFile:close()
-
-        trackedPlayers[playerName] = true
-        savePlayerDB()
-    else
-        print("Failed to open log file for writing.")
-    end
-end
-
-local function logPlayersInSession()
-    for _, playerID in ipairs(players.list(false, true, true)) do
-        logPlayerInfo(playerID, true)
-    end
-end
-
-players.on_join(logPlayerInfo)
-loadPlayerDB()
-logPlayersInSession()
-players.dispatch_on_join()
-
-detections:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token\nYou can find the txt file in:\n'Lua Scripts > Resources > e621'", function(toggle)
-    loggingEnabled = toggle
-end)
-
---#enhancements
 enhancements:toggle_loop("Safe Shopping", {"safeshopping"}, "Makes it so other players will not be able to see that you are in a shop.", function()
 	if getPlayerCurrentShop(players.user()) != -1 then
 		NETWORK_START_SOLO_TUTORIAL_SESSION()
@@ -2039,7 +2023,11 @@ enhancements:action("Passive ORG", {"passiveorg"}, "", function()
     write_to_global()
 end)
 
---#freemodetweaks
+
+-------------------
+-- Freemode Tweaks
+-------------------
+
 freemodetweaks:toggle_loop("Disable Yacht Camera Shake", {"disableyachtcamerashake"}, "", function() --updated to 1.69-3258
     local val = memory.read_int(memory.script_global(262145 + 13093))
     if val != 1 then
@@ -2082,13 +2070,6 @@ freemodetweaks:toggle_loop("Block Simeon Showroom", {""}, "", function() --updat
     end
 end)
 
-freemodetweaks:toggle_loop("Block Lester Player Bounty Cut", {""}, "", function() --updated to 1.69-3258
-    local val = memory.read_int(memory.script_global(262145 + 7179))
-    if val != 0 then
-    memory.write_int(memory.script_global(262145 + 7179), 0)
-    end
-end)
-
 freemodetweaks:toggle_loop("Block Street Dealers", {""}, "", function() --updated to 1.69-3258
     local val = memory.read_int(memory.script_global(262145 + 33479))
     if val != 0 then
@@ -2121,15 +2102,13 @@ freemodetweaks:toggle_loop("Block Stash Houses", {""}, "", function() --added 1.
     end
 end)
 
---#scripthost
-local playerName = players.get_name(players.user())
-online:toggle_loop("Script Host " .. playerName, {"sch"}, "Gives you constant Script Host.\nNote: Enabling this may lead to a slight drop in fps.", function()
-    menu.trigger_commands("givesh" .. playerName)
-    util.yield()
-end)
----#lobbyTrolling
---#hijackall
-lobbyTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
+
+-------------------
+-- Lobby
+---- Lobby Trolling
+-------------------
+
+lobbytrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take them out of their vehicle and drive away.", function()
 	for players.list_except(true) as playerID do
 		local ped = GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 		local pos = players.get_position(playerID)
@@ -2139,9 +2118,12 @@ lobbyTrolling:action("Hijack All Vehicles", {"hijackall"}, "Spawns a ped to take
 	end
 end)
 
----#lobbyGriefing
---#smartsekick
-lobbyGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified.", function() -- Credit to nui for this
+
+-------------------
+-- Lobby Griefing
+-------------------
+
+lobbygriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified.", function() -- Credit to nui for this
     local list = players.list(false, false, true)
     for list as pid do
         if players.get_name(players.get_host()) == players.get_name(pid) then
@@ -2153,9 +2135,8 @@ lobbyGriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else beside
     end
 end)
 
---#orball
 local obliterate_global = memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424)
-lobbyGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
+lobbygriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
     if isOrbActive then
         util.toast("Orbital strike is already active you silly goober :33")
         return
@@ -2177,8 +2158,7 @@ lobbyGriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
     isOrbActive = false
 end)
 
---#blockorbitalcannon
-lobbyGriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", function()
+lobbygriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", function()
 	local blockOrbMdl = joaat("h4_prop_h4_garage_door_01a")
 	local blockOrbMdlSign = joaat("xm_prop_x17_screens_02a_07")
 	util.request_model(blockOrbMdl)
@@ -2204,15 +2184,77 @@ end, function()
 	end
 end)
 
---#scripthostroulette
-lobbyGriefing:toggle_loop("Script Host Roulette", {}, "You're a nigger if you use this.", function(on)
+lobbygriefing:toggle_loop("Script Host Roulette", {}, "You're a faggot if you use this.", function(on)
     for _, pid in ipairs(players.list(false, true, true)) do
-        menu.trigger_commands("givesh" .. players.get_name(pid))
+        menu.trigger_commands("givesh" .. localuser)
         util.yield()
     end
 end)
 
---#killfeed
+local trackedPlayers = {}
+local loggingEnabled = false
+local playerDBFilePath = resources_dir .. "PlayerDB.md"
+local loggedPlayersFilePath = resources_dir .. "LoggedPlayers.txt"
+
+local function loadPlayerDB()
+    local dbFile = io.open(playerDBFilePath, "r")
+    if dbFile then
+        for playerName in dbFile:lines() do
+            trackedPlayers[playerName] = true
+        end
+        dbFile:close()
+    end
+end
+
+local function savePlayerDB()
+    local dbFile = io.open(playerDBFilePath, "w")
+    if dbFile then
+        for playerName in pairs(trackedPlayers) do
+            dbFile:write(playerName .. "\n")
+        end
+        dbFile:close()
+    end
+end
+
+local function logPlayerInfo(playerID, sesslog)
+    if not loggingEnabled and not sesslog then return end
+    local playerName = players.get_name(playerID)
+    if playerName == localPlayerName or trackedPlayers[playerName] then return end
+    local logFile = io.open(loggedPlayersFilePath, "a")
+    if logFile then
+        local dateSeen = os.date("%Y-%m-%d %H:%M:%S")
+        local hostTokenHex = players.get_host_token_hex(playerID)
+        logFile:write(string.format("Date Seen: %s \\ Name: %s \\ RID: %d \\ Host Token: %s\n", dateSeen, playerName, players.get_rockstar_id(playerID), hostTokenHex))
+        logFile:close()
+
+        trackedPlayers[playerName] = true
+        savePlayerDB()
+    else
+        print("Failed to open log file for writing.")
+    end
+end
+
+local function logPlayersInSession()
+    if not loggingEnabled then return end
+    for _, playerID in ipairs(players.list(false, true, true)) do
+        logPlayerInfo(playerID, true)
+    end
+end
+
+players.on_join(logPlayerInfo)
+loadPlayerDB()
+if loggingEnabled then
+    logPlayersInSession()
+end
+
+players.dispatch_on_join()
+lobby:toggle("Player Logging", {"playerlogging"}, "Logs players Name | RID | Host Token\nYou can find the txt file in:\n'Lua Scripts > Resources > e621'", function(toggle)
+    loggingEnabled = toggle
+    if loggingEnabled then
+        logPlayersInSession()
+    end
+end)
+
 local eventData = memory.alloc(13 * 8)
 local killFeedEnabled = false
 
@@ -2256,9 +2298,11 @@ lobby:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a p
     end
 end)
 
----#world
----#teleports
---#smoothtp2wp
+
+-------------------
+-- Teleports
+-------------------
+
 teleports:action("Smooth TP2WP", {"smoothtp"}, "", function()
 	if not IS_WAYPOINT_ACTIVE() then
 		toast(lang.get_localised(BLIPNFND))
@@ -2314,7 +2358,6 @@ teleports:action("Smooth TP2WP", {"smoothtp"}, "", function()
 	BUSYSPINNER_OFF()
 end)
 
---#gun_van_locations
 gunvan = teleports:list("Gun Van Locations", {"gunvan"}, "")
 local function teleportPlayerAndVehicle(x, y, z)
     local me = players.user_ped()
@@ -2339,7 +2382,6 @@ for _, loc in ipairs(gun_van_locations) do
     gunvan:action(loc.name, {}, "", createTeleportAction(loc.name, loc.x, loc.y, loc.z))
 end
 
---#oob_location
 local function teleportPlayerAndVehicle(x, y, z)
     local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
@@ -2362,7 +2404,6 @@ for _, loc in ipairs(oob_locations) do
     end)
 end
 
---#interiors_inaccessible
 local function teleportPlayerAndVehicle(x, y, z)
     local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
@@ -2385,7 +2426,6 @@ for _, loc in ipairs(interior_locations) do
     end)
 end
 
---#cringe_locations
 local function teleportPlayerAndVehicle(x, y, z)
     local me = players.user_ped()
     local myVehicleHandle = entities.get_user_vehicle_as_handle()
@@ -2410,7 +2450,10 @@ for _, loc in ipairs(cringe_locations) do
 end
 
 
---#cleanse
+-------------------
+-- Clear Area
+-------------------
+
 cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickups", "Projectiles", "Sounds"}, function(index, name)
     local counter = 0
     switch index do
@@ -2507,7 +2550,6 @@ cleanse:toggle("Clear Traffic", {"cleartraffic"}, "", function(on)
     end
 end)
 
---#chaos
 world:toggle_loop("Chaos", {}, "", function(on)
 	local vehicle = entities.get_all_vehicles_as_handles()
 	local me = players.user()  
@@ -2520,8 +2562,12 @@ world:toggle_loop("Chaos", {}, "", function(on)
 		end
 end)
 
---#hud
-hudSettings:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
+
+-------------------
+-- Hud
+-------------------
+
+hudsettings:toggle_loop("Display NAT Type In Overlay", {"displaynat"}, "", function()
 	local natTypes = {"Open", "Moderate", "Strict"}
     local getNatType = util.stat_get_int64("_NatType")
     for nat, natType in natTypes do
@@ -2538,7 +2584,7 @@ local default_text_color = {
     ["a"] = 1.0
 }
 
-local customTextDisplay = hudSettings:list("Custom Text Display", {})
+local customTextDisplay = hudsettings:list("Custom Text Display", {})
 local e621drawText = false
 local textPositionX = 0.0  -- Default X position
 local textPositionY = 0.0  -- Default Y position
@@ -2591,7 +2637,7 @@ util.create_tick_handler(function()
     return true
 end)
 
-local overrideHudcolour = hudSettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things.")
+local overrideHudcolour = hudsettings:list("Change HUD Colour", {}, "Changes the colour of the weapon wheel and some other things.")
 local hudcolour = 57
 overrideHudcolour:list_select("Colour", {}, "", colours, hudcolour, function(colours)
     hudcolour = colours
@@ -2600,7 +2646,11 @@ overrideHudcolour:toggle_loop("Change HUD Colour", {}, "", function()
     SET_CUSTOM_MP_HUD_COLOR(hudcolour)
 end)
 
---#audio
+
+-------------------
+-- Audio
+-------------------
+
 audioSettings:toggle_loop("Disable Scripted Music", {"disablefreemodemusic"}, "Disables scripted freemode music caused by missions, gang attacks, etc.", function()
 	if AUDIO_IS_MUSIC_PLAYING() and not NETWORK_IS_ACTIVITY_SESSION() then
 		TRIGGER_MUSIC_EVENT("GLOBAL_KILL_MUSIC")
@@ -2666,7 +2716,11 @@ end, function()
 	end
 end)
 
----#playermenu
+
+-------------------
+-- Player Menu
+-------------------
+
 players.on_join(checkDeveloper)
 initializeDetections()
 
@@ -2701,8 +2755,6 @@ local function godKill(playerID)
 	timer = util.current_time_millis() + 3000
 end
 
----#trollingplayermenu
---#glitchVehicle
 local glitchVehRoot = trollingPlayermenu:list("Glitch Vehicle")
 local glitchVehMdl = joaat("prop_ld_ferris_wheel")
 glitchVehRoot:list_select("Object", {"glitchvehobj"}, "", object_stuff, object_stuff[1][1], function(mdlHash)
@@ -2778,7 +2830,6 @@ end, function()
     end
 end)
 
---#glitchPlayer
 local playerID = pid
 local glitchPlyrRoot = trollingPlayermenu:list("Glitch Player")
 local glitchObjMdl = joaat("prop_ld_ferris_wheel")
@@ -2817,7 +2868,6 @@ glitchplayer = glitchPlyrRoot:toggle_loop("Glitch Player", {"glitchplayer"}, "Bl
     yield(delay)
 end)
 
---#vehicleKick
 local veh_kick = trollingPlayermenu:list("Kick From Vehicle")
 veh_kick:action("Drag Method", {"dragkick"}, "Spawns a ped to forcefully drag them out of their vehicle.", function()
     if playerID == players.user() then 
@@ -2980,7 +3030,6 @@ trollingPlayermenu:action("Tow Vehicle", {"tow"}, "", function()
     TASK_VEHICLE_DRIVE_WANDER(randomPed, towtruck, 9999.0, DF_SwerveAroundAllCars | DF_AvoidRestrictedAreas | DF_GoOffRoadWhenAvoiding | DF_SteerAroundObjects | DF_UseShortCutLinks | DF_ChangeLanesAroundObstructions)
 end)
 
---#ghostPlayer
 local ghostPlayer
 local playerID = pid
 local ghostPlayer
@@ -3005,7 +3054,6 @@ end, function()
     SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
 end)
 
---#removeGodmode
 local playerID = pid 
 playermenu:toggle_loop("Remove Player Godmode", {}, lang.get_localised(-748077967), function()
     util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
@@ -3027,7 +3075,6 @@ playermenu:toggle_loop("Remove Vehicle Godmode", {}, lang.get_localised(-7480779
     end
 end)
 
---#playerOrbital
 local isOrbActive = false
 griefingPlayermenu:action("Orbital Strike", {"orb"}, "", function()
     local timer = util.current_time_millis() + 3000
@@ -3156,7 +3203,6 @@ griefingPlayermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "", function(
     timer = util.current_time_millis() + 3000
 end)
 
---#restrainPlayer
 griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local player_ped = GET_PLAYER_PED_SCRIPT_INDEX(pid)
     local pos = GET_ENTITY_COORDS(player_ped)
@@ -3183,7 +3229,6 @@ griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     end
 end)
 
---#hijackPlayer
 trollingPlayermenu:action("Hijack Vehicle", {"hijack"}, "Note: May be inconsistent on higher ping players or just not work at all for some players.", function()
     if playerID == players.user() then 
         toast(lang.get_localised(CMDOTH))
