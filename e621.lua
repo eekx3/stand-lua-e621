@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.3.0"
+local SCRIPT_VERSION = "3.3.1"
 local resources_dir = filesystem.resources_dir() .. '\\e621\\'
 local store_dir = filesystem.store_dir() .. '\\e621\\'
 
@@ -1012,7 +1012,7 @@ end, function ()
     block = nil
 end)
 waterwalk:slider_float(('Height above water'), {}, ('Adjust the height above or below water'), -90, 90, -30, 10, function (h)
-   waterwalk.height = h * 0.01
+   waterwalkh.height = h * 0.01
 end)
 
 local original_coords = nil
