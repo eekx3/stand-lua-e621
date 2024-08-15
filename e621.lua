@@ -1,6 +1,6 @@
 util.require_natives("3095a", "g")
 native_invoker.accept_bools_as_ints(true)
-local SCRIPT_VERSION = "3.2.6"
+local SCRIPT_VERSION = "3.3.0"
 local resources_dir = filesystem.resources_dir() .. '\\e621\\'
 local store_dir = filesystem.store_dir() .. '\\e621\\'
 
