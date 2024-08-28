@@ -2,6 +2,10 @@
 
 ### Dates and times are provided in Central Europe Time.
 
+## **e621 v3.3.2** 28/08/2024 18:05
+
+- Removed `Online > Script Host` as it only caused issues and did not provide any real benefits
+
 ## **e621 v3.3.1** 15/08/2024 23:19
 
 - Fixed minor spelling mistake causing `Walk on Water` to not work

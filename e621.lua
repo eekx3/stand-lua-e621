@@ -1650,11 +1650,6 @@ end, nil, nil, COMMANDPERM_FRIENDLY)
 -- Online
 -------------------
 
-online:toggle_loop("Script Host " .. localuser, {"sch"}, "Gives you constant Script Host.\nNote: Enabling this may lead to a slight drop in fps.", function()
-    menu.trigger_commands("givesh" .. localuser)
-    util.yield()
-end)
-
 local function tag_sender_as_e621_user(sender)
     if players.exists(sender) and util.is_session_started() then
         local player_name = players.get_name(sender) or "Unknown"
