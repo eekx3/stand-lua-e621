@@ -27,7 +27,7 @@ if SCRIPT_MANUAL_START then
                 logo_alpha = 0
                 util.stop_thread()
             end
-            util.yield()
+            yield()
         end
     end)
     logo_thread = util.create_thread(function (thr)
@@ -42,7 +42,7 @@ if SCRIPT_MANUAL_START then
             if logo_alpha == 0 then
                 util.stop_thread()
             end
-            util.yield()
+            yield()
         end
     end)
 end
@@ -70,7 +70,7 @@ if not status then
             end
             auto_update_complete = parse_auto_update_result(result, headers, status_code)
         end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
-    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
+    async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do yield(250) i = i + 1 end
     if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
     auto_updater = require("auto-updater")
 end
@@ -641,24 +641,24 @@ local function pressKey(keyCode, times, duration)
     if times then
         for i = 1, times do
             SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-            util.yield()
+            yield()
             SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
-            util.yield(10)
+            yield(10)
         end
     else
         SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 1)
-        util.yield()
+        yield()
         SET_CONTROL_VALUE_NEXT_FRAME(0, keyCode, 0)
     end
     if duration then
-        util.yield(duration)
+        yield(duration)
     end
 end
 
 local function openInteractionMenu()
     if not util.is_interaction_menu_open() then
         pressKey(244) -- Press M to open the interaction menu
-        util.yield(8) -- Wait for menu to open
+        yield(8) -- Wait for menu to open
     end
 end
 
@@ -684,7 +684,7 @@ local function RequestModel(hash, timeout)
     STREAMING.REQUEST_MODEL(hash)
     local end_time = os.time() + timeout
     repeat
-        util.yield()
+        yield()
     until STREAMING.HAS_MODEL_LOADED(hash) or os.time() >= end_time
     return STREAMING.HAS_MODEL_LOADED(hash)
 end
@@ -727,7 +727,7 @@ end
 local function loadModelAsync(hash)
     REQUEST_MODEL(hash)
     while not HAS_MODEL_LOADED(hash) do
-        util.yield()
+        yield()
     end
 end
 
@@ -1070,8 +1070,8 @@ stealthLevitation = selfmovement:toggle_loop("Stealth Levitation", {"stealthlevi
 		vehInvisibility:setState("Locally Visible")
 		invisibility:setState("Locally Visible")
 		repeat
-			util.yield()
-			util.yield()
+			yield()
+			yield()
 		until not levitation.value
 		invisibility:setState("Disabled")
 		vehInvisibility:setState("Disabled")
@@ -1091,7 +1091,7 @@ end)
 selfmacros:action("Start CEO", {}, "", function()
     if not isPlayerInORG() then
         pressKey(244) -- Press M
-        util.yield(2)
+        yield(2)
         pressKey(173) -- Press Down Arrow once
         menu.trigger_commands("startceo")
     end
@@ -1099,62 +1099,62 @@ end)
 
 selfmacros:action("Get BST", {}, "", function()
     openInteractionMenu()
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(173) -- Press Down Arrow once
-    util.yield(5)
+    yield(5)
     pressKey(172) -- Press Up Arrow once
-    util.yield(5)
+    yield(5)
     pressKey(173) -- Press Down Arrow once
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
 end)
 
 selfmacros:action("Drop Armour", {}, "", function()
     openInteractionMenu()
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(173, 3) -- Press Down Arrow 3 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
     
 end)
 
 selfmacros:action("Ghost Organization", {}, "", function()
     openInteractionMenu()
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(173, 4) -- Press Down Arrow 4 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
 end)
 
 selfmacros:action("Bribe Authorities", {}, "", function()
     openInteractionMenu()
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(172, 3) -- Press Up Arrow 3 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
-    util.yield(5)
+    yield(5)
     pressKey(173, 5) -- Press Down Arrow 5 times
-    util.yield(5)
+    yield(5)
     pressKey(176) -- Press Enter
 end)
 
@@ -1501,7 +1501,7 @@ vehiclefly:toggle_loop("Vehicle Fly", {""}, "", function()
     SET_ENTITY_COLLISION(carUsed, true, true)
     if NETWORK_HAS_CONTROL_OF_ENTITY(carUsed) == false then
         NETWORK_REQUEST_CONTROL_OF_ENTITY(carUsed)
-        util.yield(3000)
+        yield(3000)
     end
     if keepMomentum == false then
         SET_ENTITY_VELOCITY(carUsed, 0, 0, 0)
@@ -1900,10 +1900,10 @@ detections:toggle_loop("Damage Modifier", {}, "Detects menus with bad damage mul
 						timer = util.current_time_millis() + 5000
 						break
 					end
-					util.yield()
+					yield()
 				until util.current_time_millis() > timer
 				if util.current_time_millis() > timer and not isDetectionPresent(playerID, "Damage Modifier") then
-					util.yield(1000)
+					yield(1000)
 					players.add_detection(playerID, "Damage Modifier", TOAST_ALL, 100)
 					timer = util.current_time_millis() + 5000
 					break
@@ -1920,7 +1920,7 @@ detections:toggle_loop("Damage Modifier", {}, "Detects menus with bad damage mul
 			end
 		end
 	end
-	util.yield(250)
+	yield(250)
 end)
 
 detections:toggle_loop("2Take1 User", {}, "Detects people using 2Take1. (Note: player must be in a vehicle spawned by them)", function()
@@ -2121,12 +2121,9 @@ end)
 lobbygriefing:action("Smart SE Kick", {"sekickall"}, "Kicks everyone else besides the host, thus the host won't be notified.", function() -- Credit to nui for this
     local list = players.list(false, false, true)
     for list as pid do
-        if players.get_name(players.get_host()) == players.get_name(pid) then
-            goto continue
-        end
+        if players.get_name(players.get_host()) == players.get_name(pid) then continue end
         menu.trigger_commands("nonhostkick" .. players.get_name(pid))
-        util.yield()
-        ::continue::
+        yield()
     end
 end)
 
@@ -2147,9 +2144,9 @@ lobbygriefing:action("Orbital Strike Everyone", { "orball" }, "", function()
             PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false)
         end
     end
-    util.yield(1000)
+    yield(1000)
     clearBit(obliterate_global, 0)
-    util.yield(3000)
+    yield(3000)
     isOrbActive = false
 end)
 
@@ -2169,7 +2166,7 @@ lobbygriefing:toggle_loop("Block Orbital Cannon", {"blockorbitalcannon"}, "", fu
 		SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orbObj, false)
 		SET_ENTITY_ROTATION(orbSign, -25.0, 0.0, 125.0, 2, true)
 	end
-	util.yield(50)
+	yield(50)
 end, function()
 	if orbObj != nil then
 		entities.delete(orbObj)
@@ -2182,7 +2179,7 @@ end)
 lobbygriefing:toggle_loop("Script Host Roulette", {}, "You're a faggot if you use this.", function(on)
     for _, pid in ipairs(players.list(false, true, true)) do
         menu.trigger_commands("givesh" .. localuser)
-        util.yield()
+        yield()
     end
 end)
 
@@ -2288,7 +2285,7 @@ lobby:toggle("Enable Kill Feed", {"killfeed"}, "Toasts a notification of how a p
     if killFeedEnabled then
         while killFeedEnabled do
             checkPlayerKills()
-            util.yield()
+            yield()
         end
     end
 end)
@@ -2457,7 +2454,7 @@ cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickup
                 if ped != players.user_ped() and not IS_PED_A_PLAYER(ped) then
                     entities.delete_by_handle(ped)
                     counter += 1
-                    util.yield()
+                    yield()
                 end
             end
             break
@@ -2468,21 +2465,21 @@ cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickup
                     entities.delete_by_handle(vehicle)
                     counter += 1
                 end
-                util.yield()
+                yield()
             end
             break
         case 3:
             for entities.get_all_objects_as_handles() as object do
                 entities.delete_by_handle(object)
                 counter += 1
-                util.yield()
+                yield()
             end
             break
         case 4:
             for entities.get_all_pickups_as_handles() as pickup do
                 entities.delete_by_handle(pickup)
                 counter += 1
-                util.yield()
+                yield()
             end
             break
         case 5:
@@ -2492,7 +2489,7 @@ cleanse:textslider("Clear Area", {}, "", {"Peds", "Vehicles", "Objects", "Pickup
         case 6:
             for i = 0, 99 do
                 STOP_SOUND(i)
-                util.yield()
+                yield()
             end
         break
     end
@@ -2733,8 +2730,7 @@ local function godKill(playerID)
 	local timer = (ping > 300) ? (util.current_time_millis() + 5000) : (util.current_time_millis() + 3000)
 	local pPed =  entities.handle_to_pointer(ped)
 	local pedPtr = entities.handle_to_pointer(players.user_ped())
-	yield()
-	yield()
+	yield(2)
 	repeat
 		util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
 		util.call_foreign_function(CWeaponDamageEventTrigger, pedPtr, pPed, pPed + 0x90, 0, 1, joaat("weapon_pistol"), 500.0, 0, 0, DF_IsAccurate | DF_IgnorePedFlags | DF_SuppressImpactAudio | DF_IgnoreRemoteDistCheck, 0, 0, 0, 0, 0, 0, 0, 0.0)
@@ -2745,8 +2741,7 @@ local function godKill(playerID)
 		end
 		yield()
 	until IS_PED_DEAD_OR_DYING(ped)
-	yield()
-	yield()
+	yield(2)
 	timer = util.current_time_millis() + 3000
 end
 
@@ -2980,7 +2975,7 @@ veh_kick:action("Shuffle Method", {"shufflekick"}, "Spawns a ped in the passenge
                 timer = util.current_time_millis() + 2500
                 break
             end
-            util.yield()
+            yield()
         until not IS_PED_IN_ANY_VEHICLE(ped)
     end
     entities.delete(randomPed)
@@ -3138,7 +3133,7 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
             return
         end
         util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
-        util.yield()
+        yield()
     until not players.is_godmode(playerID)
     isGodmodeRemovable[playerID] = true
     if isGodmodeRemovable[playerID] then
@@ -3150,16 +3145,16 @@ playermenu:action("Orbital Strike Godmode Player", {"orbgod"}, "", function()
             SET_ENTITY_PROOFS(vehicle, false, false, false, false, false, false, false, false)
         end
         setBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
-        util.yield(500) -- yielding so their game realizes I'm using the orb
+        yield(500) -- yielding so their game realizes I'm using the orb
         local pos = players.get_position(playerID)
         ADD_OWNED_EXPLOSION(players.user_ped(), pos, 59, 1.0, true, false, 1.0)
         USE_PARTICLE_FX_ASSET("scr_xm_orbital")
         START_NETWORKED_PARTICLE_FX_NON_LOOPED_AT_COORD("scr_xm_orbital_blast", pos, v3(), 1.0, false, false, false, true)
         PLAY_SOUND_FROM_COORD(0, "DLC_XM_Explosions_Orbital_Cannon", pos, 0, true, 0, false) -- hardcoding sound id because GET_SOUND_ID doesn't work sometimes
         godKill(playerID)
-        util.yield(1000) -- yielding here isn't needed but it gives yourself the notification that you orbed them
+        yield(1000) -- yielding here isn't needed but it gives yourself the notification that you orbed them
         clearBit(memory.script_global(GlobalplayerBD + 1 + (players.user() * 463) + 424), 0)
-        util.yield(3000)
+        yield(3000)
         STOP_SOUND(0)
         isGodmodeRemovable[playerID] = false
     end
@@ -3190,7 +3185,7 @@ griefingPlayermenu:toggle_loop("Orbital Strike Loop", {"orbloop"}, "", function(
             timer = util.current_time_millis() + 3000
             return
         end
-        util.yield()
+        yield()
     until not IS_PED_DEAD_OR_DYING(ped)
 
     STOP_SOUND(0)
@@ -3210,13 +3205,13 @@ griefingPlayermenu:toggle_loop("Restraining Order", {"restrain"}, "", function()
     local veh_hash = util.joaat("khanjali")
     REQUEST_MODEL(veh_hash)
     while not HAS_MODEL_LOADED(veh_hash) do
-        util.yield()
+        yield()
     end
     local veh = entities.create_vehicle(veh_hash, coord, GET_GAMEPLAY_CAM_ROT(-8).z)
     SET_ENT_FACE_ENT(veh, player_ped)
     SET_VEHICLE_DOORS_LOCKED(veh, 2)
     SET_VEHICLE_FORWARD_SPEED(veh, 125)
-    util.yield(100)
+    yield(100)
     NETWORK_REQUEST_CONTROL_OF_ENTITY(veh)
     entities.delete_by_handle(veh)
     if not players.exists(pid) then
